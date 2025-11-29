@@ -1,0 +1,56 @@
+---
+description: Rules for Python development in this project
+globs: ["**/*.py", "pyproject.toml", "requirements*.txt"]
+alwaysApply: false
+---
+
+# Python Development Rules
+
+## Stack Requirements
+- Use `uv` for package management (not pip, poetry, or conda)
+- Use `ruff` for linting and formatting (not black, flake8, pylint)
+- Use `pytest` with async support for testing
+- Use `structlog` for structured logging
+
+## Code Style
+- Type hints required for all function signatures
+- Docstrings (Google style) for public functions and classes
+- Max line length: 88 characters
+- Use pathlib.Path over os.path
+- Prefer dataclasses or Pydantic models over plain dicts
+
+## Edit Constraints
+- Max patch size: 200 lines per change
+- One logical change per commit
+- Always review diffs before accepting
+- Use @file scope when editing specific modules
+
+## Project Structure
+```
+src/
+├── {package_name}/
+│   ├── __init__.py
+│   ├── main.py
+│   └── ...
+tests/
+├── conftest.py
+├── test_*.py
+pyproject.toml
+```
+
+## Testing (TDD Required)
+1. **RED**: Write failing test first
+2. **GREEN**: Minimal code to pass test
+3. **REFACTOR**: Clean up while tests pass
+
+Run: `uv run pytest`
+Coverage target: 80%
+
+## Common Commands
+```bash
+uv sync                    # Install dependencies
+uv run pytest             # Run tests
+uv run pytest --cov=src   # Run with coverage
+uv run ruff check .       # Lint
+uv run ruff format .      # Format
+```

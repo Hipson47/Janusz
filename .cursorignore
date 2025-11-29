@@ -1,0 +1,77 @@
+# Cursor Ignore File
+# Files listed here are excluded from Cursor's AI indexing and context
+
+# ===============================================
+# PRIVATE KNOWLEDGE BASE - NEVER INDEX
+# ===============================================
+baza wiedzy 28.11/
+new/
+*.toon
+
+# ===============================================
+# SECRETS AND SENSITIVE FILES
+# ===============================================
+.env
+.env.*
+*.env
+.env.local
+.env.development
+.env.production
+*.pem
+*.key
+*.crt
+secrets/
+credentials/
+**/secrets/**
+**/credentials/**
+
+# ===============================================
+# BUILD ARTIFACTS AND CACHES
+# ===============================================
+__pycache__/
+*.py[cod]
+*$py.class
+.cache/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# ===============================================
+# IDE AND EDITOR FILES
+# ===============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===============================================
+# DEPENDENCY DIRECTORIES
+# ===============================================
+node_modules/
+.venv/
+venv/
+env/
+
+# ===============================================
+# LARGE DATA FILES
+# ===============================================
+*.log
+logs/
+*.csv
+*.parquet
+*.db
+*.sqlite
+*.sqlite3
+
+# ===============================================
+# OS FILES
+# ===============================================
+.DS_Store
+Thumbs.db
+

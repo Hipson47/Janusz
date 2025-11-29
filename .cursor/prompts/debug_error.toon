@@ -1,0 +1,29 @@
+metadata:
+  title: debug_error
+  source: .cursor/prompts/debug_error.md
+  source_type: markdown
+  converted_by: Universal Document to YAML Converter
+  format_version: "2.0"
+content:
+  sections[5]:
+    - title: # Error Debugging Template
+      content[3]: "**Context**: Use this template for investigating runtime errors and bugs.","**Task**: Debug this error and identify the root cause.","**Error Details**:"
+      subsections[0]:
+    - title: "Error: \"TypeError: Cannot read property 'map' of undefined\""
+      content[1]: "**Investigation Steps**:"
+      subsections[0]:
+    - title: 1. Where does the undefined value originate?
+      content[0]:
+      subsections[0]:
+    - title: 2. What should be the correct data structure?
+      content[0]:
+      subsections[0]:
+    - title: 3. How to add proper null checking?
+      content[9]: "**Code References**:","@code:src/components/ListView.js:20-30","@file:src/api/dataService.js","**Context**: The error occurs when loading the user list. The component expects an array but receives undefined.","**Success Criteria**:","- Error is resolved without side effects","- Proper error handling is added","- Data flow is validated","- Edge cases are covered"
+      subsections[0]:
+  raw_text: "# Error Debugging Template\n\n**Context**: Use this template for investigating runtime errors and bugs.\n\n**Task**: Debug this error and identify the root cause.\n\n**Error Details**:\nError: \"TypeError: Cannot read property 'map' of undefined\"\n\n**Investigation Steps**:\n1. Where does the undefined value originate?\n2. What should be the correct data structure?\n3. How to add proper null checking?\n\n**Code References**:\n@code:src/components/ListView.js:20-30\n@file:src/api/dataService.js\n\n**Context**: The error occurs when loading the user list. The component expects an array but receives undefined.\n\n**Success Criteria**:\n- Error is resolved without side effects\n- Proper error handling is added\n- Data flow is validated\n- Edge cases are covered\n"
+analysis:
+  keywords[21]: Debug,Details,Cannot,Proper,Data,Success,Template,ListView,Debugging,Where,Investigation,Code,Steps,TypeError,Criteria,Task,Edge,References,Error,Context,What
+  patterns[0]:
+  best_practices[0]:
+  examples[0]:

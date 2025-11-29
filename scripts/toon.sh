@@ -9,9 +9,9 @@ echo "Documents → YAML → TOON"
 echo "Supported formats: PDF, MD, TXT, DOCX, HTML, RTF, EPUB"
 echo
 
-# Step 1: Convert PDFs to YAML
-echo "📄 Converting PDFs to YAML..."
-python pdf_yaml_converter.py
+# Step 1: Convert documents to YAML
+echo "📄 Converting documents to YAML..."
+python -m janusz.cli convert
 
 if [ $? -ne 0 ]; then
     echo "❌ Error: PDF to YAML conversion failed"
@@ -23,7 +23,7 @@ echo
 
 # Step 2: Convert YAMLs to TOON
 echo "🎨 Converting YAMLs to TOON..."
-python toon.py
+python -m janusz.cli toon
 
 if [ $? -ne 0 ]; then
     echo "❌ Error: YAML to TOON conversion failed"

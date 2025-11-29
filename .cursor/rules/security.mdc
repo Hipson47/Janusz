@@ -1,0 +1,59 @@
+---
+description: Security rules that always apply
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Security Rules (Always Active)
+
+## CRITICAL: Never Commit
+- API keys, tokens, passwords
+- `.env` files with real credentials
+- Private keys (`.pem`, `.key`, `.crt`)
+- Database connection strings with credentials
+- `credentials.json`, `secrets/` folders
+
+## Cursor-Specific Security
+- **Privacy Mode**: Enable for sensitive projects (Settings → Privacy)
+- **MCP Servers**: Verify origin, restrict to trusted sources only
+- **Known CVEs**:
+  - CVE-2025-59944: Case-sensitivity exploit
+  - CVE-2025-54135/54136: Prompt injection via MCP (CurXecute, MCPoison)
+- **Mitigations**:
+  - Normalize file paths
+  - Disable auto-execution of remote commands
+  - Keep Cursor updated to latest patched version
+
+## Sandbox & Execution
+- NEVER use "Run everything" mode
+- Use allowlist for terminal commands
+- Sandbox limits: network + filesystem access restricted
+- Manual approval for: package installs, network access, config changes
+
+## Input Validation
+- Validate ALL external input (user input, API responses, file contents)
+- Use Pydantic models for structured validation
+- Sanitize strings before database queries
+- Limit file sizes and types for uploads
+
+## Authentication & Authorization
+- Never store passwords in plain text
+- Use bcrypt or argon2 for password hashing
+- Implement proper session management
+- Check permissions before every protected action
+
+## CWE Checklist
+- [ ] CWE-79: XSS prevented (output encoding)?
+- [ ] CWE-89: SQL injection prevented (parameterized queries)?
+- [ ] CWE-306: Authentication required where needed?
+- [ ] CWE-327: Modern crypto algorithms (bcrypt/scrypt)?
+- [ ] CWE-732: File permissions restricted (chmod 600 for secrets)?
+- [ ] No hardcoded secrets?
+- [ ] Error messages don't leak internal details?
+
+## Private Knowledge Base
+Folders `baza wiedzy 28.11/` and `new/` are PRIVATE:
+- ❌ Never reference in code or docs
+- ❌ Never copy content verbatim
+- ❌ Never commit or share
+- ✅ Use derived rules in .cursor/ only

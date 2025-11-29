@@ -1,0 +1,62 @@
+metadata:
+  title: 05_code_review
+  source: .cursor/prompts/05_code_review.md
+  source_type: markdown
+  converted_by: Universal Document to YAML Converter
+  format_version: "2.0"
+content:
+  sections[16]:
+    - title: # Code Review Template
+      content[2]: "**Context**: Use this template to review code for security vulnerabilities, best practices, and quality issues.","---"
+      subsections[0]:
+    - title: ## Code Under Review
+      content[4]: "@file:[FILE_PATH]",or,"@code:[FILE_PATH]:[LINE_RANGE]","---"
+      subsections[0]:
+    - title: ## Review Checklist
+      content[0]:
+      subsections[0]:
+    - title: ### Security (CWE Compliance)
+      content[8]: "- [ ] **Input Validation**: All external inputs validated for type, format, length","- [ ] **Output Encoding**: User content escaped before rendering (XSS prevention)","- [ ] **SQL Injection**: Parameterized queries or ORM used for database access","- [ ] **Command Injection**: No user input passed to shell commands","- [ ] **Secrets**: No hard-coded credentials, API keys, or secrets","- [ ] **Error Handling**: Internal errors don't leak sensitive information","- [ ] **Authentication**: Auth checks on all protected endpoints","- [ ] **Authorization**: Permission checks before sensitive operations"
+      subsections[0]:
+    - title: ### Code Quality
+      content[6]: "- [ ] **Single Responsibility**: Functions/classes have one clear purpose","- [ ] **DRY**: No unnecessary code duplication","- [ ] **Naming**: Variables and functions have descriptive names","- [ ] **Comments**: Complex logic is documented","- [ ] **Type Safety**: Type hints used where applicable","- [ ] **Error Handling**: Errors handled gracefully, not silently ignored"
+      subsections[0]:
+    - title: ### Performance
+      content[4]: "- [ ] **Efficiency**: No O(n²) operations that could be O(n)","- [ ] **Resource Management**: Resources (files, connections) properly closed","- [ ] **Caching**: Expensive operations cached where appropriate","- [ ] **Async**: I/O operations are non-blocking where needed"
+      subsections[0]:
+    - title: ### Testing
+      content[4]: "- [ ] **Coverage**: Key functionality has test coverage","- [ ] **Edge Cases**: Tests cover boundary conditions","- [ ] **Error Paths**: Error handling is tested","---"
+      subsections[0]:
+    - title: ## Review Output Format
+      content[1]: ```markdown
+      subsections[0]:
+    - title: ## Code Review Report
+      content[0]:
+      subsections[0]:
+    - title: ### Summary
+      content[0]:
+      subsections[0]:
+    - title: "[OVERALL ASSESSMENT: APPROVE / REQUEST CHANGES / NEEDS DISCUSSION]"
+      content[0]:
+      subsections[0]:
+    - title: ### Security Issues
+      content[3]: | Severity | Issue | Location | Recommendation |,|----------|-------|----------|----------------|,"| HIGH/MED/LOW | Description | file:line | Fix suggestion |"
+      subsections[0]:
+    - title: ### Quality Issues
+      content[3]: | Priority | Issue | Location | Recommendation |,|----------|-------|----------|----------------|,"| P1/P2/P3 | Description | file:line | Fix suggestion |"
+      subsections[0]:
+    - title: ### Positive Observations
+      content[1]: "- [What's done well]"
+      subsections[0]:
+    - title: ### Suggestions for Improvement
+      content[3]: "- [Optional enhancements]",```,"---"
+      subsections[0]:
+    - title: ## Success Criteria
+      content[4]: "- [ ] All security issues identified and actionable","- [ ] Code quality issues prioritized","- [ ] Recommendations are specific and actionable","- [ ] Review is constructive, not just critical"
+      subsections[0]:
+  raw_text: "# Code Review Template\n\n**Context**: Use this template to review code for security vulnerabilities, best practices, and quality issues.\n\n---\n\n## Code Under Review\n\n@file:[FILE_PATH]\n\nor\n\n@code:[FILE_PATH]:[LINE_RANGE]\n\n---\n\n## Review Checklist\n\n### Security (CWE Compliance)\n- [ ] **Input Validation**: All external inputs validated for type, format, length\n- [ ] **Output Encoding**: User content escaped before rendering (XSS prevention)\n- [ ] **SQL Injection**: Parameterized queries or ORM used for database access\n- [ ] **Command Injection**: No user input passed to shell commands\n- [ ] **Secrets**: No hard-coded credentials, API keys, or secrets\n- [ ] **Error Handling**: Internal errors don't leak sensitive information\n- [ ] **Authentication**: Auth checks on all protected endpoints\n- [ ] **Authorization**: Permission checks before sensitive operations\n\n### Code Quality\n- [ ] **Single Responsibility**: Functions/classes have one clear purpose\n- [ ] **DRY**: No unnecessary code duplication\n- [ ] **Naming**: Variables and functions have descriptive names\n- [ ] **Comments**: Complex logic is documented\n- [ ] **Type Safety**: Type hints used where applicable\n- [ ] **Error Handling**: Errors handled gracefully, not silently ignored\n\n### Performance\n- [ ] **Efficiency**: No O(n²) operations that could be O(n)\n- [ ] **Resource Management**: Resources (files, connections) properly closed\n- [ ] **Caching**: Expensive operations cached where appropriate\n- [ ] **Async**: I/O operations are non-blocking where needed\n\n### Testing\n- [ ] **Coverage**: Key functionality has test coverage\n- [ ] **Edge Cases**: Tests cover boundary conditions\n- [ ] **Error Paths**: Error handling is tested\n\n---\n\n## Review Output Format\n\n```markdown\n## Code Review Report\n\n### Summary\n[OVERALL ASSESSMENT: APPROVE / REQUEST CHANGES / NEEDS DISCUSSION]\n\n### Security Issues\n| Severity | Issue | Location | Recommendation |\n|----------|-------|----------|----------------|\n| HIGH/MED/LOW | Description | file:line | Fix suggestion |\n\n### Quality Issues\n| Priority | Issue | Location | Recommendation |\n|----------|-------|----------|----------------|\n| P1/P2/P3 | Description | file:line | Fix suggestion |\n\n### Positive Observations\n- [What's done well]\n\n### Suggestions for Improvement\n- [Optional enhancements]\n```\n\n---\n\n## Success Criteria\n- [ ] All security issues identified and actionable\n- [ ] Code quality issues prioritized\n- [ ] Recommendations are specific and actionable\n- [ ] Review is constructive, not just critical\n\n"
+analysis:
+  keywords[42]: Security,Parameterized,Complex,Errors,Input,Template,Internal,User,Encoding,Efficiency,Resource,Performance,Single,Compliance,Auth,Code,Variables,Naming,Injection,Handling,Responsibility,Comments,Caching,Authorization,Resources,Output,Expensive,Review,Permission,Under,Secrets,Safety,Error,Management,Checklist,Validation,Context,Authentication,Functions,Type,Quality,Command
+  patterns[0]:
+  best_practices[3]: |,|,are specific and actionable
+  examples[0]:

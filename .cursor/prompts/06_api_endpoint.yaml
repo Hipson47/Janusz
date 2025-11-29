@@ -1,0 +1,244 @@
+metadata:
+  title: 06_api_endpoint
+  source: .cursor/prompts/06_api_endpoint.md
+  source_type: markdown
+  converted_by: Universal Document to YAML Converter
+  format_version: '2.0'
+content:
+  sections:
+  - title: '# API Endpoint Development Template'
+    content:
+    - '**Context**: Use this template for creating new REST API endpoints with proper
+      validation, error handling, and documentation.'
+    - '---'
+    subsections: []
+  - title: '## Endpoint Specification'
+    content:
+    - '**Resource**: [RESOURCE_NAME]'
+    - '**HTTP Method**: [GET / POST / PUT / PATCH / DELETE]'
+    - '**Endpoint Path**: [/api/v1/...]'
+    - '**Description**: [WHAT THIS ENDPOINT DOES]'
+    - '---'
+    subsections: []
+  - title: '## Request/Response Schema'
+    content:
+    - '**Request Body** (if applicable):'
+    - '```json'
+    - '{'
+    - '"field1": "string (required) - description",'
+    - '"field2": "integer (optional) - description"'
+    - '}'
+    - '```'
+    - '**Success Response** (200/201):'
+    - '```json'
+    - '{'
+    - '"data": {'
+    - '"id": "string",'
+    - '"...": "..."'
+    - '},'
+    - '"message": "string"'
+    - '}'
+    - '```'
+    - '**Error Response** (4xx/5xx):'
+    - '```json'
+    - '{'
+    - '"error": {'
+    - '"code": "ERROR_CODE",'
+    - '"message": "Human readable message",'
+    - '"details": {}'
+    - '}'
+    - '}'
+    - '```'
+    - '---'
+    subsections: []
+  - title: '## Implementation Checklist'
+    content: []
+    subsections: []
+  - title: '### Request Handling'
+    content:
+    - '- [ ] Input validation using Pydantic/validation schemas'
+    - '- [ ] Type checking on all parameters'
+    - '- [ ] Required vs optional fields clearly defined'
+    - '- [ ] Default values for optional fields'
+    subsections: []
+  - title: '### Authentication & Authorization'
+    content:
+    - '- [ ] Authentication middleware applied'
+    - '- [ ] Authorization checks (roles/permissions)'
+    - '- [ ] Rate limiting if needed'
+    subsections: []
+  - title: '### Business Logic'
+    content:
+    - '- [ ] Core functionality implemented in service layer'
+    - '- [ ] Database operations handled properly'
+    - '- [ ] Transaction management for multi-step operations'
+    subsections: []
+  - title: '### Error Handling'
+    content:
+    - '- [ ] Proper HTTP status codes for each error type'
+    - '- [ ] Structured error responses'
+    - '- [ ] No sensitive data in error messages'
+    - '- [ ] Logging of errors server-side'
+    subsections: []
+  - title: '### Documentation'
+    content:
+    - '- [ ] OpenAPI/Swagger docstring'
+    - '- [ ] Request/response examples'
+    - '- [ ] Error codes documented'
+    - '---'
+    subsections: []
+  - title: '## Code Structure'
+    content:
+    - '```python'
+    subsections: []
+  - title: '# schemas/[resource].py'
+    content:
+    - 'class [Resource]Request(BaseModel):'
+    - '"""Request schema with validation."""'
+    subsections: []
+  - title: 'field1: str = Field(..., description="...")'
+    content: []
+    subsections: []
+  - title: 'field2: Optional[int] = Field(None, description="...")'
+    content:
+    - 'class [Resource]Response(BaseModel):'
+    - '"""Response schema."""'
+    subsections: []
+  - title: 'id: str'
+    content:
+    - '...'
+    subsections: []
+  - title: '# routes/[resource].py'
+    content:
+    - '@router.[method]("/path")'
+    - async def endpoint_name(
+    subsections: []
+  - title: 'request: [Resource]Request,'
+    content: []
+    subsections: []
+  - title: 'current_user: User = Depends(get_current_user),'
+    content: []
+    subsections: []
+  - title: 'db: AsyncSession = Depends(get_db)'
+    content:
+    - ') -> [Resource]Response:'
+    - '"""'
+    - Endpoint description for OpenAPI docs.
+    - '- **param1**: Description'
+    - '- **returns**: Description'
+    - '"""'
+    subsections: []
+  - title: '# Implementation'
+    content:
+    - '...'
+    - '```'
+    - '---'
+    subsections: []
+  - title: '## Testing Requirements'
+    content:
+    - '- [ ] Unit tests for business logic'
+    - '- [ ] Integration tests for endpoint'
+    - '- [ ] Test cases for:'
+    - '- [ ] Valid request → success response'
+    - '- [ ] Invalid request → validation error (400)'
+    - '- [ ] Unauthenticated → 401'
+    - '- [ ] Unauthorized → 403'
+    - '- [ ] Resource not found → 404'
+    - '- [ ] Server error handling → 500'
+    - '---'
+    subsections: []
+  - title: '## Success Criteria'
+    content:
+    - '- [ ] Endpoint follows REST conventions'
+    - '- [ ] All validation in place'
+    - '- [ ] Proper error handling'
+    - '- [ ] Authentication/authorization working'
+    - '- [ ] Tests passing'
+    - '- [ ] API documentation generated'
+    subsections: []
+  raw_text: "# API Endpoint Development Template\n\n**Context**: Use this template\
+    \ for creating new REST API endpoints with proper validation, error handling,\
+    \ and documentation.\n\n---\n\n## Endpoint Specification\n\n**Resource**: [RESOURCE_NAME]\n\
+    **HTTP Method**: [GET / POST / PUT / PATCH / DELETE]\n**Endpoint Path**: [/api/v1/...]\n\
+    \n**Description**: [WHAT THIS ENDPOINT DOES]\n\n---\n\n## Request/Response Schema\n\
+    \n**Request Body** (if applicable):\n```json\n{\n  \"field1\": \"string (required)\
+    \ - description\",\n  \"field2\": \"integer (optional) - description\"\n}\n```\n\
+    \n**Success Response** (200/201):\n```json\n{\n  \"data\": {\n    \"id\": \"string\"\
+    ,\n    \"...\": \"...\"\n  },\n  \"message\": \"string\"\n}\n```\n\n**Error Response**\
+    \ (4xx/5xx):\n```json\n{\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"\
+    message\": \"Human readable message\",\n    \"details\": {}\n  }\n}\n```\n\n---\n\
+    \n## Implementation Checklist\n\n### Request Handling\n- [ ] Input validation\
+    \ using Pydantic/validation schemas\n- [ ] Type checking on all parameters\n-\
+    \ [ ] Required vs optional fields clearly defined\n- [ ] Default values for optional\
+    \ fields\n\n### Authentication & Authorization\n- [ ] Authentication middleware\
+    \ applied\n- [ ] Authorization checks (roles/permissions)\n- [ ] Rate limiting\
+    \ if needed\n\n### Business Logic\n- [ ] Core functionality implemented in service\
+    \ layer\n- [ ] Database operations handled properly\n- [ ] Transaction management\
+    \ for multi-step operations\n\n### Error Handling\n- [ ] Proper HTTP status codes\
+    \ for each error type\n- [ ] Structured error responses\n- [ ] No sensitive data\
+    \ in error messages\n- [ ] Logging of errors server-side\n\n### Documentation\n\
+    - [ ] OpenAPI/Swagger docstring\n- [ ] Request/response examples\n- [ ] Error\
+    \ codes documented\n\n---\n\n## Code Structure\n\n```python\n# schemas/[resource].py\n\
+    class [Resource]Request(BaseModel):\n    \"\"\"Request schema with validation.\"\
+    \"\"\n    field1: str = Field(..., description=\"...\")\n    field2: Optional[int]\
+    \ = Field(None, description=\"...\")\n\nclass [Resource]Response(BaseModel):\n\
+    \    \"\"\"Response schema.\"\"\"\n    id: str\n    ...\n\n# routes/[resource].py\n\
+    @router.[method](\"/path\")\nasync def endpoint_name(\n    request: [Resource]Request,\n\
+    \    current_user: User = Depends(get_current_user),\n    db: AsyncSession = Depends(get_db)\n\
+    ) -> [Resource]Response:\n    \"\"\"\n    Endpoint description for OpenAPI docs.\n\
+    \    \n    - **param1**: Description\n    - **returns**: Description\n    \"\"\
+    \"\n    # Implementation\n    ...\n```\n\n---\n\n## Testing Requirements\n\n-\
+    \ [ ] Unit tests for business logic\n- [ ] Integration tests for endpoint\n- [\
+    \ ] Test cases for:\n  - [ ] Valid request → success response\n  - [ ] Invalid\
+    \ request → validation error (400)\n  - [ ] Unauthenticated → 401\n  - [ ] Unauthorized\
+    \ → 403\n  - [ ] Resource not found → 404\n  - [ ] Server error handling → 500\n\
+    \n---\n\n## Success Criteria\n- [ ] Endpoint follows REST conventions\n- [ ] All\
+    \ validation in place\n- [ ] Proper error handling\n- [ ] Authentication/authorization\
+    \ working\n- [ ] Tests passing\n- [ ] API documentation generated\n\n"
+analysis:
+  keywords:
+  - Transaction
+  - HTTP
+  - Success
+  - THIS
+  - Input
+  - Template
+  - Human
+  - Method
+  - Endpoint
+  - ENDPOINT
+  - Implementation
+  - Resource
+  - Business
+  - REST
+  - Path
+  - Development
+  - Logic
+  - Database
+  - Handling
+  - Response
+  - POST
+  - Authorization
+  - Request
+  - Specification
+  - Pydantic
+  - Default
+  - Schema
+  - PATCH
+  - Required
+  - Rate
+  - Error
+  - Body
+  - Checklist
+  - Context
+  - Authentication
+  - Core
+  - WHAT
+  - DELETE
+  - Type
+  - Description
+  - DOES
+  patterns: []
+  best_practices: []
+  examples:
+  - '- [ ] Error codes documented'

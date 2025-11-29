@@ -1,0 +1,68 @@
+metadata:
+  title: 02_tdd_workflow
+  source: .cursor/prompts/02_tdd_workflow.md
+  source_type: markdown
+  converted_by: Universal Document to YAML Converter
+  format_version: "2.0"
+content:
+  sections[18]:
+    - title: # Test-Driven Development (TDD) Template
+      content[2]: "**Context**: Use this template for implementing new features or fixing bugs using the Red-Green-Refactor cycle.","---"
+      subsections[0]:
+    - title: "## Phase 1: Red (Write Failing Test)"
+      content[9]: "**Feature/Bug Description**: [DESCRIBE WHAT YOU'RE IMPLEMENTING]","First, write a test case that defines the expected behavior:","**Requirements**:","- Test must fail initially (confirms we're testing the right thing)","- Test must be specific and focused on one behavior","- Include edge cases and error conditions","- Use existing test framework patterns","**Output**:",```python
+      subsections[0]:
+    - title: "# tests/test_[feature].py"
+      content[3]: "def test_[specific_behavior]():","\"\"\"","Test that [expected behavior]."
+      subsections[0]:
+    - title: "Given: [preconditions]"
+      content[0]:
+      subsections[0]:
+    - title: "When: [action]"
+      content[0]:
+      subsections[0]:
+    - title: "Then: [expected result]"
+      content[1]: "\"\"\""
+      subsections[0]:
+    - title: # Arrange
+      content[1]: ...
+      subsections[0]:
+    - title: # Act
+      content[1]: ...
+      subsections[0]:
+    - title: # Assert
+      content[4]: "assert [expected_condition]",```,"**Verification**: Run `pytest tests/test_[feature].py -v` and confirm test fails.","---"
+      subsections[0]:
+    - title: "## Phase 2: Green (Minimal Implementation)"
+      content[8]: "Write the **minimum code** necessary to make the test pass:","**Guidelines**:","- Focus only on satisfying the test","- Don't over-engineer or add extra features","- Follow existing code patterns and conventions","- Keep implementation simple","**Verification**: Run tests until all pass.","---"
+      subsections[0]:
+    - title: "## Phase 3: Refactor (Improve Code Quality)"
+      content[9]: "With tests green, improve the code:","**Consider**:","- Remove duplication (DRY)","- Improve naming and readability","- Extract helper functions if needed","- Ensure proper error handling","- Add docstrings and type hints","**Verification**: Tests must remain green after refactoring.","---"
+      subsections[0]:
+    - title: ## Iteration Loop
+      content[1]: "If tests fail during implementation:"
+      subsections[0]:
+    - title: 1. Read the error message carefully
+      content[0]:
+      subsections[0]:
+    - title: 2. Identify the root cause
+      content[0]:
+      subsections[0]:
+    - title: 3. Fix the specific issue
+      content[0]:
+      subsections[0]:
+    - title: 4. Run tests again
+      content[0]:
+      subsections[0]:
+    - title: 5. Repeat until green
+      content[1]: "---"
+      subsections[0]:
+    - title: ## Success Criteria
+      content[6]: "- [ ] Test written and initially fails (Red)","- [ ] Implementation makes test pass (Green)","- [ ] Code refactored for quality (Refactor)","- [ ] All existing tests still pass","- [ ] Edge cases covered","- [ ] Code follows project conventions"
+      subsections[0]:
+  raw_text: "# Test-Driven Development (TDD) Template\n\n**Context**: Use this template for implementing new features or fixing bugs using the Red-Green-Refactor cycle.\n\n---\n\n## Phase 1: Red (Write Failing Test)\n\n**Feature/Bug Description**: [DESCRIBE WHAT YOU'RE IMPLEMENTING]\n\nFirst, write a test case that defines the expected behavior:\n\n**Requirements**:\n- Test must fail initially (confirms we're testing the right thing)\n- Test must be specific and focused on one behavior\n- Include edge cases and error conditions\n- Use existing test framework patterns\n\n**Output**:\n```python\n# tests/test_[feature].py\n\ndef test_[specific_behavior]():\n    \"\"\"\n    Test that [expected behavior].\n    \n    Given: [preconditions]\n    When: [action]\n    Then: [expected result]\n    \"\"\"\n    # Arrange\n    ...\n    \n    # Act\n    ...\n    \n    # Assert\n    assert [expected_condition]\n```\n\n**Verification**: Run `pytest tests/test_[feature].py -v` and confirm test fails.\n\n---\n\n## Phase 2: Green (Minimal Implementation)\n\nWrite the **minimum code** necessary to make the test pass:\n\n**Guidelines**:\n- Focus only on satisfying the test\n- Don't over-engineer or add extra features\n- Follow existing code patterns and conventions\n- Keep implementation simple\n\n**Verification**: Run tests until all pass.\n\n---\n\n## Phase 3: Refactor (Improve Code Quality)\n\nWith tests green, improve the code:\n\n**Consider**:\n- Remove duplication (DRY)\n- Improve naming and readability\n- Extract helper functions if needed\n- Ensure proper error handling\n- Add docstrings and type hints\n\n**Verification**: Tests must remain green after refactoring.\n\n---\n\n## Iteration Loop\n\nIf tests fail during implementation:\n1. Read the error message carefully\n2. Identify the root cause\n3. Fix the specific issue\n4. Run tests again\n5. Repeat until green\n\n---\n\n## Success Criteria\n- [ ] Test written and initially fails (Red)\n- [ ] Implementation makes test pass (Green)\n- [ ] Code refactored for quality (Refactor)\n- [ ] All existing tests still pass\n- [ ] Edge cases covered\n- [ ] Code follows project conventions\n\n"
+analysis:
+  keywords[39]: Guidelines,Given,Phase,Template,Implementation,Test,DESCRIBE,Then,Code,Extract,Assert,Development,Improve,Verification,Failing,Refactor,Output,When,IMPLEMENTING,Focus,Green,Write,Driven,Feature,With,Ensure,Remove,Follow,Keep,First,Context,Include,WHAT,Arrange,Consider,Quality,Description,Minimal,Requirements
+  patterns[0]:
+  best_practices[0]:
+  examples[0]:

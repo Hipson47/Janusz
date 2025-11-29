@@ -2,7 +2,7 @@
 """
 Universal Document to YAML Converter for AI Agent Playbooks
 
-This script extracts text from various document formats (PDF, MD, TXT, DOCX, etc.)
+This module extracts text from various document formats (PDF, MD, TXT, DOCX, etc.)
 and converts them to structured YAML format for use with AI agents and orchestration systems.
 """
 
@@ -352,26 +352,3 @@ def process_directory(directory: str = ".") -> None:
             failed += 1
 
     logger.info(f"Processing completed: {successful} successful, {failed} failed")
-
-if __name__ == "__main__":
-    import argparse
-
-    supported_formats = ', '.join(UniversalToYAMLConverter.SUPPORTED_EXTENSIONS)
-    parser = argparse.ArgumentParser(
-        description=f'Convert various document formats to YAML format. Supported: {supported_formats}'
-    )
-    parser.add_argument('--directory', '-d', default='.', help='Directory to process')
-    parser.add_argument('--file', '-f', help='Specific file to convert')
-    parser.add_argument('--format', choices=['pdf', 'md', 'txt', 'docx', 'html', 'all'],
-                       default='all', help='File format to process (default: all supported)')
-
-    args = parser.parse_args()
-
-    if args.file:
-        try:
-            converter = UniversalToYAMLConverter(args.file)
-            converter.convert_to_yaml()
-        except ValueError as e:
-            logger.error(f"Error: {e}")
-    else:
-        process_directory(args.directory)

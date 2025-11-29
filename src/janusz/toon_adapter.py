@@ -2,7 +2,7 @@
 """
 YAML to TOON Converter for AI Agent Knowledge Bases
 
-This script converts YAML files to TOON (Token-Oriented Object Notation) format
+This module converts YAML files to TOON (Token-Oriented Object Notation) format
 for efficient AI agent prompting and knowledge base storage.
 """
 
@@ -202,25 +202,3 @@ def test_toon_conversion(yaml_file: str) -> None:
             logger.error("✗ TOON file validation failed")
     else:
         logger.error("✗ Conversion failed")
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description='Convert YAML files to TOON format')
-    parser.add_argument('--directory', '-d', default='.', help='Directory to process')
-    parser.add_argument('--file', '-f', help='Specific YAML file to convert')
-    parser.add_argument('--test', action='store_true', help='Test conversion with detailed output')
-    parser.add_argument('--no-validate', action='store_true', help='Skip TOON file validation')
-
-    args = parser.parse_args()
-
-    if args.file:
-        if args.test:
-            test_toon_conversion(args.file)
-        else:
-            converter = YAMLToTOONConverter(args.file)
-            success = converter.convert()
-            if success and not args.no_validate:
-                converter.validate_toon_file()
-    else:
-        convert_directory(args.directory, validate=not args.no_validate)

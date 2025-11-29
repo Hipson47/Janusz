@@ -1,0 +1,828 @@
+metadata:
+  title: rules
+  source: .cursor/rules.md
+  source_type: markdown
+  converted_by: Universal Document to YAML Converter
+  format_version: '2.0'
+content:
+  sections:
+  - title: '# Cursor Operational Rules'
+    content:
+    - '> **Version:** 2.0 | **Derived from:** Local TOON Knowledge Base (2025)'
+    - '>'
+    - '> This document synthesizes operational rules for the Cursor IDE agent, ensuring
+      deterministic,'
+    - '> safe, and productive AI-assisted development workflows.'
+    - '---'
+    subsections: []
+  - title: '## 1. Core Principles'
+    content: []
+    subsections: []
+  - title: '### 1.1 Deterministic Task Specification'
+    content:
+    - '- **Explicit Context Scoping**: Always use `@file`, `@folder`, or `@code` to
+      limit context window and prevent hallucination'
+    - '- **Single Responsibility**: Break complex tasks into focused, atomic operations
+      rather than multi-objective prompts'
+    - '- **Clear Success Criteria**: Define measurable outcomes and acceptance conditions
+      upfront'
+    - '- **Progressive Refinement**: Start with high-level intent, then iteratively
+      refine with specific technical details'
+    - '- **Ambiguity Elimination**: Use precise, goal-oriented phrasing so the agent
+      isn''t forced to guess intent'
+    subsections: []
+  - title: '### 1.2 Plan → Apply → Verify Workflow'
+    content:
+    - 'This is the **standard development loop** for all non-trivial tasks:'
+    subsections: []
+  - title: '1. **PLAN**: Use Composer/Plan Mode for complex multi-step tasks'
+    content:
+    - '- Analyze the request and break it into a numbered checklist'
+    - '- Identify affected files and dependencies'
+    - '- Define success criteria for each step'
+    subsections: []
+  - title: '2. **APPLY**: Implement changes incrementally'
+    content:
+    - '- Execute one step at a time'
+    - '- Keep changes small and focused'
+    - '- Use diff view to review before applying'
+    subsections: []
+  - title: '3. **VERIFY**: Use AI Code Review + manual testing + diff validation'
+    content:
+    - '- Run tests after each significant change'
+    - '- Validate against original requirements'
+    - '- Check for unintended side effects'
+    subsections: []
+  - title: '4. **ITERATE**: Refine based on feedback until quality gates pass'
+    content: []
+    subsections: []
+  - title: '### 1.3 Tool-First Reasoning'
+    content:
+    - '- **Tools Before Guesses**: Leverage available tools (MCP, Cursor tools) at
+      each step rather than relying on latent knowledge'
+    - '- **Tool Governance**: Only use explicitly allowed tools; validate inputs and
+      outputs'
+    - '- **Schema Validation**: Require structured outputs (JSON, specific formats)
+      for machine validation'
+    - '- **Error Handling**: Implement retries, fallbacks, and safe failure modes
+      for tool operations'
+    subsections: []
+  - title: '### 1.4 Separation of Reasoning vs Output'
+    content:
+    - '- **Internal Planning**: Keep chain-of-thought in internal reasoning; present
+      only results to user'
+    - '- **Role Separation**: Never let raw thoughts or system instructions leak into
+      user-visible output'
+    - '- **Context Preservation**: Maintain conversation context across related tasks
+      while avoiding context pollution'
+    subsections: []
+  - title: '### 1.5 Reversible Atomic Actions'
+    content:
+    - '- **Small Diffs**: Act in small, atomic steps that can be halted or reversed
+      if needed'
+    - '- **Verification Before Proceeding**: After each tool invocation, verify the
+      result before continuing'
+    - '- **Planner/Executor Pattern**: A planning module breaks the goal into discrete
+      actions; executor carries them out one by one'
+    - '- **Rollback Capability**: Ensure changes can be reverted if something goes
+      wrong'
+    - '---'
+    subsections: []
+  - title: '## 2. Cursor Mode Selection'
+    content: []
+    subsections: []
+  - title: '### 2.1 Composer Mode (Agent Mode)'
+    content:
+    - '**When to Use**: Complex multi-step coding tasks, new feature implementation,
+      architectural changes'
+    - '**Workflow**:'
+    subsections: []
+  - title: 1. Describe feature in natural language with clear requirements
+    content: []
+    subsections: []
+  - title: 2. Answer Composer's clarifying questions for ambiguous requirements
+    content: []
+    subsections: []
+  - title: 3. Review generated implementation plan before applying
+    content: []
+    subsections: []
+  - title: 4. Apply changes incrementally, verifying each step
+    content: []
+    subsections: []
+  - title: 5. Use AI Code Review to validate changes
+    content:
+    - '**Best Practices**:'
+    - '- Let Composer analyze codebase and create implementation plan'
+    - '- Use clarifying questions feature for ambiguous requirements'
+    - '- Enable YOLO mode only for safe commands (tests, linting)'
+    - '- Use Plan Mode for complex, multi-file changes'
+    subsections: []
+  - title: '### 2.2 Inline Mode'
+    content:
+    - '**When to Use**: Small edits, refactoring, bug fixes, code improvements'
+    - '**Workflow**:'
+    subsections: []
+  - title: 1. Select specific code snippet before invoking
+    content: []
+    subsections: []
+  - title: 2. Write focused edit instruction with context references
+    content: []
+    subsections: []
+  - title: 3. Review diff preview before applying
+    content: []
+    subsections: []
+  - title: 4. Apply and test immediately
+    content: []
+    subsections: []
+  - title: 5. Commit with descriptive message
+    content:
+    - '**Best Practices**:'
+    - '- Provide clear, focused instructions'
+    - '- Use diff view to review changes before applying'
+    - '- Test immediately after applying changes'
+    - '- Commit small, focused changes'
+    subsections: []
+  - title: '### 2.3 Ask Mode'
+    content:
+    - '**When to Use**: Questions, explanations, debugging, learning'
+    - '**Best Practices**:'
+    - '- Include relevant `@file` or `@code` references'
+    - '- Ask specific, answerable questions'
+    - '- Use for understanding existing code'
+    - '- Request examples or alternatives'
+    - '- Follow up with implementation questions'
+    subsections: []
+  - title: '### Mode Selection Guidelines'
+    content:
+    - '| Task Type | Mode | Example |'
+    - '|-----------|------|---------|'
+    - '| New feature | Composer | "Build a new authentication system with JWT tokens"
+      |'
+    - '| Bug fix | Inline | "Fix the null pointer exception in this method" |'
+    - '| Understanding | Ask | "How does this authentication flow work?" |'
+    - '| Refactoring | Composer | "Extract validation logic into separate module"
+      |'
+    - '| Quick edit | Inline | "Add error handling to this function" |'
+    - '---'
+    subsections: []
+  - title: '## 3. Context Management'
+    content: []
+    subsections: []
+  - title: '### 3.1 @ Mentions Best Practices'
+    content:
+    - '- **@file**: Reference entire files for single file operations'
+    - '- **@folder**: Reference directories for directory-level changes'
+    - '- **@code**: Precise code snippet selection for method-level changes'
+    - '- **@doc**: For documentation-driven coding'
+    - '- **@Web**: For up-to-date information from external sources'
+    - '- **@Docs**: For library/API documentation via MCP'
+    subsections: []
+  - title: '### 3.2 Context Scoping Rules'
+    content:
+    - '- **Minimal Context**: Provide only what''s necessary for the current task'
+    - '- **Explicit References**: Use `@` references instead of assuming context'
+    - '- **Avoid Overflow**: Don''t include entire large files unnecessarily'
+    - '- **Condensation**: Large files/folders are automatically summarized to fit
+      context limits'
+    subsections: []
+  - title: '### 3.3 Multi-File Coordination'
+    content:
+    - '- **Isolated Workspaces**: Use git worktrees for multi-agent parallel work'
+    - '- **Plan Mode**: Orchestrate multi-file changes safely'
+    - '- **Shared Context**: Coordinate through shared plan context'
+    - '- **Conflict Avoidance**: Scope each parallel agent''s work to avoid overlapping
+      edits'
+    subsections: []
+  - title: '### 3.4 External Knowledge Integration'
+    content:
+    - '- **RAG Grounding**: Use `@Codebase` for semantic search in codebase'
+    - '- **Documentation MCPs**: Use Context7 or similar for version-specific library
+      docs'
+    - '- **Web Search**: Use `@Web` for up-to-date information when training data
+      may be outdated'
+    - '- **Never Guess**: If documentation is needed, fetch it rather than relying
+      on training data'
+    - '---'
+    subsections: []
+  - title: '## 4. Test-Driven Development (TDD as Spec)'
+    content: []
+    subsections: []
+  - title: '### 4.1 Agentic TDD Workflow'
+    content:
+    - 'Follow the **Red → Green → Refactor** cycle:'
+    subsections: []
+  - title: '1. **Specification**: Human developer provides a prompt describing the
+      feature'
+    content: []
+    subsections: []
+  - title: '2. **Test Generation**: Agent writes a failing test case that captures
+      expected behavior'
+    content: []
+    subsections: []
+  - title: '3. **Verification**: Agent runs tests to confirm failure (Red phase)'
+    content: []
+    subsections: []
+  - title: '4. **Implementation**: Agent writes source code to satisfy the test'
+    content: []
+    subsections: []
+  - title: '5. **Validation**: Agent runs tests again; if failure, analyze and fix
+      (Green phase)'
+    content: []
+    subsections: []
+  - title: '6. **Refactoring**: Once green, optimize code (Refactor phase)'
+    content: []
+    subsections: []
+  - title: '### 4.2 Test Quality Guidelines'
+    content:
+    - '- **Meaningful Assertions**: Tests must check actual behavior, not just that
+      code runs'
+    - '- **Edge Cases**: Include edge cases and error conditions'
+    - '- **Deterministic**: Tests must be reproducible and not flaky'
+    - '- **Independent**: Each test should run in isolation'
+    - '- **Fast Feedback**: Use targeted test subsets during development'
+    subsections: []
+  - title: '### 4.3 Auto-Run (YOLO Mode)'
+    content:
+    - '- **Enable for Safe Commands**: `pytest`, `npm test`, `ruff check`, build commands'
+    - '- **Disable for Risky Operations**: Deployment, database migrations, file deletions'
+    - '- **Iteration Loop**: Agent runs tests, sees failures, fixes code, repeats
+      until green'
+    - '- **Step Limit**: Implement maximum iterations to prevent infinite loops'
+    - '---'
+    subsections: []
+  - title: '## 5. Safe Edit Protocol'
+    content: []
+    subsections: []
+  - title: '### 5.1 Minimal Diffs'
+    content:
+    - '- **Scope Narrowly**: "Update only this function and nothing else"'
+    - '- **One Change Per Review**: Don''t combine major refactor with new feature'
+    - '- **File-by-File**: Tackle one file at a time for complex changes'
+    - '- **Explicit Boundaries**: Tell the agent what NOT to modify'
+    subsections: []
+  - title: '### 5.2 Review Process'
+    content:
+    - '- **Always Inspect Diffs**: Review changes before applying'
+    - '- **Validate Against Requirements**: Ensure changes match original intent'
+    - '- **Check for Side Effects**: Look for unintended modifications'
+    - '- **Run Linters**: Verify code style compliance'
+    - '- **Test Coverage**: Ensure tests still pass'
+    subsections: []
+  - title: '### 5.3 Version Control Safety'
+    content:
+    - '- **Branch Before Major Changes**: Create backup branch for complex AI edits'
+    - '- **Frequent Commits**: Commit after each successful step'
+    - '- **Descriptive Messages**: Use conventional commits format'
+    - '- **Easy Rollback**: Maintain `git reset` capability'
+    - '- **Restore Checkpoints**: Use Cursor''s checkpoint feature when available'
+    subsections: []
+  - title: '### 5.4 Guardrails and Rules'
+    content:
+    - '- **Critical File Protection**: Define files the agent should not modify without
+      approval'
+    - '- **Soft Guardrails**: Use comments like `// @cursor: do not modify without
+      approval`'
+    - '- **Permission Gating**: Require human approval for high-stakes actions'
+    - '- **Security Sandboxing**: Use sandboxed terminal execution for unknown commands'
+    - '---'
+    subsections: []
+  - title: '## 6. Multi-Agent Orchestration'
+    content: []
+    subsections: []
+  - title: '### 6.1 Agent Roles'
+    content:
+    - '| Role | Responsibility |'
+    - '|------|----------------|'
+    - '| **Planner** | Breaks down complex tasks into execution plans |'
+    - '| **Researcher** | Gathers information from sources (web, docs, codebase) |'
+    - '| **Implementer** | Writes and modifies code |'
+    - '| **Tester** | Creates and runs tests, validates behavior |'
+    - '| **Reviewer** | Critiques outputs for quality and correctness |'
+    - '| **Documenter** | Creates documentation and API specs |'
+    subsections: []
+  - title: '### 6.2 Orchestration Patterns'
+    content:
+    - '**Supervisor Pattern**:'
+    - '- Central router delegates tasks to specialized workers'
+    - '- Workers return results to state; Supervisor decides next step'
+    - '- Use for complex, multi-domain tasks'
+    - '**Plan-and-Execute Pattern**:'
+    - '- Planner creates high-level plan'
+    - '- Executor implements one step at a time'
+    - '- Replanner updates plan based on execution results'
+    - '- Use for long-horizon tasks with ambiguity'
+    - '**ReAct Pattern**:'
+    - '- Single agent: Reason → Act → Observe → Loop'
+    - '- Simple linear tool use'
+    - '- Use for straightforward tasks'
+    - '**Reflexion Pattern**:'
+    - '- Agent critiques its own output before finalizing'
+    - '- Quality assurance and self-correction'
+    - '- Use for code generation and complex outputs'
+    subsections: []
+  - title: '### 6.3 State Management'
+    content:
+    - '- **Shared State**: Maintain context across agent handoffs'
+    - '- **Checkpointing**: Save state at milestones for recovery'
+    - '- **Session Isolation**: Key state by session/user'
+    - '- **Context Continuity**: Output of Agent A available to Agent B'
+    subsections: []
+  - title: '### 6.4 Verification Layers'
+    content:
+    - '- **Validation Agent**: Review outputs against criteria before proceeding'
+    - '- **Quality Gates**: Pass/fail checkpoints between critical stages'
+    - '- **Correction Loops**: On failure, trigger correction step or escalation'
+    - '- **Human Escalation**: Route to human when automated resolution fails'
+    - '---'
+    subsections: []
+  - title: '## 7. Safety and Security'
+    content: []
+    subsections: []
+  - title: '### 7.1 Default-Deny Security Posture'
+    content:
+    - '- **No Tool Access by Default**: Agents have no tool access unless explicitly
+      enabled'
+    - '- **Whitelist Tools**: Only allow tools that are necessary for the task'
+    - '- **Hide Unavailable Tools**: Don''t expose tools the agent shouldn''t use'
+    - '- **Dynamic Enabling**: Enable/disable tools based on context'
+    subsections: []
+  - title: '### 7.2 Permission Gating'
+    content:
+    - '- **High-Risk Actions**: Require human approval for:'
+    - '- Deploying code'
+    - '- Deleting data'
+    - '- Accessing private user info'
+    - '- Making purchases'
+    - '- Modifying production systems'
+    - '- **Pause and Confirm**: Orchestrator pauses and requests permission before
+      proceeding'
+    - '- **Graceful Refusal**: Agent handles denied permission gracefully'
+    subsections: []
+  - title: '### 7.3 Sandboxing'
+    content:
+    - '- **Isolated Execution**: Run agent tools in sandboxed, isolated environment'
+    - '- **Resource Limits**: Tight CPU, memory, and time limits'
+    - '- **No Network by Default**: Block internet access unless explicitly needed'
+    - '- **No Host File System**: Only access controlled workspace'
+    - '- **Least Privilege**: Give agent only minimum capabilities needed'
+    subsections: []
+  - title: '### 7.4 Secrets Handling'
+    content:
+    - '- **Never in Context**: Keep secrets out of AI context via `.cursorignore`'
+    - '- **Environment Variables**: Use config placeholders, never hardcode'
+    - '- **Redaction Hooks**: Automatically redact secret-like patterns in output'
+    - '- **Closed Files**: Don''t open secret files while Cursor is enabled'
+    - '- **Sanitize Logs**: Mask personal info and credentials in logs'
+    subsections: []
+  - title: '### 7.5 CWE Checklist'
+    content:
+    - 'Validate generated code against common vulnerabilities:'
+    - '| CWE | Vulnerability | Mitigation |'
+    - '|-----|--------------|------------|'
+    - '| CWE-79 | Cross-Site Scripting (XSS) | Escape/sanitize user-provided content
+      |'
+    - '| CWE-89 | SQL Injection | Use parameterized queries or ORM |'
+    - '| CWE-78 | OS Command Injection | Avoid passing user input to shell |'
+    - '| CWE-352 | CSRF | Protect with CSRF tokens |'
+    - '| CWE-200 | Information Exposure | Mask sensitive data in logs/errors |'
+    - '| CWE-798 | Hard-coded Credentials | Use environment variables |'
+    - '| CWE-400 | Resource Exhaustion | Bound loops and memory usage |'
+    - '| CWE-94 | Code Injection | Never use eval() on user input |'
+    - '---'
+    subsections: []
+  - title: '## 8. Anti-Patterns to Avoid'
+    content: []
+    subsections: []
+  - title: '### 8.1 Vague Instructions'
+    content:
+    - '❌ **Bad**: "Make this code better" or "Fix the bugs"'
+    - '✅ **Good**: "Extract the validation logic into a separate function with proper
+      error handling"'
+    subsections: []
+  - title: '### 8.2 Unscoped Context'
+    content:
+    - '❌ **Bad**: Asking questions without @file/@code references'
+    - '✅ **Good**: Always include specific file/code references'
+    subsections: []
+  - title: '### 8.3 Multi-Objective Mixing'
+    content:
+    - '❌ **Bad**: "Add authentication, update UI, and fix the database connection"'
+    - '✅ **Good**: Break into separate, focused tasks'
+    subsections: []
+  - title: '### 8.4 Context Overflow'
+    content:
+    - '❌ **Bad**: Including entire large files unnecessarily'
+    - '✅ **Good**: Use @code for specific sections; let model request additional context'
+    subsections: []
+  - title: '### 8.5 The "God Agent"'
+    content:
+    - '❌ **Bad**: Single agent with dozens of tools and massive system prompt'
+    - '✅ **Good**: Decompose into specialized agents with narrow, well-defined scopes'
+    subsections: []
+  - title: '### 8.6 Infinite Retry Loop'
+    content:
+    - '❌ **Bad**: Agent retries same failing action endlessly'
+    - '✅ **Good**: Implement step limits, reflexion nodes, and escalation paths'
+    subsections: []
+  - title: '### 8.7 The "Precision" Anti-Pattern'
+    content:
+    - '❌ **Bad**: Using LLM for deterministic calculations (math, dates)'
+    - '✅ **Good**: Use tools (Python REPL, calculators) for math and logic'
+    subsections: []
+  - title: '### 8.8 Ungoverned Tool Usage'
+    content:
+    - '❌ **Bad**: Agent calls arbitrary tools without oversight'
+    - '✅ **Good**: Strictly govern which tools agent can use and when'
+    subsections: []
+  - title: '### 8.9 Chain-of-Thought Exposure'
+    content:
+    - '❌ **Bad**: Internal reasoning visible in user output'
+    - '✅ **Good**: Keep reasoning hidden; use role/message separation'
+    - '---'
+    subsections: []
+  - title: '## 9. Performance and Efficiency'
+    content: []
+    subsections: []
+  - title: '### 9.1 Model Selection'
+    content:
+    - '| Task | Model Choice | Rationale |'
+    - '|------|--------------|-----------|'
+    - '| Inline completion | Fast model (Composer) | Speed for flow state |'
+    - '| Complex refactor | Strong model (GPT-4, Claude) | Quality for critical code
+      |'
+    - '| Planning | Reasoning model | Deep analysis |'
+    - '| Simple edits | Auto mode | Let Cursor choose |'
+    subsections: []
+  - title: '### 9.2 Context Optimization'
+    content:
+    - '- **Minimal but Sufficient**: Include only necessary context'
+    - '- **Token Efficiency**: Avoid verbose prompts and redundant information'
+    - '- **Caching Strategy**: Reuse results when appropriate'
+    - '- **Batch Operations**: Group related changes to minimize context switches'
+    subsections: []
+  - title: '### 9.3 Resource Management'
+    content:
+    - '- **Parallel Agents**: Use up to 8 parallel agents for independent features'
+    - '- **Background Execution**: Build plans in background while continuing work'
+    - '- **Git Worktrees**: Isolate parallel agent workspaces to prevent conflicts'
+    - '- **Cost Awareness**: Track token usage; use cheaper models for routine tasks'
+    - '---'
+    subsections: []
+  - title: '## 10. Failure Recovery'
+    content: []
+    subsections: []
+  - title: '### 10.1 Context Drift in Long Sessions'
+    content:
+    - '**Symptoms**: Agent responses become irrelevant; forgets earlier instructions'
+    - '**Fix**:'
+    - '- Start a new chat session for the task'
+    - '- Use smaller, focused prompts'
+    - '- Re-summarize key context in new session'
+    subsections: []
+  - title: '### 10.2 Unintended Broad Changes'
+    content:
+    - '**Symptoms**: Agent modifies files you didn''t ask it to change'
+    - '**Fix**:'
+    - '- Tighten scope in prompt: "Only change X and nothing else"'
+    - '- Add non-target files to `.cursorignore` temporarily'
+    - '- Ask agent to list planned modifications before execution'
+    subsections: []
+  - title: '### 10.3 Stuck in Fix Loop'
+    content:
+    - '**Symptoms**: Agent keeps changing code but errors persist'
+    - '**Fix**:'
+    - '- Give strategic hint about the problem'
+    - '- Stop auto-run and have agent explain the issue'
+    - '- Reset conversation and approach differently'
+    subsections: []
+  - title: '### 10.4 Model Blind Spot'
+    content:
+    - '**Symptoms**: Agent repeatedly gives incorrect solution'
+    - '**Fix**:'
+    - '- Try a different model for the problem'
+    - '- Provide exact error message explicitly'
+    - '- Check if issue is due to missing context'
+    - '---'
+    subsections: []
+  - title: '## 11. Quick Reference'
+    content: []
+    subsections: []
+  - title: '### Command Cheatsheet'
+    content:
+    - '```'
+    - 'Plan Mode:        Shift+Tab (complex multi-step tasks)'
+    - 'Inline Mode:      Ctrl+K (small edits in selection)'
+    - 'Ask Mode:         Ctrl+L (questions and explanations)'
+    - 'AI Code Review:   Automatic after changes'
+    - 'YOLO Mode:        Settings → Agent → Auto-run'
+    - '```'
+    subsections: []
+  - title: '### Context Shortcuts'
+    content:
+    - '```'
+    - '@file:path        Include entire file'
+    - '@folder:path      Include directory'
+    - '@code:file:lines  Include specific lines'
+    - '@Web              Search web for info'
+    - '@Docs             Query library documentation'
+    - '@Codebase         Semantic search in codebase'
+    - '```'
+    subsections: []
+  - title: '### Workflow Checklist'
+    content:
+    - '- [ ] Create feature branch before complex changes'
+    - '- [ ] Write/update tests first (TDD)'
+    - '- [ ] Use Plan Mode for multi-file changes'
+    - '- [ ] Review diffs before applying'
+    - '- [ ] Run tests after each significant change'
+    - '- [ ] Commit with descriptive message'
+    - '- [ ] Use AI Code Review for validation'
+    - '---'
+    - '*These rules are derived from comprehensive operational playbooks covering
+      Cursor IDE best practices, AI agent prompting standards, multi-agent orchestration
+      patterns, and security guardrails. All rules prioritize determinism, safety,
+      and productivity.*'
+    subsections: []
+  raw_text: "# Cursor Operational Rules\n\n> **Version:** 2.0 | **Derived from:**\
+    \ Local TOON Knowledge Base (2025)\n> \n> This document synthesizes operational\
+    \ rules for the Cursor IDE agent, ensuring deterministic, \n> safe, and productive\
+    \ AI-assisted development workflows.\n\n---\n\n## 1. Core Principles\n\n### 1.1\
+    \ Deterministic Task Specification\n- **Explicit Context Scoping**: Always use\
+    \ `@file`, `@folder`, or `@code` to limit context window and prevent hallucination\n\
+    - **Single Responsibility**: Break complex tasks into focused, atomic operations\
+    \ rather than multi-objective prompts\n- **Clear Success Criteria**: Define measurable\
+    \ outcomes and acceptance conditions upfront\n- **Progressive Refinement**: Start\
+    \ with high-level intent, then iteratively refine with specific technical details\n\
+    - **Ambiguity Elimination**: Use precise, goal-oriented phrasing so the agent\
+    \ isn't forced to guess intent\n\n### 1.2 Plan → Apply → Verify Workflow\nThis\
+    \ is the **standard development loop** for all non-trivial tasks:\n\n1. **PLAN**:\
+    \ Use Composer/Plan Mode for complex multi-step tasks\n   - Analyze the request\
+    \ and break it into a numbered checklist\n   - Identify affected files and dependencies\n\
+    \   - Define success criteria for each step\n   \n2. **APPLY**: Implement changes\
+    \ incrementally\n   - Execute one step at a time\n   - Keep changes small and\
+    \ focused\n   - Use diff view to review before applying\n   \n3. **VERIFY**: Use\
+    \ AI Code Review + manual testing + diff validation\n   - Run tests after each\
+    \ significant change\n   - Validate against original requirements\n   - Check\
+    \ for unintended side effects\n   \n4. **ITERATE**: Refine based on feedback until\
+    \ quality gates pass\n\n### 1.3 Tool-First Reasoning\n- **Tools Before Guesses**:\
+    \ Leverage available tools (MCP, Cursor tools) at each step rather than relying\
+    \ on latent knowledge\n- **Tool Governance**: Only use explicitly allowed tools;\
+    \ validate inputs and outputs\n- **Schema Validation**: Require structured outputs\
+    \ (JSON, specific formats) for machine validation\n- **Error Handling**: Implement\
+    \ retries, fallbacks, and safe failure modes for tool operations\n\n### 1.4 Separation\
+    \ of Reasoning vs Output\n- **Internal Planning**: Keep chain-of-thought in internal\
+    \ reasoning; present only results to user\n- **Role Separation**: Never let raw\
+    \ thoughts or system instructions leak into user-visible output\n- **Context Preservation**:\
+    \ Maintain conversation context across related tasks while avoiding context pollution\n\
+    \n### 1.5 Reversible Atomic Actions\n- **Small Diffs**: Act in small, atomic steps\
+    \ that can be halted or reversed if needed\n- **Verification Before Proceeding**:\
+    \ After each tool invocation, verify the result before continuing\n- **Planner/Executor\
+    \ Pattern**: A planning module breaks the goal into discrete actions; executor\
+    \ carries them out one by one\n- **Rollback Capability**: Ensure changes can be\
+    \ reverted if something goes wrong\n\n---\n\n## 2. Cursor Mode Selection\n\n###\
+    \ 2.1 Composer Mode (Agent Mode)\n**When to Use**: Complex multi-step coding tasks,\
+    \ new feature implementation, architectural changes\n\n**Workflow**:\n1. Describe\
+    \ feature in natural language with clear requirements\n2. Answer Composer's clarifying\
+    \ questions for ambiguous requirements\n3. Review generated implementation plan\
+    \ before applying\n4. Apply changes incrementally, verifying each step\n5. Use\
+    \ AI Code Review to validate changes\n\n**Best Practices**:\n- Let Composer analyze\
+    \ codebase and create implementation plan\n- Use clarifying questions feature\
+    \ for ambiguous requirements\n- Enable YOLO mode only for safe commands (tests,\
+    \ linting)\n- Use Plan Mode for complex, multi-file changes\n\n### 2.2 Inline\
+    \ Mode\n**When to Use**: Small edits, refactoring, bug fixes, code improvements\n\
+    \n**Workflow**:\n1. Select specific code snippet before invoking\n2. Write focused\
+    \ edit instruction with context references\n3. Review diff preview before applying\n\
+    4. Apply and test immediately\n5. Commit with descriptive message\n\n**Best Practices**:\n\
+    - Provide clear, focused instructions\n- Use diff view to review changes before\
+    \ applying\n- Test immediately after applying changes\n- Commit small, focused\
+    \ changes\n\n### 2.3 Ask Mode\n**When to Use**: Questions, explanations, debugging,\
+    \ learning\n\n**Best Practices**:\n- Include relevant `@file` or `@code` references\n\
+    - Ask specific, answerable questions\n- Use for understanding existing code\n\
+    - Request examples or alternatives\n- Follow up with implementation questions\n\
+    \n### Mode Selection Guidelines\n| Task Type | Mode | Example |\n|-----------|------|---------|\n\
+    | New feature | Composer | \"Build a new authentication system with JWT tokens\"\
+    \ |\n| Bug fix | Inline | \"Fix the null pointer exception in this method\" |\n\
+    | Understanding | Ask | \"How does this authentication flow work?\" |\n| Refactoring\
+    \ | Composer | \"Extract validation logic into separate module\" |\n| Quick edit\
+    \ | Inline | \"Add error handling to this function\" |\n\n---\n\n## 3. Context\
+    \ Management\n\n### 3.1 @ Mentions Best Practices\n- **@file**: Reference entire\
+    \ files for single file operations\n- **@folder**: Reference directories for directory-level\
+    \ changes\n- **@code**: Precise code snippet selection for method-level changes\n\
+    - **@doc**: For documentation-driven coding\n- **@Web**: For up-to-date information\
+    \ from external sources\n- **@Docs**: For library/API documentation via MCP\n\n\
+    ### 3.2 Context Scoping Rules\n- **Minimal Context**: Provide only what's necessary\
+    \ for the current task\n- **Explicit References**: Use `@` references instead\
+    \ of assuming context\n- **Avoid Overflow**: Don't include entire large files\
+    \ unnecessarily\n- **Condensation**: Large files/folders are automatically summarized\
+    \ to fit context limits\n\n### 3.3 Multi-File Coordination\n- **Isolated Workspaces**:\
+    \ Use git worktrees for multi-agent parallel work\n- **Plan Mode**: Orchestrate\
+    \ multi-file changes safely\n- **Shared Context**: Coordinate through shared plan\
+    \ context\n- **Conflict Avoidance**: Scope each parallel agent's work to avoid\
+    \ overlapping edits\n\n### 3.4 External Knowledge Integration\n- **RAG Grounding**:\
+    \ Use `@Codebase` for semantic search in codebase\n- **Documentation MCPs**: Use\
+    \ Context7 or similar for version-specific library docs\n- **Web Search**: Use\
+    \ `@Web` for up-to-date information when training data may be outdated\n- **Never\
+    \ Guess**: If documentation is needed, fetch it rather than relying on training\
+    \ data\n\n---\n\n## 4. Test-Driven Development (TDD as Spec)\n\n### 4.1 Agentic\
+    \ TDD Workflow\nFollow the **Red → Green → Refactor** cycle:\n\n1. **Specification**:\
+    \ Human developer provides a prompt describing the feature\n2. **Test Generation**:\
+    \ Agent writes a failing test case that captures expected behavior\n3. **Verification**:\
+    \ Agent runs tests to confirm failure (Red phase)\n4. **Implementation**: Agent\
+    \ writes source code to satisfy the test\n5. **Validation**: Agent runs tests\
+    \ again; if failure, analyze and fix (Green phase)\n6. **Refactoring**: Once green,\
+    \ optimize code (Refactor phase)\n\n### 4.2 Test Quality Guidelines\n- **Meaningful\
+    \ Assertions**: Tests must check actual behavior, not just that code runs\n- **Edge\
+    \ Cases**: Include edge cases and error conditions\n- **Deterministic**: Tests\
+    \ must be reproducible and not flaky\n- **Independent**: Each test should run\
+    \ in isolation\n- **Fast Feedback**: Use targeted test subsets during development\n\
+    \n### 4.3 Auto-Run (YOLO Mode)\n- **Enable for Safe Commands**: `pytest`, `npm\
+    \ test`, `ruff check`, build commands\n- **Disable for Risky Operations**: Deployment,\
+    \ database migrations, file deletions\n- **Iteration Loop**: Agent runs tests,\
+    \ sees failures, fixes code, repeats until green\n- **Step Limit**: Implement\
+    \ maximum iterations to prevent infinite loops\n\n---\n\n## 5. Safe Edit Protocol\n\
+    \n### 5.1 Minimal Diffs\n- **Scope Narrowly**: \"Update only this function and\
+    \ nothing else\"\n- **One Change Per Review**: Don't combine major refactor with\
+    \ new feature\n- **File-by-File**: Tackle one file at a time for complex changes\n\
+    - **Explicit Boundaries**: Tell the agent what NOT to modify\n\n### 5.2 Review\
+    \ Process\n- **Always Inspect Diffs**: Review changes before applying\n- **Validate\
+    \ Against Requirements**: Ensure changes match original intent\n- **Check for\
+    \ Side Effects**: Look for unintended modifications\n- **Run Linters**: Verify\
+    \ code style compliance\n- **Test Coverage**: Ensure tests still pass\n\n### 5.3\
+    \ Version Control Safety\n- **Branch Before Major Changes**: Create backup branch\
+    \ for complex AI edits\n- **Frequent Commits**: Commit after each successful step\n\
+    - **Descriptive Messages**: Use conventional commits format\n- **Easy Rollback**:\
+    \ Maintain `git reset` capability\n- **Restore Checkpoints**: Use Cursor's checkpoint\
+    \ feature when available\n\n### 5.4 Guardrails and Rules\n- **Critical File Protection**:\
+    \ Define files the agent should not modify without approval\n- **Soft Guardrails**:\
+    \ Use comments like `// @cursor: do not modify without approval`\n- **Permission\
+    \ Gating**: Require human approval for high-stakes actions\n- **Security Sandboxing**:\
+    \ Use sandboxed terminal execution for unknown commands\n\n---\n\n## 6. Multi-Agent\
+    \ Orchestration\n\n### 6.1 Agent Roles\n| Role | Responsibility |\n|------|----------------|\n\
+    | **Planner** | Breaks down complex tasks into execution plans |\n| **Researcher**\
+    \ | Gathers information from sources (web, docs, codebase) |\n| **Implementer**\
+    \ | Writes and modifies code |\n| **Tester** | Creates and runs tests, validates\
+    \ behavior |\n| **Reviewer** | Critiques outputs for quality and correctness |\n\
+    | **Documenter** | Creates documentation and API specs |\n\n### 6.2 Orchestration\
+    \ Patterns\n\n**Supervisor Pattern**:\n- Central router delegates tasks to specialized\
+    \ workers\n- Workers return results to state; Supervisor decides next step\n-\
+    \ Use for complex, multi-domain tasks\n\n**Plan-and-Execute Pattern**:\n- Planner\
+    \ creates high-level plan\n- Executor implements one step at a time\n- Replanner\
+    \ updates plan based on execution results\n- Use for long-horizon tasks with ambiguity\n\
+    \n**ReAct Pattern**:\n- Single agent: Reason → Act → Observe → Loop\n- Simple\
+    \ linear tool use\n- Use for straightforward tasks\n\n**Reflexion Pattern**:\n\
+    - Agent critiques its own output before finalizing\n- Quality assurance and self-correction\n\
+    - Use for code generation and complex outputs\n\n### 6.3 State Management\n- **Shared\
+    \ State**: Maintain context across agent handoffs\n- **Checkpointing**: Save state\
+    \ at milestones for recovery\n- **Session Isolation**: Key state by session/user\n\
+    - **Context Continuity**: Output of Agent A available to Agent B\n\n### 6.4 Verification\
+    \ Layers\n- **Validation Agent**: Review outputs against criteria before proceeding\n\
+    - **Quality Gates**: Pass/fail checkpoints between critical stages\n- **Correction\
+    \ Loops**: On failure, trigger correction step or escalation\n- **Human Escalation**:\
+    \ Route to human when automated resolution fails\n\n---\n\n## 7. Safety and Security\n\
+    \n### 7.1 Default-Deny Security Posture\n- **No Tool Access by Default**: Agents\
+    \ have no tool access unless explicitly enabled\n- **Whitelist Tools**: Only allow\
+    \ tools that are necessary for the task\n- **Hide Unavailable Tools**: Don't expose\
+    \ tools the agent shouldn't use\n- **Dynamic Enabling**: Enable/disable tools\
+    \ based on context\n\n### 7.2 Permission Gating\n- **High-Risk Actions**: Require\
+    \ human approval for:\n  - Deploying code\n  - Deleting data\n  - Accessing private\
+    \ user info\n  - Making purchases\n  - Modifying production systems\n- **Pause\
+    \ and Confirm**: Orchestrator pauses and requests permission before proceeding\n\
+    - **Graceful Refusal**: Agent handles denied permission gracefully\n\n### 7.3\
+    \ Sandboxing\n- **Isolated Execution**: Run agent tools in sandboxed, isolated\
+    \ environment\n- **Resource Limits**: Tight CPU, memory, and time limits\n- **No\
+    \ Network by Default**: Block internet access unless explicitly needed\n- **No\
+    \ Host File System**: Only access controlled workspace\n- **Least Privilege**:\
+    \ Give agent only minimum capabilities needed\n\n### 7.4 Secrets Handling\n- **Never\
+    \ in Context**: Keep secrets out of AI context via `.cursorignore`\n- **Environment\
+    \ Variables**: Use config placeholders, never hardcode\n- **Redaction Hooks**:\
+    \ Automatically redact secret-like patterns in output\n- **Closed Files**: Don't\
+    \ open secret files while Cursor is enabled\n- **Sanitize Logs**: Mask personal\
+    \ info and credentials in logs\n\n### 7.5 CWE Checklist\nValidate generated code\
+    \ against common vulnerabilities:\n\n| CWE | Vulnerability | Mitigation |\n|-----|--------------|------------|\n\
+    | CWE-79 | Cross-Site Scripting (XSS) | Escape/sanitize user-provided content\
+    \ |\n| CWE-89 | SQL Injection | Use parameterized queries or ORM |\n| CWE-78 |\
+    \ OS Command Injection | Avoid passing user input to shell |\n| CWE-352 | CSRF\
+    \ | Protect with CSRF tokens |\n| CWE-200 | Information Exposure | Mask sensitive\
+    \ data in logs/errors |\n| CWE-798 | Hard-coded Credentials | Use environment\
+    \ variables |\n| CWE-400 | Resource Exhaustion | Bound loops and memory usage\
+    \ |\n| CWE-94 | Code Injection | Never use eval() on user input |\n\n---\n\n##\
+    \ 8. Anti-Patterns to Avoid\n\n### 8.1 Vague Instructions\n❌ **Bad**: \"Make this\
+    \ code better\" or \"Fix the bugs\"\n✅ **Good**: \"Extract the validation logic\
+    \ into a separate function with proper error handling\"\n\n### 8.2 Unscoped Context\n\
+    ❌ **Bad**: Asking questions without @file/@code references\n✅ **Good**: Always\
+    \ include specific file/code references\n\n### 8.3 Multi-Objective Mixing\n❌ **Bad**:\
+    \ \"Add authentication, update UI, and fix the database connection\"\n✅ **Good**:\
+    \ Break into separate, focused tasks\n\n### 8.4 Context Overflow\n❌ **Bad**: Including\
+    \ entire large files unnecessarily\n✅ **Good**: Use @code for specific sections;\
+    \ let model request additional context\n\n### 8.5 The \"God Agent\"\n❌ **Bad**:\
+    \ Single agent with dozens of tools and massive system prompt\n✅ **Good**: Decompose\
+    \ into specialized agents with narrow, well-defined scopes\n\n### 8.6 Infinite\
+    \ Retry Loop\n❌ **Bad**: Agent retries same failing action endlessly\n✅ **Good**:\
+    \ Implement step limits, reflexion nodes, and escalation paths\n\n### 8.7 The\
+    \ \"Precision\" Anti-Pattern\n❌ **Bad**: Using LLM for deterministic calculations\
+    \ (math, dates)\n✅ **Good**: Use tools (Python REPL, calculators) for math and\
+    \ logic\n\n### 8.8 Ungoverned Tool Usage\n❌ **Bad**: Agent calls arbitrary tools\
+    \ without oversight\n✅ **Good**: Strictly govern which tools agent can use and\
+    \ when\n\n### 8.9 Chain-of-Thought Exposure\n❌ **Bad**: Internal reasoning visible\
+    \ in user output\n✅ **Good**: Keep reasoning hidden; use role/message separation\n\
+    \n---\n\n## 9. Performance and Efficiency\n\n### 9.1 Model Selection\n| Task |\
+    \ Model Choice | Rationale |\n|------|--------------|-----------|\n| Inline completion\
+    \ | Fast model (Composer) | Speed for flow state |\n| Complex refactor | Strong\
+    \ model (GPT-4, Claude) | Quality for critical code |\n| Planning | Reasoning\
+    \ model | Deep analysis |\n| Simple edits | Auto mode | Let Cursor choose |\n\n\
+    ### 9.2 Context Optimization\n- **Minimal but Sufficient**: Include only necessary\
+    \ context\n- **Token Efficiency**: Avoid verbose prompts and redundant information\n\
+    - **Caching Strategy**: Reuse results when appropriate\n- **Batch Operations**:\
+    \ Group related changes to minimize context switches\n\n### 9.3 Resource Management\n\
+    - **Parallel Agents**: Use up to 8 parallel agents for independent features\n\
+    - **Background Execution**: Build plans in background while continuing work\n\
+    - **Git Worktrees**: Isolate parallel agent workspaces to prevent conflicts\n\
+    - **Cost Awareness**: Track token usage; use cheaper models for routine tasks\n\
+    \n---\n\n## 10. Failure Recovery\n\n### 10.1 Context Drift in Long Sessions\n\
+    **Symptoms**: Agent responses become irrelevant; forgets earlier instructions\n\
+    **Fix**:\n- Start a new chat session for the task\n- Use smaller, focused prompts\n\
+    - Re-summarize key context in new session\n\n### 10.2 Unintended Broad Changes\n\
+    **Symptoms**: Agent modifies files you didn't ask it to change\n**Fix**:\n- Tighten\
+    \ scope in prompt: \"Only change X and nothing else\"\n- Add non-target files\
+    \ to `.cursorignore` temporarily\n- Ask agent to list planned modifications before\
+    \ execution\n\n### 10.3 Stuck in Fix Loop\n**Symptoms**: Agent keeps changing\
+    \ code but errors persist\n**Fix**:\n- Give strategic hint about the problem\n\
+    - Stop auto-run and have agent explain the issue\n- Reset conversation and approach\
+    \ differently\n\n### 10.4 Model Blind Spot\n**Symptoms**: Agent repeatedly gives\
+    \ incorrect solution\n**Fix**:\n- Try a different model for the problem\n- Provide\
+    \ exact error message explicitly\n- Check if issue is due to missing context\n\
+    \n---\n\n## 11. Quick Reference\n\n### Command Cheatsheet\n```\nPlan Mode:   \
+    \     Shift+Tab (complex multi-step tasks)\nInline Mode:      Ctrl+K (small edits\
+    \ in selection)\nAsk Mode:         Ctrl+L (questions and explanations)\nAI Code\
+    \ Review:   Automatic after changes\nYOLO Mode:        Settings → Agent → Auto-run\n\
+    ```\n\n### Context Shortcuts\n```\n@file:path        Include entire file\n@folder:path\
+    \      Include directory\n@code:file:lines  Include specific lines\n@Web     \
+    \         Search web for info\n@Docs             Query library documentation\n\
+    @Codebase         Semantic search in codebase\n```\n\n### Workflow Checklist\n\
+    - [ ] Create feature branch before complex changes\n- [ ] Write/update tests first\
+    \ (TDD)\n- [ ] Use Plan Mode for multi-file changes\n- [ ] Review diffs before\
+    \ applying\n- [ ] Run tests after each significant change\n- [ ] Commit with descriptive\
+    \ message\n- [ ] Use AI Code Review for validation\n\n---\n\n*These rules are\
+    \ derived from comprehensive operational playbooks covering Cursor IDE best practices,\
+    \ AI agent prompting standards, multi-agent orchestration patterns, and security\
+    \ guardrails. All rules prioritize determinism, safety, and productivity.*\n"
+analysis:
+  keywords:
+  - Clear
+  - Plan
+  - Mode
+  - Scoping
+  - Identify
+  - Implement
+  - VERIFY
+  - Derived
+  - Knowledge
+  - Execute
+  - Success
+  - Verify
+  - Progressive
+  - Version
+  - Composer
+  - Elimination
+  - Single
+  - PLAN
+  - Operational
+  - Cursor
+  - Deterministic
+  - Apply
+  - Code
+  - TOON
+  - Start
+  - Ambiguity
+  - Base
+  - Rules
+  - This
+  - Responsibility
+  - Criteria
+  - Specification
+  - Task
+  - Workflow
+  - Refinement
+  - Local
+  - Explicit
+  - Break
+  - Keep
+  - Context
+  - Always
+  - Core
+  - Analyze
+  - APPLY
+  - Define
+  - Principles
+  patterns: []
+  best_practices:
+  - '- **@file**: Reference entire files for single file operations'
+  - not modify without approval`
+  - 'Overflow**: Don''t include entire large files unnecessarily'
+  - overlapping edits
+  - passing user input to shell |
+  - '### 8.1 Vague Instructions'
+  - verbose prompts and redundant information
+  examples:
+  - or alternatives
+  - '|'

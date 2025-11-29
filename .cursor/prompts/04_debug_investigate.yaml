@@ -1,0 +1,301 @@
+metadata:
+  title: 04_debug_investigate
+  source: .cursor/prompts/04_debug_investigate.md
+  source_type: markdown
+  converted_by: Universal Document to YAML Converter
+  format_version: '2.0'
+content:
+  sections:
+  - title: '# Debug Investigation Template'
+    content:
+    - '**Context**: Use this template for investigating runtime errors, bugs, and
+      unexpected behavior.'
+    - '---'
+    subsections: []
+  - title: '## Error Information'
+    content:
+    - '**Error Message**:'
+    - '```'
+    subsections: []
+  - title: '[PASTE THE FULL ERROR MESSAGE/STACK TRACE HERE]'
+    content:
+    - '```'
+    - '**Context**:'
+    - '- When does this error occur? [DESCRIBE THE SCENARIO]'
+    - '- Is it reproducible? [YES/NO/SOMETIMES]'
+    - '- When did it start? [RECENT CHANGE/ALWAYS/UNKNOWN]'
+    - '**Relevant Code**:'
+    - '@code:[FILE_PATH]:[LINE_RANGE]'
+    - '---'
+    subsections: []
+  - title: '## Investigation Steps'
+    content: []
+    subsections: []
+  - title: '### Step 1: Understand the Error'
+    content:
+    - '- What type of error is this?'
+    - '- What is the immediate cause?'
+    - '- What is the call stack telling us?'
+    subsections: []
+  - title: '### Step 2: Identify the Root Cause'
+    content: []
+    subsections: []
+  - title: 1. Where does the undefined/null/error value originate?
+    content: []
+    subsections: []
+  - title: 2. What should the correct data structure/state be?
+    content: []
+    subsections: []
+  - title: 3. What code path leads to this state?
+    content: []
+    subsections: []
+  - title: '### Step 3: Trace Data Flow'
+    content:
+    - '- Follow the data from input to error point'
+    - '- Identify where expectations diverge from reality'
+    - '- Check for missing validation or error handling'
+    - '---'
+    subsections: []
+  - title: '## Hypothesis and Fix'
+    content:
+    - '**Hypothesis**: [EXPLAIN WHY THE ERROR IS OCCURRING]'
+    - '**Proposed Fix**:'
+    - '```[language]'
+    - // Before
+    - '[current code that causes the error]'
+    - // After
+    - '[corrected code that fixes the error]'
+    - '```'
+    - '**Why This Fixes It**: [EXPLAIN THE RATIONALE]'
+    - '---'
+    subsections: []
+  - title: '## Verification Plan'
+    content: []
+    subsections: []
+  - title: '1. **Reproduce**: Confirm the error before fixing'
+    content: []
+    subsections: []
+  - title: '2. **Apply Fix**: Make the minimal change'
+    content: []
+    subsections: []
+  - title: '3. **Verify**: Confirm error no longer occurs'
+    content: []
+    subsections: []
+  - title: '4. **Regression**: Ensure no new issues introduced'
+    content: []
+    subsections: []
+  - title: '5. **Edge Cases**: Test related scenarios'
+    content:
+    - '---'
+    subsections: []
+  - title: '## Prevention'
+    content:
+    - 'To prevent similar issues in the future:'
+    - '- [ ] Add proper null/undefined checking'
+    - '- [ ] Add input validation'
+    - '- [ ] Add error handling'
+    - '- [ ] Write a regression test'
+    - '- [ ] Update documentation if API contract was unclear'
+    - '---'
+    subsections: []
+  - title: '## Success Criteria'
+    content:
+    - '- [ ] Error is resolved without side effects'
+    - '- [ ] Root cause is understood and documented'
+    - '- [ ] Proper error handling is added'
+    - '- [ ] Regression test written'
+    - '- [ ] Edge cases covered'
+    subsections: []
+  raw_text: '# Debug Investigation Template
+
+
+    **Context**: Use this template for investigating runtime errors, bugs, and unexpected
+    behavior.
+
+
+    ---
+
+
+    ## Error Information
+
+
+    **Error Message**:
+
+    ```
+
+    [PASTE THE FULL ERROR MESSAGE/STACK TRACE HERE]
+
+    ```
+
+
+    **Context**:
+
+    - When does this error occur? [DESCRIBE THE SCENARIO]
+
+    - Is it reproducible? [YES/NO/SOMETIMES]
+
+    - When did it start? [RECENT CHANGE/ALWAYS/UNKNOWN]
+
+
+    **Relevant Code**:
+
+    @code:[FILE_PATH]:[LINE_RANGE]
+
+
+    ---
+
+
+    ## Investigation Steps
+
+
+    ### Step 1: Understand the Error
+
+    - What type of error is this?
+
+    - What is the immediate cause?
+
+    - What is the call stack telling us?
+
+
+    ### Step 2: Identify the Root Cause
+
+    1. Where does the undefined/null/error value originate?
+
+    2. What should the correct data structure/state be?
+
+    3. What code path leads to this state?
+
+
+    ### Step 3: Trace Data Flow
+
+    - Follow the data from input to error point
+
+    - Identify where expectations diverge from reality
+
+    - Check for missing validation or error handling
+
+
+    ---
+
+
+    ## Hypothesis and Fix
+
+
+    **Hypothesis**: [EXPLAIN WHY THE ERROR IS OCCURRING]
+
+
+    **Proposed Fix**:
+
+    ```[language]
+
+    // Before
+
+    [current code that causes the error]
+
+
+    // After
+
+    [corrected code that fixes the error]
+
+    ```
+
+
+    **Why This Fixes It**: [EXPLAIN THE RATIONALE]
+
+
+    ---
+
+
+    ## Verification Plan
+
+
+    1. **Reproduce**: Confirm the error before fixing
+
+    2. **Apply Fix**: Make the minimal change
+
+    3. **Verify**: Confirm error no longer occurs
+
+    4. **Regression**: Ensure no new issues introduced
+
+    5. **Edge Cases**: Test related scenarios
+
+
+    ---
+
+
+    ## Prevention
+
+
+    To prevent similar issues in the future:
+
+    - [ ] Add proper null/undefined checking
+
+    - [ ] Add input validation
+
+    - [ ] Add error handling
+
+    - [ ] Write a regression test
+
+    - [ ] Update documentation if API contract was unclear
+
+
+    ---
+
+
+    ## Success Criteria
+
+    - [ ] Error is resolved without side effects
+
+    - [ ] Root cause is understood and documented
+
+    - [ ] Proper error handling is added
+
+    - [ ] Regression test written
+
+    - [ ] Edge cases covered
+
+
+    '
+analysis:
+  keywords:
+  - Debug
+  - Information
+  - Identify
+  - Flow
+  - Data
+  - HERE
+  - Root
+  - STACK
+  - PASTE
+  - Template
+  - Hypothesis
+  - Trace
+  - Message
+  - MESSAGE
+  - CHANGE
+  - Where
+  - ALWAYS
+  - Step
+  - Investigation
+  - DESCRIBE
+  - Code
+  - Cause
+  - Steps
+  - ERROR
+  - SCENARIO
+  - When
+  - UNKNOWN
+  - Check
+  - TRACE
+  - Understand
+  - Error
+  - Follow
+  - FULL
+  - Context
+  - RECENT
+  - What
+  - SOMETIMES
+  - Relevant
+  patterns: []
+  best_practices: []
+  examples: []

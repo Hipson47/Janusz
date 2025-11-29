@@ -1,0 +1,60 @@
+# Cursor Project Rules
+# Auto-loaded for every AI conversation. Keep concise - these count toward context window.
+
+## Core Workflow: Plan → Apply → Verify
+1. **PLAN**: Use Plan Mode (Shift+Tab) for multi-step tasks. Generate numbered checklist first.
+2. **APPLY**: Implement in small chunks. Max 200 lines per patch. Review diffs before accepting.
+3. **VERIFY**: Run tests after each change. Commit after each verified step.
+
+## Context Scoping (REQUIRED)
+- Use @file, @folder, @code to limit scope - reduces tokens, prevents hallucination
+- Use @Docs for library documentation (specify version!)
+- Use @Web only when needed for current info
+- Session structure: 15-30 min focused sessions, one goal per session
+- Feature branch isolation for complex changes
+
+## Mode Selection
+- **Plan Mode** (Shift+Tab): Complex multi-step tasks - generates editable plan first
+- **Composer**: Multi-file changes, new features
+- **Inline** (Ctrl+K): Small focused edits, quick fixes
+- **Ask** (Ctrl+L): Questions, explanations, learning
+- **Multi-agent**: Up to 8 agents in parallel for complex tasks
+
+## Code Quality Standards
+- Follow existing project conventions
+- TDD: Write tests first (Red → Green → Refactor)
+- Small, focused diffs - max 200 lines per patch
+- Type hints required for Python functions
+- Docstrings for public APIs
+
+## Python Stack
+- Package manager: `uv` (not pip, poetry)
+- Linting/formatting: `ruff` (not black, flake8)
+- Web framework: FastAPI with Pydantic v2
+- Database: SQLAlchemy 2.0 async
+- Logging: `structlog` (JSON format)
+
+## Safety Rules
+- NEVER commit secrets, credentials, or API keys
+- NEVER modify files in `baza wiedzy 28.11/` or `new/` (read-only knowledge)
+- NEVER use "Run everything" mode in production
+- Always review diffs before applying
+- MCP servers: verify origin, restrict to trusted sources
+
+## Security Awareness
+- Known CVEs: CVE-2025-59944, CVE-2025-54135/36 (prompt injection via MCP)
+- Privacy Mode: Enable for sensitive projects
+- Normalize file paths to prevent case-sensitivity exploits
+
+## Anti-Patterns to Avoid
+- Vague instructions → be specific and actionable
+- Multi-objective prompts → one task at a time
+- Skipping diff review → always inspect before accept
+- Large patches (>200 lines) → break into smaller chunks
+- Broad context → scope with @file/@folder
+
+## File Exclusions
+- `baza wiedzy 28.11/`, `new/` - private knowledge, never reference
+- `.env*` files - secrets, never expose
+- `__pycache__/`, `.venv/` - generated files
+

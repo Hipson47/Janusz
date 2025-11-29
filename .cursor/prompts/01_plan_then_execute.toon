@@ -1,0 +1,71 @@
+metadata:
+  title: 01_plan_then_execute
+  source: .cursor/prompts/01_plan_then_execute.md
+  source_type: markdown
+  converted_by: Universal Document to YAML Converter
+  format_version: "2.0"
+content:
+  sections[19]:
+    - title: # Plan-Then-Execute Workflow Template
+      content[2]: "**Context**: Use this template for complex multi-step tasks requiring careful planning before implementation.","---"
+      subsections[0]:
+    - title: "## Phase 1: Planning"
+      content[2]: "**Task**: [DESCRIBE THE FEATURE OR CHANGE]","Before writing any code, analyze this request and create a detailed execution plan:"
+      subsections[0]:
+    - title: 1. **Understand Requirements**
+      content[3]: "- What is the core objective?","- What are the success criteria?","- What constraints apply?"
+      subsections[0]:
+    - title: 2. **Analyze Codebase**
+      content[3]: "- Which files will be affected?","- What dependencies exist?","- Are there existing patterns to follow?"
+      subsections[0]:
+    - title: 3. **Create Execution Plan**
+      content[5]: "- List all steps as a numbered checklist","- Reference specific files or functions for each step","- Identify potential risks or blockers","**Output Format**:",```markdown
+      subsections[0]:
+    - title: ## Execution Plan
+      content[0]:
+      subsections[0]:
+    - title: ### Objective
+      content[1]: "[Clear statement of what we're building]"
+      subsections[0]:
+    - title: ### Success Criteria
+      content[2]: "- [ ] Criterion 1","- [ ] Criterion 2"
+      subsections[0]:
+    - title: ### Steps
+      content[0]:
+      subsections[0]:
+    - title: "1. [ ] Step 1 - @file:path/to/file.py"
+      content[0]:
+      subsections[0]:
+    - title: "2. [ ] Step 2 - @file:path/to/other.py"
+      content[1]: ...
+      subsections[0]:
+    - title: ### Risks
+      content[3]: "- Risk 1: [Description] → Mitigation: [Plan]",```,"---"
+      subsections[0]:
+    - title: "## Phase 2: Execution"
+      content[7]: **Do not proceed until the plan is approved.**,"Execute the plan step by step:","- Complete one step at a time","- Verify each step before proceeding","- Run tests after each significant change","- Update the checklist as steps complete","---"
+      subsections[0]:
+    - title: "## Phase 3: Verification"
+      content[1]: "After all steps are complete:"
+      subsections[0]:
+    - title: 1. Run the full test suite
+      content[0]:
+      subsections[0]:
+    - title: 2. Review all diffs for unintended changes
+      content[0]:
+      subsections[0]:
+    - title: 3. Validate against success criteria
+      content[0]:
+      subsections[0]:
+    - title: 4. Document any deviations from plan
+      content[1]: "---"
+      subsections[0]:
+    - title: ## Success Criteria
+      content[4]: "- All planned steps completed","- Tests pass","- No unintended side effects","- Code follows project conventions"
+      subsections[0]:
+  raw_text: "# Plan-Then-Execute Workflow Template\n\n**Context**: Use this template for complex multi-step tasks requiring careful planning before implementation.\n\n---\n\n## Phase 1: Planning\n\n**Task**: [DESCRIBE THE FEATURE OR CHANGE]\n\nBefore writing any code, analyze this request and create a detailed execution plan:\n\n1. **Understand Requirements**\n   - What is the core objective?\n   - What are the success criteria?\n   - What constraints apply?\n\n2. **Analyze Codebase**\n   - Which files will be affected?\n   - What dependencies exist?\n   - Are there existing patterns to follow?\n\n3. **Create Execution Plan**\n   - List all steps as a numbered checklist\n   - Reference specific files or functions for each step\n   - Identify potential risks or blockers\n\n**Output Format**:\n```markdown\n## Execution Plan\n\n### Objective\n[Clear statement of what we're building]\n\n### Success Criteria\n- [ ] Criterion 1\n- [ ] Criterion 2\n\n### Steps\n1. [ ] Step 1 - @file:path/to/file.py\n2. [ ] Step 2 - @file:path/to/other.py\n...\n\n### Risks\n- Risk 1: [Description] → Mitigation: [Plan]\n```\n\n---\n\n## Phase 2: Execution\n\n**Do not proceed until the plan is approved.**\n\nExecute the plan step by step:\n- Complete one step at a time\n- Verify each step before proceeding\n- Run tests after each significant change\n- Update the checklist as steps complete\n\n---\n\n## Phase 3: Verification\n\nAfter all steps are complete:\n1. Run the full test suite\n2. Review all diffs for unintended changes\n3. Validate against success criteria\n4. Document any deviations from plan\n\n---\n\n## Success Criteria\n- All planned steps completed\n- Tests pass\n- No unintended side effects\n- Code follows project conventions\n\n"
+analysis:
+  keywords[38]: Objective,Clear,Plan,Identify,Phase,Execute,Success,Template,Before,Create,CHANGE,Risks,Codebase,List,Risk,Step,Then,DESCRIBE,Steps,Complete,Reference,Format,Criteria,Output,Task,Workflow,Criterion,Execution,Understand,FEATURE,Planning,Which,Context,Analyze,Mitigation,What,Description,Requirements
+  patterns[0]:
+  best_practices[1]: not proceed until the plan is approved.**
+  examples[0]:

@@ -1,0 +1,48 @@
+---
+description: Rules for FastAPI endpoint development
+globs: ["**/routes/**/*.py", "**/routers/**/*.py", "**/api/**/*.py"]
+alwaysApply: false
+---
+
+# FastAPI Endpoint Rules
+
+## Structure
+- One router per resource (e.g., `users.py`, `items.py`)
+- Use dependency injection for DB sessions, auth, etc.
+- Pydantic models for all request/response schemas
+
+## Endpoint Pattern
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+router = APIRouter(prefix="/api/v1/resource", tags=["resource"])
+
+@router.post("/", response_model=ResourceResponse, status_code=status.HTTP_201_CREATED)
+async def create_resource(
+    data: ResourceCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ResourceResponse:
+    """Create a new resource."""
+    # Implementation
+```
+
+## Error Handling
+- Use HTTPException with appropriate status codes
+- 400: Bad Request (validation errors)
+- 401: Unauthorized (missing/invalid auth)
+- 403: Forbidden (insufficient permissions)
+- 404: Not Found
+- 500: Internal Server Error (log and return generic message)
+
+## Security
+- Always validate input with Pydantic
+- Use Depends() for authentication
+- Never expose internal errors to clients
+- Log all errors with structlog
+
+## Testing
+- Write integration tests for each endpoint
+- Test success paths AND error paths
+- Use TestClient or httpx for async tests
