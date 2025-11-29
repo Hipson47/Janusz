@@ -10,13 +10,18 @@ import logging
 import sys
 from pathlib import Path
 
-from .converter import UniversalToYAMLConverter, process_directory as convert_directory
-from .toon_adapter import YAMLToTOONConverter, convert_directory as toon_convert_directory, test_toon_conversion
-from .json_to_toon import JSONToTOONConverter, convert_directory as json_convert_directory, test_toon_conversion as test_json_toon_conversion
+from .converter import UniversalToYAMLConverter
+from .converter import process_directory as convert_directory
+from .json_to_toon import JSONToTOONConverter
+from .json_to_toon import convert_directory as json_convert_directory
+from .json_to_toon import test_toon_conversion as test_json_toon_conversion
+from .toon_adapter import YAMLToTOONConverter, test_toon_conversion
+from .toon_adapter import convert_directory as toon_convert_directory
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
 
 def convert_file_to_yaml(file_path: str) -> bool:
     """Convert a single file to YAML format."""
@@ -30,6 +35,7 @@ def convert_file_to_yaml(file_path: str) -> bool:
         logger.error(f"Unexpected error: {e}")
         return False
 
+
 def convert_yaml_to_toon(yaml_path: str, validate: bool = True) -> bool:
     """Convert a single YAML file to TOON format."""
     try:
@@ -41,6 +47,7 @@ def convert_yaml_to_toon(yaml_path: str, validate: bool = True) -> bool:
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return False
+
 
 def convert_json_to_toon(json_path: str, validate: bool = True) -> bool:
     """Convert a single JSON file to TOON format."""
@@ -54,10 +61,11 @@ def convert_json_to_toon(json_path: str, validate: bool = True) -> bool:
         logger.error(f"Unexpected error: {e}")
         return False
 
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description='Janusz - Document-to-TOON Pipeline for AI Agent Knowledge Bases',
+        description="Janusz - Document-to-TOON Pipeline for AI Agent Knowledge Bases",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -79,39 +87,40 @@ Examples:
 Supported input formats for convert: PDF, MD, TXT, DOCX, HTML, RTF, EPUB
 Supported input formats for toon: YAML
 Supported input formats for json: JSON
-        """
+        """,
     )
 
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Convert command
-    convert_parser = subparsers.add_parser('convert', help='Convert documents to YAML')
-    convert_parser.add_argument('--directory', '-d', default='.',
-                               help='Directory to process (default: current directory)')
-    convert_parser.add_argument('--file', '-f', help='Specific file to convert')
+    convert_parser = subparsers.add_parser("convert", help="Convert documents to YAML")
+    convert_parser.add_argument(
+        "--directory", "-d", default=".", help="Directory to process (default: current directory)"
+    )
+    convert_parser.add_argument("--file", "-f", help="Specific file to convert")
 
     # Toon command
-    toon_parser = subparsers.add_parser('toon', help='Convert YAML files to TOON')
-    toon_parser.add_argument('--directory', '-d', default='.',
-                            help='Directory to process (default: current directory)')
-    toon_parser.add_argument('--file', '-f', help='Specific YAML file to convert')
-    toon_parser.add_argument('--no-validate', action='store_true',
-                            help='Skip TOON file validation')
+    toon_parser = subparsers.add_parser("toon", help="Convert YAML files to TOON")
+    toon_parser.add_argument(
+        "--directory", "-d", default=".", help="Directory to process (default: current directory)"
+    )
+    toon_parser.add_argument("--file", "-f", help="Specific YAML file to convert")
+    toon_parser.add_argument("--no-validate", action="store_true", help="Skip TOON file validation")
 
     # Json command
-    json_parser = subparsers.add_parser('json', help='Convert JSON files to TOON')
-    json_parser.add_argument('--directory', '-d', default='.',
-                            help='Directory to process (default: current directory)')
-    json_parser.add_argument('--file', '-f', help='Specific JSON file to convert')
-    json_parser.add_argument('--no-validate', action='store_true',
-                            help='Skip TOON file validation')
+    json_parser = subparsers.add_parser("json", help="Convert JSON files to TOON")
+    json_parser.add_argument(
+        "--directory", "-d", default=".", help="Directory to process (default: current directory)"
+    )
+    json_parser.add_argument("--file", "-f", help="Specific JSON file to convert")
+    json_parser.add_argument("--no-validate", action="store_true", help="Skip TOON file validation")
 
     # Test command
-    test_parser = subparsers.add_parser('test', help='Test TOON conversion with detailed output')
-    test_parser.add_argument('file', help='YAML or JSON file to test')
+    test_parser = subparsers.add_parser("test", help="Test TOON conversion with detailed output")
+    test_parser.add_argument("file", help="YAML or JSON file to test")
 
     # Version
-    parser.add_argument('--version', action='version', version='Janusz 1.0.0')
+    parser.add_argument("--version", action="version", version="Janusz 1.0.0")
 
     args = parser.parse_args()
 
@@ -119,14 +128,14 @@ Supported input formats for json: JSON
         parser.print_help()
         sys.exit(1)
 
-    if args.command == 'convert':
+    if args.command == "convert":
         if args.file:
             success = convert_file_to_yaml(args.file)
             sys.exit(0 if success else 1)
         else:
             convert_directory(args.directory)
 
-    elif args.command == 'toon':
+    elif args.command == "toon":
         validate = not args.no_validate
         if args.file:
             success = convert_yaml_to_toon(args.file, validate=validate)
@@ -134,7 +143,7 @@ Supported input formats for json: JSON
         else:
             toon_convert_directory(args.directory, validate=validate)
 
-    elif args.command == 'json':
+    elif args.command == "json":
         validate = not args.no_validate
         if args.file:
             success = convert_json_to_toon(args.file, validate=validate)
@@ -142,13 +151,14 @@ Supported input formats for json: JSON
         else:
             json_convert_directory(args.directory, validate=validate)
 
-    elif args.command == 'test':
+    elif args.command == "test":
         # Try to detect file type and use appropriate test function
         file_path = Path(args.file)
-        if file_path.suffix.lower() == '.json':
+        if file_path.suffix.lower() == ".json":
             test_json_toon_conversion(args.file)
         else:
             test_toon_conversion(args.file)
+
 
 if __name__ == "__main__":
     main()

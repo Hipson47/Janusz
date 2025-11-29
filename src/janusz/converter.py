@@ -6,15 +6,17 @@ This module extracts text from various document formats (PDF, MD, TXT, DOCX, etc
 and converts them to structured YAML format for use with AI agents and orchestration systems.
 """
 
-import re
-import yaml
-import pdfplumber
-from pathlib import Path
-from typing import Dict, Any, Optional
 import logging
+import re
+from pathlib import Path
+from typing import Any, Dict
+
+import pdfplumber
+import yaml
 
 try:
     from docx import Document as DocxDocument
+
     DOCX_AVAILABLE = True
 except ImportError:
     DOCX_AVAILABLE = False
@@ -22,49 +24,52 @@ except ImportError:
     logger.warning("python-docx not available. DOCX support disabled.")
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
 
 class UniversalToYAMLConverter:
     """Converts various document formats to structured YAML format for AI agent knowledge bases."""
 
-    SUPPORTED_EXTENSIONS = {'.pdf', '.md', '.txt', '.docx', '.html', '.rtf', '.epub'}
+    SUPPORTED_EXTENSIONS = {".pdf", ".md", ".txt", ".docx", ".html", ".rtf", ".epub"}
 
     def __init__(self, file_path: str):
         self.file_path = Path(file_path)
         self.filename = self.file_path.stem
         self.extension = self.file_path.suffix.lower()
-        self.yaml_path = self.file_path.with_suffix('.yaml')
+        self.yaml_path = self.file_path.with_suffix(".yaml")
 
         if self.extension not in self.SUPPORTED_EXTENSIONS:
-            raise ValueError(f"Unsupported file format: {self.extension}. Supported: {self.SUPPORTED_EXTENSIONS}")
+            raise ValueError(
+                f"Unsupported file format: {self.extension}. Supported: {self.SUPPORTED_EXTENSIONS}"
+            )
 
     def detect_file_type(self) -> str:
         """Detect file type based on extension."""
         ext_to_type = {
-            '.pdf': 'pdf',
-            '.md': 'markdown',
-            '.txt': 'text',
-            '.docx': 'docx',
-            '.html': 'html',
-            '.rtf': 'rtf',
-            '.epub': 'epub'
+            ".pdf": "pdf",
+            ".md": "markdown",
+            ".txt": "text",
+            ".docx": "docx",
+            ".html": "html",
+            ".rtf": "rtf",
+            ".epub": "epub",
         }
-        return ext_to_type.get(self.extension, 'unknown')
+        return ext_to_type.get(self.extension, "unknown")
 
     def extract_text_from_file(self) -> str:
         """Extract text content based on file type."""
         file_type = self.detect_file_type()
 
-        if file_type == 'pdf':
+        if file_type == "pdf":
             return self.extract_text_from_pdf()
-        elif file_type == 'markdown':
+        elif file_type == "markdown":
             return self.extract_text_from_markdown()
-        elif file_type == 'text':
+        elif file_type == "text":
             return self.extract_text_from_txt()
-        elif file_type == 'docx':
+        elif file_type == "docx":
             return self.extract_text_from_docx()
-        elif file_type == 'html':
+        elif file_type == "html":
             return self.extract_text_from_html()
         else:
             logger.warning(f"Unsupported file type: {file_type}, trying as plain text")
@@ -82,7 +87,7 @@ class UniversalToYAMLConverter:
                     if text:
                         text_content.append(text)
 
-            full_text = '\n\n'.join(text_content)
+            full_text = "\n\n".join(text_content)
             logger.info(f"Extracted {len(full_text)} characters from {len(pdf.pages)} pages")
             return full_text
 
@@ -95,7 +100,7 @@ class UniversalToYAMLConverter:
         logger.info(f"Reading Markdown file: {self.file_path}")
 
         try:
-            with open(self.file_path, 'r', encoding='utf-8') as f:
+            with open(self.file_path, encoding="utf-8") as f:
                 text = f.read()
             logger.info(f"Extracted {len(text)} characters from Markdown file")
             return text
@@ -108,7 +113,7 @@ class UniversalToYAMLConverter:
         logger.info(f"Reading text file: {self.file_path}")
 
         try:
-            with open(self.file_path, 'r', encoding='utf-8') as f:
+            with open(self.file_path, encoding="utf-8") as f:
                 text = f.read()
             logger.info(f"Extracted {len(text)} characters from text file")
             return text
@@ -140,7 +145,7 @@ class UniversalToYAMLConverter:
                         if cell.text.strip():
                             text_content.append(cell.text)
 
-            full_text = '\n\n'.join(text_content)
+            full_text = "\n\n".join(text_content)
             logger.info(f"Extracted {len(full_text)} characters from DOCX file")
             return full_text
 
@@ -154,7 +159,8 @@ class UniversalToYAMLConverter:
 
         try:
             import html2text
-            with open(self.file_path, 'r', encoding='utf-8') as f:
+
+            with open(self.file_path, encoding="utf-8") as f:
                 html_content = f.read()
 
             h = html2text.HTML2Text()
@@ -170,9 +176,10 @@ class UniversalToYAMLConverter:
             logger.warning("html2text not available, falling back to basic HTML parsing")
             try:
                 from bs4 import BeautifulSoup
-                with open(self.file_path, 'r', encoding='utf-8') as f:
-                    soup = BeautifulSoup(f, 'html.parser')
-                text = soup.get_text(separator='\n\n')
+
+                with open(self.file_path, encoding="utf-8") as f:
+                    soup = BeautifulSoup(f, "html.parser")
+                text = soup.get_text(separator="\n\n")
                 logger.info(f"Extracted {len(text)} characters from HTML file (basic parsing)")
                 return text
             except ImportError:
@@ -188,21 +195,18 @@ class UniversalToYAMLConverter:
 
         # Basic structure for AI agent playbooks
         structure = {
-            'metadata': {
-                'title': self.filename,
-                'source': str(self.file_path),
-                'source_type': self.detect_file_type(),
-                'converted_by': 'Universal Document to YAML Converter',
-                'format_version': '2.0'
+            "metadata": {
+                "title": self.filename,
+                "source": str(self.file_path),
+                "source_type": self.detect_file_type(),
+                "converted_by": "Universal Document to YAML Converter",
+                "format_version": "2.0",
             },
-            'content': {
-                'sections': [],
-                'raw_text': text
-            }
+            "content": {"sections": [], "raw_text": text},
         }
 
         # Try to identify sections based on common patterns
-        lines = text.split('\n')
+        lines = text.split("\n")
         current_section = None
         sections = []
 
@@ -212,68 +216,55 @@ class UniversalToYAMLConverter:
                 continue
 
             # Look for section headers (common patterns)
-            if re.match(r'^(#{1,6}|\d+\.|\w+\:)', line) or len(line) < 100 and line.isupper():
+            if re.match(r"^(#{1,6}|\d+\.|\w+\:)", line) or len(line) < 100 and line.isupper():
                 if current_section:
                     sections.append(current_section)
 
-                current_section = {
-                    'title': line,
-                    'content': [],
-                    'subsections': []
-                }
+                current_section = {"title": line, "content": [], "subsections": []}
             elif current_section:
-                current_section['content'].append(line)
+                current_section["content"].append(line)
             else:
                 # Content before first section
                 if not sections:
-                    sections.append({
-                        'title': 'Introduction',
-                        'content': [line],
-                        'subsections': []
-                    })
+                    sections.append({"title": "Introduction", "content": [line], "subsections": []})
 
         if current_section:
             sections.append(current_section)
 
-        structure['content']['sections'] = sections
+        structure["content"]["sections"] = sections
         return structure
 
     def extract_key_concepts(self, text: str) -> Dict[str, Any]:
         """Extract key concepts and patterns from the text."""
-        concepts = {
-            'keywords': [],
-            'patterns': [],
-            'best_practices': [],
-            'examples': []
-        }
+        concepts = {"keywords": [], "patterns": [], "best_practices": [], "examples": []}
 
         # Extract potential keywords (capitalized words/phrases)
-        keywords = re.findall(r'\b[A-Z][a-zA-Z]{3,}\b', text)
-        concepts['keywords'] = list(set(keywords[:50]))  # Limit to top 50 unique
+        keywords = re.findall(r"\b[A-Z][a-zA-Z]{3,}\b", text)
+        concepts["keywords"] = list(set(keywords[:50]))  # Limit to top 50 unique
 
         # Look for best practices patterns
         practice_patterns = [
-            r'Best Practice[s]?[:\s]+(.+)',
-            r'Recommendation[s]?[:\s]+(.+)',
-            r'Tip[s]?[:\s]+(.+)',
-            r'Do[:\s]+(.+)',
-            r'Avoid[:\s]+(.+)'
+            r"Best Practice[s]?[:\s]+(.+)",
+            r"Recommendation[s]?[:\s]+(.+)",
+            r"Tip[s]?[:\s]+(.+)",
+            r"Do[:\s]+(.+)",
+            r"Avoid[:\s]+(.+)",
         ]
 
         for pattern in practice_patterns:
             matches = re.findall(pattern, text, re.IGNORECASE)
-            concepts['best_practices'].extend(matches)
+            concepts["best_practices"].extend(matches)
 
         # Look for examples
         example_patterns = [
-            r'Example[s]?[:\s]+(.+)',
-            r'For example[:\s]+(.+)',
-            r'Such as[:\s]+(.+)'
+            r"Example[s]?[:\s]+(.+)",
+            r"For example[:\s]+(.+)",
+            r"Such as[:\s]+(.+)",
         ]
 
         for pattern in example_patterns:
             matches = re.findall(pattern, text, re.IGNORECASE)
-            concepts['examples'].extend(matches)
+            concepts["examples"].extend(matches)
 
         return concepts
 
@@ -291,19 +282,15 @@ class UniversalToYAMLConverter:
 
             # Extract concepts
             concepts = self.extract_key_concepts(text)
-            structure['analysis'] = concepts
+            structure["analysis"] = concepts
 
             # Convert to YAML
             yaml_content = yaml.dump(
-                structure,
-                default_flow_style=False,
-                allow_unicode=True,
-                sort_keys=False,
-                indent=2
+                structure, default_flow_style=False, allow_unicode=True, sort_keys=False, indent=2
             )
 
             # Save YAML file
-            with open(self.yaml_path, 'w', encoding='utf-8') as f:
+            with open(self.yaml_path, "w", encoding="utf-8") as f:
                 f.write(yaml_content)
 
             logger.info(f"Successfully converted {self.file_path} to {self.yaml_path}")
@@ -312,6 +299,7 @@ class UniversalToYAMLConverter:
         except Exception as e:
             logger.error(f"Error converting {self.file_path} to YAML: {e}")
             return False
+
 
 def process_directory(directory: str = ".") -> None:
     """Process all supported document files in a directory."""

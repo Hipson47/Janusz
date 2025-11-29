@@ -15,6 +15,10 @@ help:
 	@echo "  make json        - Convert JSON files to TOON format"
 	@echo "  make all         - Run full pipeline: Documents → YAML → TOON"
 	@echo "  make test        - Run automated tests"
+	@echo "  make lint        - Run code linting with ruff"
+	@echo "  make format      - Format code with black"
+	@echo "  make typecheck   - Run type checking with mypy"
+	@echo "  make check       - Run all quality checks (lint + type + test)"
 	@echo "  make clean       - Remove generated files and cache"
 	@echo "  make help        - Show this help message"
 	@echo ""
@@ -36,9 +40,9 @@ install:
 convert:
 	@echo "🔄 Converting documents to YAML..."
 ifdef FILE
-	@python -m janusz.cli convert --file $(FILE)
+	@janusz convert --file $(FILE)
 else
-	@python -m janusz.cli convert
+	@janusz convert
 endif
 	@echo "✓ Document to YAML conversion completed"
 
@@ -46,9 +50,9 @@ endif
 toon:
 	@echo "🎨 Converting YAMLs to TOON..."
 ifdef FILE
-	@python -m janusz.cli toon --file $(FILE)
+	@janusz toon --file $(FILE)
 else
-	@python -m janusz.cli toon
+	@janusz toon
 endif
 	@echo "✓ YAML to TOON conversion completed"
 
@@ -56,9 +60,9 @@ endif
 json:
 	@echo "🎨 Converting JSONs to TOON..."
 ifdef FILE
-	@python -m janusz.cli json --file $(FILE)
+	@janusz json --file $(FILE)
 else
-	@python -m janusz.cli json
+	@janusz json
 endif
 	@echo "✓ JSON to TOON conversion completed"
 
@@ -70,10 +74,32 @@ all: convert toon
 test:
 	@echo "🧪 Running tests..."
 ifdef FILE
-	@python -m janusz.cli test $(FILE)
+	@janusz test $(FILE)
 else
 	@pytest tests/ -v
 endif
+
+# Run linting
+lint:
+	@echo "🔍 Running ruff linter..."
+	@ruff check src/ tests/
+	@echo "✓ Linting completed"
+
+# Format code
+format:
+	@echo "🎨 Formatting code with black..."
+	@black src/ tests/
+	@echo "✓ Code formatting completed"
+
+# Type checking
+typecheck:
+	@echo "🔍 Running mypy type checker..."
+	@mypy src/janusz/
+	@echo "✓ Type checking completed"
+
+# Full quality check
+check: lint typecheck test
+	@echo "✓ All quality checks passed"
 
 # Clean generated files and cache
 clean:

@@ -24,8 +24,10 @@ __version__ = "1.0.0"
 __author__ = "Janusz AI Team"
 __description__ = "Document-to-TOON pipeline for AI agent knowledge bases"
 
-from .converter import UniversalToYAMLConverter, process_directory as convert_directory
-from .toon_adapter import YAMLToTOONConverter, convert_directory as toon_convert_directory
+from .converter import UniversalToYAMLConverter
+from .converter import process_directory as convert_directory
+from .toon_adapter import YAMLToTOONConverter
+from .toon_adapter import convert_directory as toon_convert_directory
 
 __all__ = [
     "UniversalToYAMLConverter",

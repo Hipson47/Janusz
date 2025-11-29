@@ -212,15 +212,45 @@ pytest --cov=janusz --cov-report=html
 git clone <repository>
 cd <repository>
 
-# Install in development mode
+# Install in development mode (includes all dependencies)
 make install
 
-# Install test dependencies
-pip install pytest pytest-cov
+# Or using uv (recommended)
+uv sync
 
 # Run tests
 make test
+
+# Run linting
+make lint
+
+# Format code
+make format
+
+# Run full quality check
+make check
+
+# Test CLI functionality
+janusz --help
+janusz convert --file "example.md"
 ```
+
+### Development Workflow
+
+1. **Setup**: `make install` or `uv sync`
+2. **Code**: Make changes to `src/janusz/`
+3. **Test**: `make test` - ensure all tests pass
+4. **Quality**: `make check` - lint, format, and type check
+5. **Commit**: Only clean, tested code
+
+### Code Quality Tools
+
+- **Linting**: Ruff (fast Python linter)
+- **Formatting**: Black (opinionated code formatter)
+- **Type checking**: mypy (static type analysis)
+- **Testing**: pytest with coverage
+
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
 
 ## 📄 License
 

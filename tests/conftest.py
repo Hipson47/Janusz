@@ -2,9 +2,10 @@
 Pytest configuration and fixtures for Janusz tests.
 """
 
-import pytest
 import tempfile
 from pathlib import Path
+
+import pytest
 
 
 @pytest.fixture
@@ -42,27 +43,27 @@ converter.convert_to_yaml()
 def sample_yaml_data():
     """Sample YAML data structure for testing."""
     return {
-        'metadata': {
-            'title': 'Test Document',
-            'source': 'test.md',
-            'source_type': 'markdown',
-            'converted_by': 'Universal Document to YAML Converter',
-            'format_version': '2.0'
+        "metadata": {
+            "title": "Test Document",
+            "source": "test.md",
+            "source_type": "markdown",
+            "converted_by": "Universal Document to YAML Converter",
+            "format_version": "2.0",
         },
-        'content': {
-            'sections': [
+        "content": {
+            "sections": [
                 {
-                    'title': '# Introduction',
-                    'content': ['This is an introduction.'],
-                    'subsections': []
+                    "title": "# Introduction",
+                    "content": ["This is an introduction."],
+                    "subsections": [],
                 }
             ],
-            'raw_text': '# Introduction\n\nThis is an introduction.'
+            "raw_text": "# Introduction\n\nThis is an introduction.",
         },
-        'analysis': {
-            'keywords': ['Introduction'],
-            'patterns': [],
-            'best_practices': [],
-            'examples': []
-        }
+        "analysis": {
+            "keywords": ["Introduction"],
+            "patterns": [],
+            "best_practices": [],
+            "examples": [],
+        },
     }

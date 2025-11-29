@@ -11,19 +11,19 @@ echo
 
 # Step 1: Convert documents to YAML
 echo "📄 Converting documents to YAML..."
-python -m janusz.cli convert
+janusz convert
 
 if [ $? -ne 0 ]; then
-    echo "❌ Error: PDF to YAML conversion failed"
+    echo "❌ Error: Document to YAML conversion failed"
     exit 1
 fi
 
-echo "✓ PDF to YAML conversion completed"
+echo "✓ Document to YAML conversion completed"
 echo
 
 # Step 2: Convert YAMLs to TOON
 echo "🎨 Converting YAMLs to TOON..."
-python -m janusz.cli toon
+janusz toon
 
 if [ $? -ne 0 ]; then
     echo "❌ Error: YAML to TOON conversion failed"
