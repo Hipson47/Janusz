@@ -155,7 +155,7 @@ def convert_directory(directory: str = ".", validate: bool = True) -> None:
 
     for yaml_file in yaml_files:
         logger.info(f"Processing: {yaml_file}")
-        converter = YAMLToTOONConverter(yaml_file)
+        converter = YAMLToTOONConverter(str(yaml_file))
 
         if converter.convert():
             if validate and converter.validate_toon_file():

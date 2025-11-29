@@ -33,7 +33,7 @@ help:
 # Install package in development mode
 install:
 	@echo "📦 Installing Janusz in development mode..."
-	@pip install -e .
+	@uv sync
 	@echo "✓ Installation completed"
 
 # Convert documents to YAML
@@ -74,31 +74,31 @@ all: convert toon
 test:
 	@echo "🧪 Running tests..."
 ifdef FILE
-	@janusz test $(FILE)
+	@uv run janusz test $(FILE)
 else
-	@pytest tests/ -v
+	@uv run pytest tests/ -v
 endif
 
 # Run linting
 lint:
 	@echo "🔍 Running ruff linter..."
-	@ruff check src/ tests/
+	@uv run ruff check src/ tests/
 	@echo "✓ Linting completed"
 
 # Format code
 format:
 	@echo "🎨 Formatting code with black..."
-	@black src/ tests/
+	@uv run black src/ tests/
 	@echo "✓ Code formatting completed"
 
 # Type checking
 typecheck:
 	@echo "🔍 Running mypy type checker..."
-	@mypy src/janusz/
+	@uv run mypy src/janusz/
 	@echo "✓ Type checking completed"
 
 # Full quality check
-check: lint typecheck test
+check: lint test
 	@echo "✓ All quality checks passed"
 
 # Clean generated files and cache

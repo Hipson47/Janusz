@@ -142,7 +142,7 @@ def convert_directory(directory: str = ".", validate: bool = True) -> None:
 
     for json_file in json_files:
         logger.info(f"Processing: {json_file}")
-        converter = JSONToTOONConverter(json_file)
+        converter = JSONToTOONConverter(str(json_file))
 
         if converter.convert():
             if validate and converter.validate_toon_file():
