@@ -301,13 +301,16 @@ class UniversalToYAMLConverter:
             return False
 
 
-def process_directory(directory: str = ".") -> None:
+def process_directory(directory: str = "new") -> None:
     """Process all supported document files in a directory."""
+    dir_path = Path(directory)
+    dir_path.mkdir(exist_ok=True)  # Create directory if it doesn't exist
+
     supported_files = []
 
     for ext in UniversalToYAMLConverter.SUPPORTED_EXTENSIONS:
         pattern = f"**/*{ext}"
-        files = list(Path(directory).glob(pattern))
+        files = list(dir_path.glob(pattern))
         supported_files.extend(files)
 
     if not supported_files:

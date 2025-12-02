@@ -1,142 +1,128 @@
-# Janusz - Document-to-TOON Pipeline for AI Agent Knowledge Bases
+# Janusz
 
-A Python package that converts various document formats to structured YAML and then optimizes them to TOON (Token-Oriented Object Notation) format for efficient AI agent prompting and knowledge storage.
+A Python CLI tool that converts documents and structured data to TOON (Token-Oriented Object Notation) format for efficient AI agent knowledge bases and prompt engineering.
 
-## 🎯 What it does
+## Overview
 
-This project converts documents in various formats to optimized TOON format, perfect for:
-- Prompt engineering for AI agents
-- Compact knowledge storage
-- Efficient token usage in LLM models
+Janusz provides a complete pipeline for converting various document formats to structured YAML and then optimizing them to TOON format. This enables efficient storage and retrieval of knowledge for AI agents, with significant token compression benefits.
 
-## 📋 Supported Formats
+## Features
 
-| Format | Extension | Requirements |
-|--------|-----------|-------------|
-| PDF | `.pdf` | `pdfplumber` |
-| Markdown | `.md` | - |
-| Plain Text | `.txt` | - |
-| DOCX | `.docx` | `python-docx` (optional) |
-| HTML | `.html` | `html2text` or `beautifulsoup4` (optional) |
-| RTF | `.rtf` | (reserved) |
-| EPUB | `.epub` | (reserved) |
-| JSON | `.json` | - |
-| YAML | `.yaml` | - |
+- **Multi-format Support**: Convert PDF, Markdown, plain text, DOCX, HTML, JSON, and YAML files
+- **Structured Output**: Creates well-organized YAML with metadata, content sections, and analysis
+- **TOON Optimization**: Converts structured data to compact binary TOON format for AI consumption
+- **Automatic TOON CLI Installation**: Automatically installs TOON CLI if missing (via cargo or binary download)
+- **Batch Processing**: Process entire directories or individual files
+- **Validation**: Built-in validation and testing capabilities
+- **CLI Interface**: Comprehensive command-line interface with help and examples
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
 ```bash
-# Install from source (recommended for development)
+# Using uv (recommended)
+uv sync
+
+# Or using pip
 pip install -e .
-
-# Or install dependencies manually
-pip install pdfplumber pyyaml python-docx html2text beautifulsoup4
 ```
 
-### Full pipeline in one command
+
+
+### Basic Usage
 
 ```bash
-# Run complete process: Documents → YAML → TOON
-make all
+# Place your documents in the 'new' directory, then run:
+janusz convert  # Convert documents to YAML
+janusz toon     # Convert YAML to TOON (TOON CLI auto-installed if missing)
 
-# Or use the CLI directly
-janusz convert && janusz toon
+# Or run the full pipeline:
+make all        # Includes automatic TOON CLI installation
+
+# Or use the automated script:
+./scripts/toon.sh  # Full pipeline with TOON CLI check/install
 ```
 
-### Step by step
+### Single File Processing
 
 ```bash
-# 1. Convert documents to YAML
-make convert
-# or
-janusz convert
+# Convert a specific document
+janusz convert --file document.pdf
+janusz toon --file document.yaml
 
-# 2. Convert YAML to TOON
-make toon
-# or
-janusz toon
+# Test conversion with detailed output
+janusz test document.yaml
 ```
 
-### Single file conversion
+## Supported Formats
 
-```bash
-# Convert specific file to YAML
-janusz convert --file "document.md"
+| Format | Extension | Status | Dependencies |
+|--------|-----------|--------|-------------|
+| PDF | `.pdf` | ✅ Core | `pdfplumber` |
+| Markdown | `.md` | ✅ Core | - |
+| Plain Text | `.txt` | ✅ Core | - |
+| JSON | `.json` | ✅ Core | - |
+| YAML | `.yaml` | ✅ Core | - |
+| DOCX | `.docx` | 🟡 Optional | `python-docx` |
+| HTML | `.html` | 🟡 Optional | `html2text`, `beautifulsoup4` |
+| RTF | `.rtf` | 🔄 Planned | - |
+| EPUB | `.epub` | 🔄 Planned | - |
 
-# Convert specific YAML to TOON
-janusz toon --file "document.yaml"
 
-# Convert specific JSON to TOON
-janusz json --file "data.json"
 
-# Test TOON conversion with detailed output
-janusz test "document.yaml"
-janusz test "data.json"
-```
+## Installation & Setup
 
-## 📁 Project Structure
+### Requirements
 
-```
-📁 workspace/
-├── 📁 src/janusz/           # Main package
-│   ├── __init__.py         # Package initialization
-│   ├── converter.py        # Document to YAML converter
-│   ├── toon_adapter.py     # YAML to TOON converter
-│   ├── json_to_toon.py     # JSON to TOON converter
-│   └── cli.py             # Command-line interface
-├── 📁 tests/               # Test suite
-│   ├── test_converter.py   # Converter tests
-│   ├── test_toon_adapter.py # TOON adapter tests
-│   ├── test_json_to_toon.py # JSON to TOON tests
-│   └── conftest.py         # Test fixtures
-├── 📄 pyproject.toml       # Package configuration
-├── 📄 Makefile            # Build automation
-├── 📄 README.md           # This file
-├── 📄 LICENSE             # MIT License
-└── 📁 baza wiedzy 28.11/  # Knowledge base (preserved)
-```
+- Python 3.8+
+- [TOON CLI](https://github.com/toon-format/toon) (automatically installed if missing)
 
-## 🛠️ Requirements
+### Dependencies
 
-### Core Dependencies
+**Core Dependencies:**
 - `pdfplumber>=0.9.0` - PDF text extraction
 - `pyyaml>=6.0` - YAML processing
+
+**Optional Dependencies:**
 - `python-docx>=1.0.0` - DOCX support
 - `html2text>=2020.1.16` - HTML to text conversion
 - `beautifulsoup4>=4.12.0` - HTML parsing fallback
 
-### External Tools
-- [TOON CLI](https://github.com/toon-format/toon) - Required for TOON conversion
 
-## 📖 CLI Commands
+
+### Development Dependencies
+
+- `pytest>=7.0.0` - Testing framework
+- `ruff>=0.1.0` - Linting and formatting
+- `black>=23.0.0` - Code formatting
+- `mypy>=1.0.0` - Type checking
+
+
+
+## CLI Commands
+
+### Core Commands
 
 ```bash
-# Show help
-janusz --help
+janusz --help                    # Show help and available commands
 
-# Convert all documents in current directory to YAML
-janusz convert
+# Document conversion
+janusz convert                   # Convert all documents in 'new/' to YAML
+janusz convert --file path/to/file.pdf  # Convert specific file
 
-# Convert specific document to YAML
-janusz convert --file path/to/document.pdf
+# TOON conversion
+janusz toon                      # Convert all YAML files in 'new/' to TOON
+janusz toon --file path/to/file.yaml    # Convert specific YAML file
 
-# Convert all YAML files to TOON
-janusz toon
+# JSON processing
+janusz json                      # Convert all JSON files in 'new/' to TOON
+janusz json --file path/to/file.json    # Convert specific JSON file
+janusz json --no-toon            # Validate JSON files without TOON conversion
 
-# Convert specific YAML to TOON
-janusz toon --file path/to/document.yaml
-
-# Convert all JSON files to TOON
-janusz json
-
-# Convert specific JSON to TOON
-janusz json --file path/to/data.json
-
-# Test TOON conversion with detailed output
-janusz test path/to/document.yaml
-janusz test path/to/data.json
+# Testing and validation
+janusz test path/to/file.yaml    # Test TOON conversion with detailed output
+janusz test path/to/file.json    # Test JSON to TOON conversion
 ```
 
 ### Make Commands
@@ -145,127 +131,232 @@ janusz test path/to/data.json
 make help        # Show available commands
 make install     # Install package in development mode
 make convert     # Convert documents to YAML
-make toon        # Convert YAML to TOON
-make json        # Convert JSON to TOON
-make all         # Full pipeline
+make toon        # Convert YAML files to TOON (auto-installs TOON CLI)
+make json        # Validate JSON files
+make json-toon   # Convert JSON files to TOON (auto-installs TOON CLI)
+make all         # Full pipeline: Documents → YAML → TOON
 make test        # Run test suite
+make lint        # Run code linting
+make format      # Format code
+make check       # Run full quality checks
 make clean       # Clean generated files
 ```
 
-## 🔧 How it Works
+### Automation Scripts
 
-1. **Text Extraction** - Extract text from various document formats or parse JSON/YAML
-2. **Structure Parsing** - Identify sections, headers, and patterns
-3. **Content Analysis** - Extract key concepts and examples
-4. **Structured Format** - Create YAML format with metadata or use existing JSON structure
-5. **TOON Optimization** - Convert to compact format for AI consumption
+```bash
+./scripts/toon.sh  # Full pipeline with automatic TOON CLI installation
+```
 
-## 📊 Example Output Structure
+## Project Structure
 
-### YAML Format
+```
+.
+├── src/janusz/                 # Main package
+│   ├── __init__.py            # Package initialization
+│   ├── cli.py                 # Command-line interface
+│   ├── converter.py           # Document to YAML converter
+│   ├── toon_adapter.py        # YAML to TOON converter
+│   └── json_to_toon.py        # JSON to TOON converter
+├── tests/                     # Test suite
+│   ├── conftest.py           # Test fixtures
+│   ├── test_converter.py     # Document converter tests
+│   ├── test_toon_adapter.py  # TOON adapter tests
+│   └── test_json_to_toon.py  # JSON to TOON tests
+├── docs/                      # Documentation
+│   ├── ARCHITECTURE.md       # System architecture
+│   └── *.md                  # Additional docs
+├── scripts/                   # Automation scripts
+│   └── toon.sh              # Full pipeline script
+├── pyproject.toml            # Package configuration
+├── uv.lock                   # Dependency lock file
+├── Makefile                  # Build automation
+└── README.md                 # This file
+```
+
+## How It Works
+
+### Pipeline Overview
+
+0. **Dependency Check**: Automatically install TOON CLI if missing
+1. **Document Processing**: Extract text and structure from input files
+2. **YAML Conversion**: Transform content into structured YAML with metadata
+3. **TOON Optimization**: Convert YAML to compact TOON binary format
+4. **Validation**: Ensure conversion quality and TOON file integrity
+
+### Data Flow
+
+```mermaid
+graph TD
+    A[Input Files<br/>PDF/MD/TXT/DOCX/HTML/JSON/YAML] --> B[Text Extraction & Parsing]
+    B --> C[Structured YAML Output]
+    C --> D[TOON Binary Format]
+    D --> E[AI Agent Knowledge Base]
+```
+
+### Output Structure
+
+**YAML Format:**
+
 ```yaml
 metadata:
-  title: "Document Name"
-  source: "file.md"
-  source_type: "markdown"
-  converted_by: "Universal Document to YAML Converter"
+  title: "Document Title"
+  source: "input.pdf"
+  source_type: "pdf"
+  converted_by: "Janusz v1.0.0"
   format_version: "2.0"
 content:
   sections:
-    - title: "# Header"
-      content: ["Section content"]
+    - title: "Section Header"
+      content: ["Content lines..."]
       subsections: []
-  raw_text: "Full document text"
+  raw_text: "Complete document text..."
 analysis:
-  keywords: ["important", "terms"]
-  best_practices: ["Recommendations"]
-  examples: ["Code examples"]
+  keywords: ["key", "terms"]
+  best_practices: ["Recommendations..."]
+  examples: ["Code samples..."]
 ```
 
-### TOON Format
-Optimized binary format for efficient AI processing with token compression.
+**TOON Format:** Compact binary representation optimized for token efficiency in AI models.
 
-## 🧪 Testing
 
-```bash
-# Run all tests
-make test
 
-# Run specific test file
-pytest tests/test_converter.py -v
+## Development
 
-# Run with coverage
-pytest --cov=janusz --cov-report=html
-```
-
-## 🤝 Contributing
-
-1. Add support for new formats in `converter.py`
-2. Improve parsing for existing formats
-3. Add tests and validation
-4. Update documentation
-
-### Development Setup
+### Setup
 
 ```bash
-# Clone and setup
-git clone <repository>
-cd <repository>
+# Clone repository
+git clone https://github.com/Hipson47/Janusz
+cd janusz
 
-# Install in development mode (includes all dependencies)
-make install
-
-# Or using uv (recommended)
-uv sync
+# Install with development dependencies
+uv sync --dev
 
 # Run tests
-make test
+uv run pytest
 
-# Run linting
-make lint
-
-# Format code
-make format
-
-# Run full quality check
+# Run quality checks
 make check
-
-# Test CLI functionality
-janusz --help
-janusz convert --file "example.md"
 ```
 
 ### Development Workflow
 
-1. **Setup**: `make install` or `uv sync`
-2. **Code**: Make changes to `src/janusz/`
-3. **Test**: `make test` - ensure all tests pass
-4. **Quality**: `make check` - lint, format, and type check
-5. **Commit**: Only clean, tested code
+1. Create feature branch
+2. Write tests for new functionality
+3. Implement changes
+4. Run full test suite: `make check`
+5. Submit pull request
 
-### Code Quality Tools
+### Code Quality
 
-- **Linting**: Ruff (fast Python linter)
-- **Formatting**: Black (opinionated code formatter)
-- **Type checking**: mypy (static type analysis)
-- **Testing**: pytest with coverage
+- **Linting**: `uv run ruff check src/ tests/`
+- **Formatting**: `uv run black src/ tests/`
+- **Type Checking**: `uv run mypy src/janusz/`
+- **Testing**: `uv run pytest tests/`
 
-See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system design.
+## Testing
 
-## 📄 License
+```bash
+# Run all tests
+uv run pytest
 
-This project is available under the MIT License - see the [LICENSE](LICENSE) file for details.
+# Run specific test file
+uv run pytest tests/test_converter.py
 
-The MIT License allows:
-- ✅ Commercial use
-- ✅ Modification
-- ✅ Distribution
-- ✅ Private use
+# Run with coverage
+uv run pytest --cov=janusz --cov-report=html
 
-With the requirement to preserve author and license information.
+# Run tests in verbose mode
+uv run pytest -v
+```
 
-## 🔗 Related Projects
+## Configuration
 
-- [TOON Format](https://github.com/toon-format/toon) - Token-Oriented Object Notation
-- [Cursor IDE](https://cursor.sh) - IDE with AI integration
+### Environment Variables
+
+No environment variables are required. The tool works with default settings out of the box.
+
+### File Locations
+
+- **Input Directory**: `new/` (default)
+- **Output Directory**: Same as input directory
+- **Supported Extensions**: See supported formats table above
+
+## Troubleshooting
+
+### Common Issues
+
+**TOON CLI installation issues:**
+```bash
+# TOON CLI is automatically installed when needed, but if manual installation is required:
+# Via cargo (preferred): cargo install toon
+# Or download binary from: https://github.com/toon-format/toon/releases
+```
+
+**TOON CLI installation failed:**
+```bash
+# The automatic installer tries multiple methods:
+# 1. Via cargo (if Rust is installed)
+# 2. Binary download for your OS/architecture
+# 3. Manual installation required if both methods fail
+
+# For manual installation:
+curl -L -o toon "https://github.com/toon-format/toon/releases/latest/download/toon-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m)"
+chmod +x toon
+sudo mv toon /usr/local/bin/  # or add to PATH manually
+```
+
+**Missing optional dependencies:**
+```bash
+# For DOCX support
+pip install python-docx
+
+# For HTML support
+pip install html2text beautifulsoup4
+```
+
+**Permission errors:**
+- Ensure write permissions in the working directory
+- Check that TOON CLI is executable
+
+**File format errors:**
+- Verify file extensions match content type
+- Check for corrupted input files
+- Use `janusz test` to debug conversion issues
+
+
+
+### Getting Help
+
+```bash
+janusz --help              # CLI help
+make help                  # Make targets
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make changes with tests
+4. Ensure all checks pass: `make check`
+5. Submit a pull request
+
+### Adding New Formats
+
+1. Add format detection in `converter.py`
+2. Implement extraction logic
+3. Add tests in `tests/test_converter.py`
+4. Update documentation
+
+
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## Related Projects
+
+- [TOON Format](https://github.com/toon-format/toon) - Token-Oriented Object Notation specification
 - [pdfplumber](https://github.com/jsvine/pdfplumber) - PDF processing library
+- [python-docx](https://github.com/python-openxml/python-docx) - DOCX processing

@@ -8,7 +8,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import yaml
-
 from janusz.toon_adapter import YAMLToTOONConverter
 
 

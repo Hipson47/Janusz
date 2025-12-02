@@ -127,9 +127,12 @@ class JSONToTOONConverter:
             return False
 
 
-def convert_directory(directory: str = ".", validate: bool = True) -> None:
+def convert_directory(directory: str = "new", validate: bool = True) -> None:
     """Convert all JSON files in a directory to TOON format."""
-    json_files = list(Path(directory).glob("**/*.json"))
+    dir_path = Path(directory)
+    dir_path.mkdir(exist_ok=True)  # Create directory if it doesn't exist
+
+    json_files = list(dir_path.glob("**/*.json"))
 
     if not json_files:
         logger.info(f"No JSON files found in {directory}")
@@ -156,6 +159,46 @@ def convert_directory(directory: str = ".", validate: bool = True) -> None:
             failed += 1
 
     logger.info(f"Conversion completed: {successful} successful, {failed} failed")
+
+
+def convert_json_only(json_path: str) -> bool:
+    """Validate JSON file without converting to TOON."""
+    try:
+        logger.info(f"Validating JSON file: {json_path}")
+
+        converter = JSONToTOONConverter(json_path)
+        return converter.validate_json()
+    except Exception as e:
+        logger.error(f"Error validating JSON {json_path}: {e}")
+        return False
+
+
+def convert_directory_json_only(directory: str = "new") -> None:
+    """Convert all JSON files in a directory (validation only, no TOON conversion)."""
+    dir_path = Path(directory)
+    dir_path.mkdir(exist_ok=True)  # Create directory if it doesn't exist
+
+    json_files = list(dir_path.glob("**/*.json"))
+
+    if not json_files:
+        logger.info(f"No JSON files found in {directory}")
+        return
+
+    logger.info(f"Found {len(json_files)} JSON files")
+
+    successful = 0
+    failed = 0
+
+    for json_file in json_files:
+        logger.info(f"Processing: {json_file}")
+        if convert_json_only(str(json_file)):
+            logger.info(f"✓ Successfully validated: {json_file.name}")
+            successful += 1
+        else:
+            logger.error(f"✗ Failed to validate: {json_file.name}")
+            failed += 1
+
+    logger.info(f"Validation completed: {successful} successful, {failed} failed")
 
 
 def test_toon_conversion(json_file: str) -> None:

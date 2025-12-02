@@ -1,5 +1,6 @@
 # Janusz - AI Agent Knowledge Base Pipeline
 # Automates Document -> YAML -> TOON conversion
+# Works on 'new' directory by default - place your documents there
 # Supports: PDF, MD, TXT, DOCX, HTML, RTF, EPUB
 
 .PHONY: help clean install test convert toon all
@@ -9,11 +10,13 @@ help:
 	@echo "Janusz - Document-to-TOON Pipeline for AI Agent Knowledge Bases"
 	@echo ""
 	@echo "Available commands:"
+	@echo "  make setup-venv  - Setup virtual environment with all dependencies"
 	@echo "  make install     - Install the package in development mode"
 	@echo "  make convert     - Convert documents to YAML format"
 	@echo "  make toon        - Convert YAML files to TOON format"
-	@echo "  make json        - Convert JSON files to TOON format"
-	@echo "  make all         - Run full pipeline: Documents → YAML → TOON"
+	@echo "  make json        - Validate JSON files (no TOON conversion)"
+	@echo "  make json-toon   - Convert JSON files to TOON format"
+	@echo "  make all         - Run full pipeline with venv: Documents → YAML → TOON"
 	@echo "  make test        - Run automated tests"
 	@echo "  make lint        - Run code linting with ruff"
 	@echo "  make format      - Format code with black"
@@ -26,11 +29,20 @@ help:
 	@echo "  make convert FILE=path/to/document.pdf"
 	@echo "  make toon FILE=path/to/document.yaml"
 	@echo "  make json FILE=path/to/data.json"
+	@echo "  make json-toon FILE=path/to/data.json"
 	@echo "  make test FILE=path/to/document.yaml"
 	@echo ""
 	@echo "Supported formats: PDF, MD, TXT, DOCX, HTML, RTF, EPUB, JSON, YAML"
 
-# Install package in development mode
+# Setup virtual environment and install dependencies
+setup-venv:
+	@echo "🐍 Setting up virtual environment..."
+	@test -d venv || python -m venv venv
+	@venv/bin/pip install --upgrade pip
+	@venv/bin/pip install -e .
+	@echo "✓ Virtual environment ready"
+
+# Install package in development mode (legacy, prefer setup-venv)
 install:
 	@echo "📦 Installing Janusz in development mode..."
 	@uv sync
@@ -40,43 +52,69 @@ install:
 convert:
 	@echo "🔄 Converting documents to YAML..."
 ifdef FILE
-	@janusz convert --file $(FILE)
+	@PYTHONPATH=src python -m janusz.cli convert --file $(FILE)
 else
-	@janusz convert
+	@PYTHONPATH=src python -m janusz.cli convert
 endif
 	@echo "✓ Document to YAML conversion completed"
 
 # Convert YAML files to TOON
 toon:
 	@echo "🎨 Converting YAMLs to TOON..."
+	@command -v toon >/dev/null 2>&1 || { echo "⚠️  TOON CLI not found!"; echo "📦 Please install it manually:"; echo "   - From GitHub: https://github.com/toon-format/toon"; echo "   - Via cargo: cargo install toon"; echo "   - Or download binary from releases"; exit 1; }
 ifdef FILE
-	@janusz toon --file $(FILE)
+	@PYTHONPATH=src python -m janusz.cli toon --file $(FILE)
 else
-	@janusz toon
+	@PYTHONPATH=src python -m janusz.cli toon
 endif
 	@echo "✓ YAML to TOON conversion completed"
 
-# Convert JSON files to TOON
+# Validate JSON files (no TOON conversion)
 json:
-	@echo "🎨 Converting JSONs to TOON..."
+	@echo "📋 Validating JSON files..."
 ifdef FILE
-	@janusz json --file $(FILE)
+	@PYTHONPATH=src python -m janusz.cli json --no-toon --file $(FILE)
 else
-	@janusz json
+	@PYTHONPATH=src python -m janusz.cli json --no-toon
+endif
+	@echo "✓ JSON validation completed"
+
+# Convert JSON files to TOON
+json-toon:
+	@echo "🎨 Converting JSONs to TOON..."
+	@command -v toon >/dev/null 2>&1 || { echo "⚠️  TOON CLI not found!"; echo "📦 Please install it manually:"; echo "   - From GitHub: https://github.com/toon-format/toon"; echo "   - Via cargo: cargo install toon"; echo "   - Or download binary from releases"; exit 1; }
+ifdef FILE
+	@PYTHONPATH=src python -m janusz.cli json --file $(FILE)
+else
+	@PYTHONPATH=src python -m janusz.cli json
 endif
 	@echo "✓ JSON to TOON conversion completed"
 
-# Run full pipeline
-all: convert toon
+# Run full pipeline with virtual environment
+all: setup-venv
+	@echo "🚀 Starting full pipeline: Documents → YAML → TOON"
+	@make convert-in-venv
+	@make toon-in-venv
 	@echo "✓ Pipeline completed: Documents → YAML → TOON"
+
+# Convert documents to YAML (internal use with venv)
+convert-in-venv:
+	@echo "🔄 Converting documents to YAML..."
+	@venv/bin/python -m janusz.cli convert
+
+# Convert YAML files to TOON (internal use with venv)
+toon-in-venv:
+	@echo "🎨 Converting YAMLs to TOON..."
+	@command -v toon >/dev/null 2>&1 || { echo "⚠️  TOON CLI not found!"; echo "📦 Please install it manually:"; echo "   - From GitHub: https://github.com/toon-format/toon"; echo "   - Via cargo: cargo install toon"; echo "   - Or download binary from releases"; exit 1; }
+	@venv/bin/python -m janusz.cli toon
 
 # Run tests
 test:
 	@echo "🧪 Running tests..."
 ifdef FILE
-	@uv run janusz test $(FILE)
+	@PYTHONPATH=src python -m janusz.cli test $(FILE)
 else
-	@uv run pytest tests/ -v
+	@PYTHONPATH=src python -m pytest tests/ -v
 endif
 
 # Run linting

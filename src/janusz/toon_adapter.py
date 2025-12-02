@@ -140,9 +140,12 @@ class YAMLToTOONConverter:
             return False
 
 
-def convert_directory(directory: str = ".", validate: bool = True) -> None:
+def convert_directory(directory: str = "new", validate: bool = True) -> None:
     """Convert all YAML files in a directory to TOON format."""
-    yaml_files = list(Path(directory).glob("**/*.yaml"))
+    dir_path = Path(directory)
+    dir_path.mkdir(exist_ok=True)  # Create directory if it doesn't exist
+
+    yaml_files = list(dir_path.glob("**/*.yaml"))
 
     if not yaml_files:
         logger.info(f"No YAML files found in {directory}")
