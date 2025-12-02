@@ -34,6 +34,7 @@ sys.path.insert(0, str(current_dir))
 
 from janusz.converter import UniversalToYAMLConverter, process_directory
 from janusz.models import DocumentStructure
+from janusz.rag.rag_system import RAGSystem
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -66,6 +67,15 @@ class JanuszGUI:
         self.ai_model = tk.StringVar(value="anthropic/claude-3-haiku")
         self.processing_queue = queue.Queue()
         self.is_processing = False
+
+        # Initialize RAG system
+        try:
+            self.rag_system = RAGSystem()
+            self.rag_available = True
+        except Exception as e:
+            logger.warning(f"RAG system not available: {e}")
+            self.rag_system = None
+            self.rag_available = False
 
         # Knowledge base directories
         self.knowledge_base_dirs = [
@@ -200,10 +210,13 @@ class JanuszGUI:
                                        command=self.start_conversion)
         self.convert_button.grid(row=0, column=0, padx=(0, 10))
 
-        ttk.Button(button_frame, text="📂 Wybierz katalog wyjściowy",
-                  command=self.select_output_directory).grid(row=0, column=1, padx=(0, 10))
+        ttk.Button(button_frame, text="🧠 Indeksuj do RAG",
+                  command=self.index_to_rag).grid(row=0, column=1, padx=(0, 10))
 
-        ttk.Button(button_frame, text="⚙️ Ustawienia", command=self.show_settings).grid(row=0, column=2)
+        ttk.Button(button_frame, text="📂 Wybierz katalog wyjściowy",
+                  command=self.select_output_directory).grid(row=0, column=2, padx=(0, 10))
+
+        ttk.Button(button_frame, text="⚙️ Ustawienia", command=self.show_settings).grid(row=0, column=3)
 
     def setup_progress_section(self, parent):
         """Setup progress tracking and logging."""
@@ -438,9 +451,128 @@ class JanuszGUI:
                           "Generowanie schematów będzie dostępne w następnej wersji.")
 
     def rag_search(self):
-        """RAG-powered search (placeholder for future implementation)."""
-        messagebox.showinfo("Funkcja w przygotowaniu",
-                          "RAG search będzie dostępne w następnej wersji.")
+        """RAG-powered search interface."""
+        if not self.rag_available or not self.rag_system:
+            messagebox.showerror("RAG niedostępny",
+                               "System RAG nie jest dostępny. Sprawdź konfigurację.")
+            return
+
+        # Create RAG search dialog
+        rag_window = tk.Toplevel(self.root)
+        rag_window.title("🔍 RAG - Przeszukiwanie wiedzy")
+        rag_window.geometry("700x500")
+
+        # Question input
+        ttk.Label(rag_window, text="Zadaj pytanie:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+
+        question_var = tk.StringVar()
+        question_entry = ttk.Entry(rag_window, textvariable=question_var, width=60)
+        question_entry.grid(row=0, column=1, padx=10, pady=5)
+
+        # Search button
+        search_button = ttk.Button(rag_window, text="Szukaj",
+                                 command=lambda: self._perform_rag_search(question_var.get(), rag_window))
+        search_button.grid(row=0, column=2, padx=10, pady=5)
+
+        # Results area
+        results_frame = ttk.Frame(rag_window)
+        results_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), padx=10, pady=5)
+
+        self.rag_results_text = scrolledtext.ScrolledText(results_frame, wrap=tk.WORD, height=20)
+        self.rag_results_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+        # Configure grid weights
+        rag_window.columnconfigure(1, weight=1)
+        rag_window.rowconfigure(1, weight=1)
+        results_frame.columnconfigure(0, weight=1)
+        results_frame.rowconfigure(0, weight=1)
+
+        # Initial status
+        self.rag_results_text.insert(tk.END, f"System RAG gotowy. Zindeksowane dokumenty: {self.rag_system.get_statistics()['indexed_documents']}\n")
+        self.rag_results_text.insert(tk.END, "Wpisz pytanie i kliknij 'Szukaj'...\n")
+
+    def _perform_rag_search(self, question: str, window: tk.Toplevel):
+        """Perform RAG search and display results."""
+        if not question.strip():
+            messagebox.showwarning("Puste pytanie", "Wpisz pytanie do wyszukania.")
+            return
+
+        # Clear previous results
+        self.rag_results_text.delete(1.0, tk.END)
+        self.rag_results_text.insert(tk.END, f"Szukam odpowiedzi na: '{question}'\n\n")
+        window.update()
+
+        try:
+            # Perform RAG query
+            response = self.rag_system.query(question, generate_answer=True)
+
+            # Display results
+            self.rag_results_text.insert(tk.END, "🤖 Odpowiedź:\n", "bold")
+            self.rag_results_text.insert(tk.END, f"{response.answer}\n\n")
+
+            self.rag_results_text.insert(tk.END, f"📊 Statystyki:\n")
+            self.rag_results_text.insert(tk.END, f"• Poziom ufności: {response.confidence_score:.1%}\n")
+            self.rag_results_text.insert(tk.END, f"• Czas przetwarzania: {response.processing_time:.2f}s\n")
+            self.rag_results_text.insert(tk.END, f"• Liczba źródeł: {len(response.sources)}\n\n")
+
+            if response.sources:
+                self.rag_results_text.insert(tk.END, "📚 Źródła:\n", "bold")
+                for i, source in enumerate(response.sources, 1):
+                    self.rag_results_text.insert(tk.END, f"{i}. {source.metadata.get('title', 'Nieznany dokument')} ")
+                    self.rag_results_text.insert(tk.END, f"(trafność: {source.score:.2f})\n")
+                    self.rag_results_text.insert(tk.END, f"   {source.content[:200]}...\n\n")
+
+        except Exception as e:
+            self.rag_results_text.insert(tk.END, f"❌ Błąd podczas wyszukiwania: {str(e)}\n")
+
+        # Configure text tags
+        self.rag_results_text.tag_configure("bold", font=("TkDefaultFont", 10, "bold"))
+
+    def index_to_rag(self):
+        """Index selected documents to RAG system."""
+        selected_files = [path for path, var in self.file_checkboxes.items() if var.get()]
+
+        if not selected_files:
+            messagebox.showwarning("Brak plików", "Wybierz przynajmniej jeden plik do indeksowania.")
+            return
+
+        if not self.rag_available or not self.rag_system:
+            messagebox.showerror("RAG niedostępny",
+                               "System RAG nie jest dostępny. Sprawdź konfigurację.")
+            return
+
+        # Disable UI during indexing
+        self.convert_button.config(state="disabled")
+        self.root.config(cursor="wait")
+
+        try:
+            indexed_count = 0
+
+            for file_path in selected_files:
+                try:
+                    # Convert file to document structure first
+                    converter = UniversalToYAMLConverter(file_path)
+                    doc_structure = converter.parse_text_structure(converter.extract_text_from_file())
+
+                    # Index to RAG
+                    doc_id = self.rag_system.add_document(doc_structure)
+                    indexed_count += 1
+
+                    self.log_message("INFO", f"✅ Zindeksowano: {os.path.basename(file_path)} (ID: {doc_id})")
+
+                except Exception as e:
+                    self.log_message("ERROR", f"❌ Błąd indeksowania {os.path.basename(file_path)}: {str(e)}")
+
+            messagebox.showinfo("Indeksowanie zakończone",
+                              f"Pomyślnie zindeksowano {indexed_count} z {len(selected_files)} plików.")
+
+        except Exception as e:
+            messagebox.showerror("Błąd indeksowania", f"Wystąpił błąd podczas indeksowania: {str(e)}")
+
+        finally:
+            # Re-enable UI
+            self.convert_button.config(state="normal")
+            self.root.config(cursor="")
 
     def select_output_directory(self):
         """Select output directory."""

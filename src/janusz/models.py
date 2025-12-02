@@ -139,9 +139,48 @@ class OrchestratorResponse(BaseModel):
     estimated_time: Optional[int] = None  # in seconds
 
 
+class SearchResult(BaseModel):
+    """Result from semantic search with relevance score."""
+    document_id: str
+    content: str
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    score: float
+    source_section: Optional[str] = None
+    highlights: List[str] = Field(default_factory=list)
+
+
+class VectorDocument(BaseModel):
+    """Document prepared for vector storage."""
+    id: str
+    content: str
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    embedding: Optional[List[float]] = None
+    chunks: List[Dict[str, Any]] = Field(default_factory=list)  # For chunked documents
+    last_indexed: Optional[str] = None
+
+
+class RAGQuery(BaseModel):
+    """Query for RAG system."""
+    question: str
+    context_documents: List[str] = Field(default_factory=list)  # Document IDs to search in
+    max_results: int = 5
+    include_metadata: bool = True
+    rerank_results: bool = True
+
+
+class RAGResponse(BaseModel):
+    """Response from RAG system."""
+    answer: str
+    sources: List[SearchResult] = Field(default_factory=list)
+    confidence_score: float = Field(ge=0.0, le=1.0, default=0.5)
+    reasoning_chain: List[str] = Field(default_factory=list)  # How the answer was constructed
+    processing_time: Optional[float] = None
+
+
 class DocumentStructure(BaseModel):
     """Complete document structure with metadata, content, and analysis."""
     metadata: Metadata
     content: Content
     analysis: Optional[Analysis] = None
     applied_schema: Optional[str] = None  # ID of applied modular schema
+    vector_document: Optional[VectorDocument] = None  # For RAG indexing

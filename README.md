@@ -142,6 +142,12 @@ janusz schema generate-ai --prompt "Create API documentation schema"
 janusz orchestrate "Convert this API doc to YAML" --file api.md
 janusz orchestrate "Create security guide with AI analysis" --use-ai
 
+# RAG System (Retrieval-Augmented Generation)
+janusz rag index --file document.yaml              # Index document for RAG
+janusz rag query "How does authentication work?"   # Ask questions about documents
+janusz rag stats                                    # Show RAG system statistics
+janusz rag clear                                    # Clear RAG index
+
 # Graphical User Interface
 janusz gui                       # Launch the desktop GUI application
 python scripts/gui.py           # Alternative GUI launcher

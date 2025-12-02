@@ -15,6 +15,7 @@ from .converter import UniversalToYAMLConverter
 from .converter import process_directory as convert_directory
 from .schemas.schema_manager import SchemaManager
 from .orchestrator.ai_orchestrator import AIOrchestrator
+from .rag.rag_system import RAGSystem
 from .json_to_toon import JSONToTOONConverter, convert_directory_json_only, convert_json_only
 from .json_to_toon import convert_directory as json_convert_directory
 from .json_to_toon import test_toon_conversion as test_json_toon_conversion
@@ -236,6 +237,26 @@ Supported input formats for json: JSON
     orchestrator_parser.add_argument("--file", help="Document file to analyze")
     orchestrator_parser.add_argument("--use-ai", action="store_true", help="Enable AI analysis")
 
+    # RAG commands
+    rag_parser = subparsers.add_parser("rag", help="RAG (Retrieval-Augmented Generation) operations")
+    rag_subparsers = rag_parser.add_subparsers(dest="rag_command", help="RAG operations")
+
+    # RAG index
+    rag_index_parser = rag_subparsers.add_parser("index", help="Index documents for RAG")
+    rag_index_parser.add_argument("--directory", "-d", default="new", help="Directory to index")
+    rag_index_parser.add_argument("--file", "-f", help="Specific file to index")
+
+    # RAG query
+    rag_query_parser = rag_subparsers.add_parser("query", help="Query the RAG system")
+    rag_query_parser.add_argument("question", help="Question to ask")
+    rag_query_parser.add_argument("--max-results", "-n", type=int, default=5, help="Maximum results")
+
+    # RAG stats
+    rag_stats_parser = rag_subparsers.add_parser("stats", help="Show RAG system statistics")
+
+    # RAG clear
+    rag_clear_parser = rag_subparsers.add_parser("clear", help="Clear RAG index")
+
     # Test command
     test_parser = subparsers.add_parser("test", help="Test TOON conversion with detailed output")
     test_parser.add_argument("file", help="YAML or JSON file to test")
@@ -372,6 +393,48 @@ Supported input formats for json: JSON
 
         if response.estimated_time:
             print(f"\nEstimated time: {response.estimated_time} seconds")
+
+    elif args.command == "rag":
+        try:
+            rag_system = RAGSystem()
+        except Exception as e:
+            logger.error(f"RAG system initialization failed: {e}")
+            sys.exit(1)
+
+        if args.rag_command == "index":
+            if args.file:
+                # Index single file
+                try:
+                    converter = UniversalToYAMLConverter(args.file)
+                    doc_structure = converter.parse_text_structure(converter.extract_text_from_file())
+                    doc_id = rag_system.add_document(doc_structure)
+                    print(f"✅ Indexed document: {args.file} (ID: {doc_id})")
+                except Exception as e:
+                    logger.error(f"Failed to index {args.file}: {e}")
+                    sys.exit(1)
+            else:
+                # Index directory (simplified version)
+                print("Directory indexing not yet implemented. Use individual files.")
+
+        elif args.rag_command == "query":
+            response = rag_system.query(args.question, max_results=args.max_results)
+            print(f"🤖 Answer: {response.answer}")
+            print(f"📊 Confidence: {response.confidence_score:.1%}")
+            print(f"📚 Sources: {len(response.sources)}")
+
+        elif args.rag_command == "stats":
+            stats = rag_system.get_statistics()
+            print("📊 RAG System Statistics:")
+            for key, value in stats.items():
+                print(f"  • {key}: {value}")
+
+        elif args.rag_command == "clear":
+            confirm = input("Are you sure you want to clear the RAG index? (y/N): ")
+            if confirm.lower() == 'y':
+                rag_system.clear_index()
+                print("✅ RAG index cleared")
+            else:
+                print("Operation cancelled")
 
     elif args.command == "test":
         # Try to detect file type and use appropriate test function

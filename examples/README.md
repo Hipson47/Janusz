@@ -262,6 +262,44 @@ The `gui_demo.py` script creates sample technical documents including:
 
 These documents showcase different types of content that benefit from AI-enhanced processing.
 
+## RAG System Demonstration
+
+### Running the RAG Demo
+
+```bash
+# Run RAG demonstration with sample data
+python examples/rag_demo.py
+
+# Use RAG via CLI
+janusz rag index --file document.yaml
+janusz rag query "How does authentication work?"
+janusz rag stats
+```
+
+### RAG Features
+
+The RAG (Retrieval-Augmented Generation) system provides:
+
+- **Semantic Search**: Find relevant documents using meaning, not just keywords
+- **Question Answering**: Ask natural language questions about your documents
+- **Context-Aware Responses**: Answers based on multiple relevant document sections
+- **Confidence Scoring**: Quality assessment of generated answers
+- **Multi-Format Support**: Works with indexed YAML, JSON, and TOON documents
+
+### How RAG Works
+
+1. **Indexing**: Documents are converted to embeddings and stored in vector database
+2. **Retrieval**: User questions are converted to embeddings and matched against document chunks
+3. **Generation**: AI combines relevant information to generate comprehensive answers
+4. **Citation**: Answers include references to source documents with relevance scores
+
+### RAG Use Cases
+
+- **Documentation Q&A**: Ask questions about API documentation, guides, or manuals
+- **Knowledge Discovery**: Find connections between different documents
+- **Compliance Checking**: Verify if documentation meets specific requirements
+- **Content Summarization**: Get AI-generated summaries of document collections
+
 ---
 
 *These examples demonstrate Janusz's capabilities for transforming unstructured knowledge into AI-optimized formats with significant token efficiency gains.*
