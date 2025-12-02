@@ -73,6 +73,12 @@ def validate_toon_cli_version() -> str:
             raise ToonCliError("TOON CLI --version returned empty output")
 
         logger.debug(f"TOON CLI version: {version}")
+
+        # TODO: v1.1.0 - Add version compatibility checking
+        # Check if version meets minimum requirements
+        # if not is_compatible_version(version):
+        #     raise ToonCliError(f"TOON CLI version {version} is not compatible")
+
         return version
 
     except subprocess.TimeoutExpired as e:

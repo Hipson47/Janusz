@@ -54,6 +54,7 @@ class YAMLToTOONConverter:
             ensure_toon_available()
 
             # Run TOON CLI to encode JSON to TOON
+            # TODO: v1.1.0 - Add timeout to subprocess.run calls
             subprocess.run(
                 ["toon", "--encode", str(self.json_temp_path), "-o", str(self.toon_path)],
                 capture_output=True,
