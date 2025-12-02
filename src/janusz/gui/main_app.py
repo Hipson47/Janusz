@@ -196,8 +196,16 @@ class JanuszGUI:
                   command=self.optimize_prompts, state="disabled").grid(row=0, column=0, padx=(0, 5))
         ttk.Button(ai_buttons_frame, text="📋 Generuj schematy",
                   command=self.generate_schemas, state="disabled").grid(row=0, column=1, padx=(5, 0))
-        ttk.Button(ai_buttons_frame, text="🔍 RAG Przeszukiwanie",
-                  command=self.rag_search, state="disabled").grid(row=1, column=0, columnspan=2, pady=(5, 0))
+
+        # RAG button - available when RAG system is ready
+        rag_button = ttk.Button(ai_buttons_frame, text="🔍 RAG Przeszukiwanie",
+                              command=self.rag_search)
+        rag_button.grid(row=1, column=0, columnspan=2, pady=(5, 0))
+        # Enable RAG button if RAG is available
+        if self.rag_available:
+            rag_button.config(state="normal")
+        else:
+            rag_button.config(state="disabled")
 
         self.ai_buttons = [child for child in ai_buttons_frame.winfo_children() if isinstance(child, ttk.Button)]
 
@@ -451,41 +459,253 @@ class JanuszGUI:
                           "Generowanie schematów będzie dostępne w następnej wersji.")
 
     def rag_search(self):
-        """RAG-powered search interface."""
+        """Advanced RAG-powered search interface."""
         if not self.rag_available or not self.rag_system:
             messagebox.showerror("RAG niedostępny",
                                "System RAG nie jest dostępny. Sprawdź konfigurację.")
             return
 
-        # Create RAG search dialog
+        # Create advanced RAG search dialog
         rag_window = tk.Toplevel(self.root)
-        rag_window.title("🔍 RAG - Przeszukiwanie wiedzy")
-        rag_window.geometry("700x500")
+        rag_window.title("🔍 RAG - Inteligentne przeszukiwanie wiedzy")
+        rag_window.geometry("900x700")
+        rag_window.resizable(True, True)
 
-        # Question input
-        ttk.Label(rag_window, text="Zadaj pytanie:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+        # Initialize search history
+        if not hasattr(self, 'rag_search_history'):
+            self.rag_search_history = []
 
-        question_var = tk.StringVar()
-        question_entry = ttk.Entry(rag_window, textvariable=question_var, width=60)
-        question_entry.grid(row=0, column=1, padx=10, pady=5)
-
-        # Search button
-        search_button = ttk.Button(rag_window, text="Szukaj",
-                                 command=lambda: self._perform_rag_search(question_var.get(), rag_window))
-        search_button.grid(row=0, column=2, padx=10, pady=5)
-
-        # Results area
-        results_frame = ttk.Frame(rag_window)
-        results_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), padx=10, pady=5)
-
-        self.rag_results_text = scrolledtext.ScrolledText(results_frame, wrap=tk.WORD, height=20)
-        self.rag_results_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        # Main container
+        main_frame = ttk.Frame(rag_window, padding="10")
+        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
         # Configure grid weights
-        rag_window.columnconfigure(1, weight=1)
-        rag_window.rowconfigure(1, weight=1)
+        rag_window.columnconfigure(0, weight=1)
+        rag_window.rowconfigure(0, weight=1)
+        main_frame.columnconfigure(1, weight=1)
+
+        # Title
+        title_label = ttk.Label(main_frame, text="🤖 Inteligentne przeszukiwanie wiedzy",
+                               font=("Arial", 14, "bold"))
+        title_label.grid(row=0, column=0, columnspan=3, pady=(0, 15))
+
+        # Question input section
+        self._create_question_section(main_frame, rag_window)
+
+        # Settings section
+        self._create_settings_section(main_frame)
+
+        # Results section
+        self._create_results_section(main_frame, rag_window)
+
+        # Stats section
+        self._create_stats_section(main_frame)
+
+        # Configure final layout
+        main_frame.rowconfigure(3, weight=1)  # Results section expands
+
+    def _create_question_section(self, parent, window):
+        """Create the question input section."""
+        question_frame = ttk.LabelFrame(parent, text="❓ Zadaj pytanie", padding="10")
+        question_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+        question_frame.columnconfigure(1, weight=1)
+
+        # Question input with history
+        ttk.Label(question_frame, text="Pytanie:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
+
+        # Question entry with dropdown history
+        self.question_var = tk.StringVar()
+        question_entry = ttk.Entry(question_frame, textvariable=self.question_var, width=50)
+        question_entry.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=(0, 5))
+
+        # History dropdown
+        if self.rag_search_history:
+            history_combo = ttk.Combobox(question_frame, values=self.rag_search_history[-10:],
+                                       state="readonly", width=20)
+            history_combo.grid(row=0, column=2, padx=(5, 0))
+            history_combo.bind('<<ComboboxSelected>>',
+                             lambda e: self.question_var.set(history_combo.get()))
+
+        # Control buttons
+        button_frame = ttk.Frame(question_frame)
+        button_frame.grid(row=1, column=0, columnspan=3, pady=(10, 0))
+
+        search_button = ttk.Button(button_frame, text="🔍 Szukaj",
+                                 command=lambda: self._perform_advanced_rag_search(window))
+        search_button.grid(row=0, column=0, padx=(0, 5))
+
+        clear_button = ttk.Button(button_frame, text="🗑️ Wyczyść",
+                                command=self._clear_rag_results)
+        clear_button.grid(row=0, column=1, padx=(0, 5))
+
+        # Bind Enter key to search
+        question_entry.bind('<Return>', lambda e: self._perform_advanced_rag_search(window))
+
+    def _create_settings_section(self, parent):
+        """Create the settings section."""
+        settings_frame = ttk.LabelFrame(parent, text="⚙️ Ustawienia", padding="10")
+        settings_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+
+        # Max results setting
+        ttk.Label(settings_frame, text="Maks. wyników:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
+        self.max_results_var = tk.IntVar(value=5)
+        max_results_spin = tk.Spinbox(settings_frame, from_=1, to=20, textvariable=self.max_results_var, width=5)
+        max_results_spin.grid(row=0, column=1, padx=(0, 15))
+
+        # AI generation toggle
+        self.use_ai_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(settings_frame, text="Generuj odpowiedź AI", variable=self.use_ai_var).grid(
+            row=0, column=2, sticky=tk.W, padx=(0, 15))
+
+        # Show sources toggle
+        self.show_sources_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(settings_frame, text="Pokaż źródła", variable=self.show_sources_var).grid(
+            row=0, column=3, sticky=tk.W)
+
+    def _create_results_section(self, parent, window):
+        """Create the results section."""
+        results_frame = ttk.LabelFrame(parent, text="📋 Wyniki", padding="10")
+        results_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S))
         results_frame.columnconfigure(0, weight=1)
         results_frame.rowconfigure(0, weight=1)
+
+        # Results text area with better formatting
+        self.rag_results_text = scrolledtext.ScrolledText(
+            results_frame, wrap=tk.WORD, height=15,
+            font=("Consolas", 10)  # Monospace for better formatting
+        )
+        self.rag_results_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+        # Configure text tags for different content types
+        self.rag_results_text.tag_configure("title", font=("Consolas", 12, "bold"), foreground="blue")
+        self.rag_results_text.tag_configure("answer", font=("Consolas", 10), foreground="black")
+        self.rag_results_text.tag_configure("source", font=("Consolas", 9), foreground="green")
+        self.rag_results_text.tag_configure("metadata", font=("Consolas", 8), foreground="gray")
+        self.rag_results_text.tag_configure("error", font=("Consolas", 10), foreground="red")
+        self.rag_results_text.tag_configure("success", font=("Consolas", 10), foreground="green")
+
+    def _create_stats_section(self, parent):
+        """Create the statistics section."""
+        stats_frame = ttk.LabelFrame(parent, text="📊 Statystyki", padding="5")
+        stats_frame.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(10, 0))
+
+        # Stats labels
+        self.stats_labels = {}
+        stats_items = [
+            ("indexed_docs", "Zindeksowane dokumenty:"),
+            ("query_count", "Wykonane zapytania:"),
+            ("avg_confidence", "Średnia ufność:"),
+            ("last_query_time", "Czas ostatniego zapytania:")
+        ]
+
+        for i, (key, label) in enumerate(stats_items):
+            ttk.Label(stats_frame, text=label).grid(row=0, column=i*2, sticky=tk.W, padx=(0, 5))
+            self.stats_labels[key] = ttk.Label(stats_frame, text="-")
+            self.stats_labels[key].grid(row=0, column=i*2+1, sticky=tk.W, padx=(0, 15))
+
+        # Update initial stats
+        self._update_rag_stats()
+
+    def _perform_advanced_rag_search(self, window):
+        """Perform advanced RAG search with enhanced UI feedback."""
+        question = self.question_var.get().strip()
+
+        if not question:
+            messagebox.showwarning("Brak pytania", "Wpisz pytanie do wyszukania.")
+            return
+
+        # Add to history
+        if question not in self.rag_search_history:
+            self.rag_search_history.append(question)
+            if len(self.rag_search_history) > 20:  # Keep only last 20
+                self.rag_search_history = self.rag_search_history[-20:]
+
+        # Clear previous results
+        self.rag_results_text.delete(1.0, tk.END)
+
+        # Show searching message
+        self.rag_results_text.insert(tk.END, f"🔍 Przeszukuję wiedzę na temat: '{question}'\n\n", "title")
+        self.rag_results_text.insert(tk.END, "⏳ Analizuję dostępne dokumenty...\n\n")
+        window.update()
+
+        try:
+            # Perform RAG query
+            response = self.rag_system.query(
+                question=question,
+                max_results=self.max_results_var.get(),
+                generate_answer=self.use_ai_var.get()
+            )
+
+            # Update stats
+            self._update_rag_stats()
+
+            # Clear and show results
+            self.rag_results_text.delete(1.0, tk.END)
+
+            # Question
+            self.rag_results_text.insert(tk.END, f"❓ Pytanie: {question}\n\n", "title")
+
+            # Answer
+            if response.answer:
+                self.rag_results_text.insert(tk.END, "🤖 Odpowiedź:\n", "title")
+                self.rag_results_text.insert(tk.END, f"{response.answer}\n\n", "answer")
+
+            # Statistics
+            self.rag_results_text.insert(tk.END, "📊 Statystyki zapytania:\n", "title")
+            self.rag_results_text.insert(tk.END, ".1f"            self.rag_results_text.insert(tk.END, f"• Czas przetwarzania: {response.processing_time:.2f}s\n")
+            self.rag_results_text.insert(tk.END, f"• Liczba źródeł: {len(response.sources)}\n\n")
+
+            # Sources (if enabled)
+            if self.show_sources_var.get() and response.sources:
+                self.rag_results_text.insert(tk.END, "📚 Źródła:\n", "title")
+
+                for i, source in enumerate(response.sources, 1):
+                    self.rag_results_text.insert(tk.END, f"{i}. ", "source")
+                    self.rag_results_text.insert(tk.END, f"{source.metadata.get('title', 'Nieznany dokument')} ", "source")
+                    self.rag_results_text.insert(tk.END, f"(trafność: {source.score:.2f})\n", "metadata")
+
+                    # Show content preview
+                    content_preview = source.content[:300] + "..." if len(source.content) > 300 else source.content
+                    self.rag_results_text.insert(tk.END, f"   {content_preview}\n\n", "answer")
+
+                    # Show highlights if available
+                    if source.highlights:
+                        self.rag_results_text.insert(tk.END, "   🔍 Podświetlenia: ", "metadata")
+                        highlights_text = " | ".join(source.highlights[:3])
+                        self.rag_results_text.insert(tk.END, f"{highlights_text}\n", "metadata")
+
+            # Success message
+            self.rag_results_text.insert(tk.END, "✅ Wyszukiwanie zakończone pomyślnie", "success")
+
+        except Exception as e:
+            self.rag_results_text.insert(tk.END, f"❌ Błąd podczas wyszukiwania: {str(e)}", "error")
+            logger.error(f"RAG search error: {e}")
+
+    def _clear_rag_results(self):
+        """Clear RAG search results."""
+        if hasattr(self, 'rag_results_text'):
+            self.rag_results_text.delete(1.0, tk.END)
+            self.rag_results_text.insert(tk.END, "Wyniki zostały wyczyszczone. Wpisz nowe pytanie i kliknij 'Szukaj'.\n")
+
+    def _update_rag_stats(self):
+        """Update RAG statistics display."""
+        if not hasattr(self, 'stats_labels') or not self.rag_available or not self.rag_system:
+            return
+
+        try:
+            stats = self.rag_system.get_statistics()
+
+            self.stats_labels["indexed_docs"].config(text=str(stats.get("indexed_documents", 0)))
+            self.stats_labels["query_count"].config(text=str(stats.get("query_count", 0)))
+
+            # Average confidence (placeholder - would need to track this)
+            self.stats_labels["avg_confidence"].config(text="N/A")
+
+            # Last query time (placeholder)
+            self.stats_labels["last_query_time"].config(text="N/A")
+
+        except Exception as e:
+            logger.error(f"Failed to update RAG stats: {e}")
 
         # Initial status
         self.rag_results_text.insert(tk.END, f"System RAG gotowy. Zindeksowane dokumenty: {self.rag_system.get_statistics()['indexed_documents']}\n")

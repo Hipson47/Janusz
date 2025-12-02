@@ -163,6 +163,9 @@ Janusz includes a user-friendly desktop application for intuitive document proce
 - **AI Integration**: Enable AI-powered analysis for enhanced insights
 - **Progress Tracking**: Real-time progress bars and detailed logging
 - **Batch Processing**: Process multiple files simultaneously
+- **RAG Search**: Natural language queries across indexed documents
+- **Document Indexing**: Add documents to RAG knowledge base for Q&A
+- **Advanced Settings**: Configurable search parameters and AI options
 
 ### Launching the GUI
 

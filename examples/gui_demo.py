@@ -175,6 +175,14 @@ def demo_gui_features():
     print("  • Best practices extraction")
     print("  • Quality assessment")
     print("  • Automated summaries")
+    print("  • RAG-powered Q&A system")
+
+    print("\n🔍 RAG Features:")
+    print("  • Natural language queries")
+    print("  • Semantic search across documents")
+    print("  • AI-generated answers with citations")
+    print("  • Confidence scoring")
+    print("  • Source validation")
     print("  • Improvement suggestions")
 
     print("\n📊 To run the GUI:")
