@@ -39,6 +39,7 @@ dev = [
     "ruff>=0.1.0",
     "black>=23.0.0",
     "mypy>=1.0.0",
+    "pip-audit>=2.0.0",
 ]
 nlp = [
     "spacy>=3.0.0",
@@ -94,29 +95,70 @@ target-version = ['py38']
 
 [tool.mypy]
 python_version = "3.9"
-warn_return_any = false
+strict = true
+warn_return_any = true
 warn_unused_configs = true
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
-check_untyped_defs = false
-disallow_untyped_decorators = false
-no_implicit_optional = false
-warn_redundant_casts = false
-warn_unused_ignores = false
-warn_no_return = false
-warn_unreachable = false
-strict_equality = false
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+pretty = true
+
+# Allow gradual adoption
+follow_imports = "normal"
+ignore_missing_imports = false
 
 [[tool.mypy.overrides]]
+# Third-party libraries without type stubs
 module = [
     "yaml",
-    "pdfplumber",
-    "docx",
-    "bs4",
-    "html2text"
+    "pdfplumber.*",
+    "docx.*",
+    "bs4.*",
+    "html2text.*",
+    "nltk.*",
+    "spacy.*",
+    "PIL.*",
+    "fitz.*"
 ]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
+# Generated code and build artifacts
+module = [
+    "src.*",
+    "tests.*",
+    "setup",
+    "distutils.*",
+    "pkg_resources"
+]
+ignore_errors = false
+
+[[tool.mypy.overrides]]
+# Test files can be less strict
 module = "tests.*"
+strict = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+ignore_errors = false
+
+[[tool.mypy.overrides]]
+# Example scripts are not part of main codebase
+module = "examples.*"
 ignore_errors = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "examples"]
+skips = ["B101", "B601"]  # Skip assert checks and shell usage in subprocess
+
+[dependency-groups]
+dev = [
+    "pip-audit>=2.7.3",
+]

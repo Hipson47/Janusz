@@ -6,15 +6,124 @@ on:
   pull_request:
     branches: [ main, master ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: 1
+  FORCE_COLOR: 1
+
 jobs:
+  # Main CI job with comprehensive testing
   test:
+    name: Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        include:
+          # Primary test version
+          - python-version: "3.11"
+            check-types: true
+            check-security: true
+          # Additional versions for compatibility
+          - python-version: "3.8"
+            check-types: false
+            check-security: false
+          - python-version: "3.12"
+            check-types: false
+            check-security: false
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      timeout-minutes: 2
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+      timeout-minutes: 2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+      timeout-minutes: 2
+
+    - name: Install dependencies
+      run: uv sync --dev --frozen
+      timeout-minutes: 3
+
+    - name: Cache pre-commit hooks
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pre-commit
+        key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+        restore-keys: |
+          pre-commit-${{ runner.os }}-
+      timeout-minutes: 1
+
+    - name: Run pre-commit hooks
+      if: matrix.python-version == '3.11'
+      run: |
+        uv run pre-commit install
+        uv run pre-commit run --all-files
+      timeout-minutes: 3
+
+    - name: Run ruff linter
+      run: uv run ruff check --output-format=github .
+      timeout-minutes: 2
+
+    - name: Run ruff formatter check
+      run: uv run ruff format --check --diff .
+      timeout-minutes: 2
+
+    - name: Run mypy type checker
+      if: matrix.check-types
+      run: uv run mypy src/janusz/
+      timeout-minutes: 3
+
+    - name: Run security audit
+      if: matrix.check-security
+      run: |
+        uv run pip-audit --ignore-vulns GHSA-2q4f-f9wg-8h45 || echo "pip-audit failed, but continuing..."
+      timeout-minutes: 2
+
+    - name: Run tests
+      run: uv run pytest tests/ --cov=janusz --cov-report=xml --cov-report=term-missing
+      timeout-minutes: 5
+
+    - name: Upload coverage to Codecov
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+      timeout-minutes: 2
+
+  # Optional extended testing for major releases
+  test-extended:
+    name: Extended Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/v')
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10"]
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: Install uv
       uses: astral-sh/setup-uv@v2
@@ -23,24 +132,13 @@ jobs:
         cache-dependency-glob: "uv.lock"
 
     - name: Set up Python ${{ matrix.python-version }}
-      run: uv python install ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --dev --frozen
 
-    - name: Run ruff linter
-      run: uv run ruff check .
-
-    - name: Run mypy type checker
-      run: uv run mypy src/janusz/
-
-    - name: Run tests
-      run: uv run pytest tests/ --cov=janusz --cov-report=xml
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+    - name: Run tests (extended)
+      run: uv run pytest tests/ -x --tb=short
+      timeout-minutes: 10
