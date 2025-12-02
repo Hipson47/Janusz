@@ -133,6 +133,15 @@ janusz json --no-toon            # Validate JSON files without TOON conversion
 janusz test path/to/file.yaml    # Test TOON conversion with detailed output
 janusz test path/to/file.json    # Test JSON to TOON conversion
 
+# Schema Management
+janusz schema list                           # List available schemas
+janusz schema create document.md --name "My Schema" --description "Custom schema"
+janusz schema generate-ai --prompt "Create API documentation schema"
+
+# AI Orchestrator (Intelligent Processing)
+janusz orchestrate "Convert this API doc to YAML" --file api.md
+janusz orchestrate "Create security guide with AI analysis" --use-ai
+
 # Graphical User Interface
 janusz gui                       # Launch the desktop GUI application
 python scripts/gui.py           # Alternative GUI launcher

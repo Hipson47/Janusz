@@ -6,7 +6,7 @@ This module defines Pydantic models for structured data validation.
 """
 
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Dict, Any
 
 from pydantic import BaseModel, Field
 
@@ -92,8 +92,56 @@ class Analysis(BaseModel):
     ai_extraction_used: bool = False
 
 
+class ModularSchema(BaseModel):
+    """A modular, reusable schema for document processing."""
+    id: str
+    name: str
+    description: str
+    category: Literal["technical", "business", "educational", "process", "reference", "tutorial"] = "technical"
+    tags: List[str] = Field(default_factory=list)
+    components: List[Dict[str, Any]] = Field(default_factory=list)  # Flexible component structure
+    dependencies: List[str] = Field(default_factory=list)  # IDs of required schemas
+    ai_generated: bool = False
+    confidence_score: float = Field(ge=0.0, le=1.0, default=0.5)
+    created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+    usage_count: int = 0
+    ai_model_used: Optional[str] = None
+
+
+class SchemaComponent(BaseModel):
+    """A component within a modular schema."""
+    type: Literal["text", "code", "workflow", "diagram", "table", "list", "section"] = "text"
+    content: str
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    required: bool = False
+    order: int = 0
+
+
+class OrchestratorContext(BaseModel):
+    """Context information for orchestrator decision making."""
+    user_intent: str
+    document_type: Optional[str] = None
+    domain: Optional[str] = None
+    complexity_level: Literal["simple", "medium", "complex"] = "medium"
+    time_constraints: Optional[str] = None
+    quality_requirements: Literal["draft", "standard", "high"] = "standard"
+    available_schemas: List[str] = Field(default_factory=list)
+    previous_interactions: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class OrchestratorResponse(BaseModel):
+    """Response from the AI orchestrator."""
+    recommended_schemas: List[str]  # Schema IDs
+    reasoning: str
+    confidence_score: float
+    alternative_options: List[Dict[str, Any]] = Field(default_factory=list)
+    processing_plan: Dict[str, Any] = Field(default_factory=dict)
+    estimated_time: Optional[int] = None  # in seconds
+
+
 class DocumentStructure(BaseModel):
     """Complete document structure with metadata, content, and analysis."""
     metadata: Metadata
     content: Content
     analysis: Optional[Analysis] = None
+    applied_schema: Optional[str] = None  # ID of applied modular schema

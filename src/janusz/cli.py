@@ -13,6 +13,8 @@ from pathlib import Path
 
 from .converter import UniversalToYAMLConverter
 from .converter import process_directory as convert_directory
+from .schemas.schema_manager import SchemaManager
+from .orchestrator.ai_orchestrator import AIOrchestrator
 from .json_to_toon import JSONToTOONConverter, convert_directory_json_only, convert_json_only
 from .json_to_toon import convert_directory as json_convert_directory
 from .json_to_toon import test_toon_conversion as test_json_toon_conversion
@@ -203,6 +205,37 @@ Supported input formats for json: JSON
     # GUI command
     gui_parser = subparsers.add_parser("gui", help="Launch the graphical user interface")
 
+    # Schema commands
+    schema_parser = subparsers.add_parser("schema", help="Manage modular schemas")
+    schema_subparsers = schema_parser.add_subparsers(dest="schema_command", help="Schema operations")
+
+    # Schema list
+    schema_list_parser = schema_subparsers.add_parser("list", help="List available schemas")
+    schema_list_parser.add_argument("--category", help="Filter by category")
+    schema_list_parser.add_argument("--tag", action="append", help="Filter by tags")
+
+    # Schema create
+    schema_create_parser = schema_subparsers.add_parser("create", help="Create schema from document")
+    schema_create_parser.add_argument("file", help="Source document file")
+    schema_create_parser.add_argument("--name", required=True, help="Schema name")
+    schema_create_parser.add_argument("--description", required=True, help="Schema description")
+    schema_create_parser.add_argument("--category", default="technical",
+                                    choices=["technical", "business", "educational", "process", "reference", "tutorial"],
+                                    help="Schema category")
+
+    # Schema generate AI
+    schema_ai_parser = schema_subparsers.add_parser("generate-ai", help="Generate schema using AI")
+    schema_ai_parser.add_argument("--prompt", required=True, help="Natural language prompt")
+    schema_ai_parser.add_argument("--category", default="technical",
+                                choices=["technical", "business", "educational", "process", "reference", "tutorial"],
+                                help="Schema category")
+
+    # Orchestrator command
+    orchestrator_parser = subparsers.add_parser("orchestrate", help="Use AI orchestrator for intelligent processing")
+    orchestrator_parser.add_argument("request", help="Natural language processing request")
+    orchestrator_parser.add_argument("--file", help="Document file to analyze")
+    orchestrator_parser.add_argument("--use-ai", action="store_true", help="Enable AI analysis")
+
     # Test command
     test_parser = subparsers.add_parser("test", help="Test TOON conversion with detailed output")
     test_parser.add_argument("file", help="YAML or JSON file to test")
@@ -256,6 +289,89 @@ Supported input formats for json: JSON
             logger.error(f"GUI components not available: {e}")
             logger.error("Make sure tkinter is installed: pip install tk")
             sys.exit(1)
+
+    elif args.command == "schema":
+        schema_manager = SchemaManager()
+
+        if args.schema_command == "list":
+            schemas = schema_manager.list_schemas(
+                category=getattr(args, 'category', None),
+                tags=getattr(args, 'tag', None)
+            )
+
+            if not schemas:
+                print("No schemas found.")
+            else:
+                print(f"Found {len(schemas)} schemas:")
+                for schema in schemas:
+                    print(f"  • {schema.id}: {schema.name}")
+                    print(f"    Category: {schema.category}")
+                    print(f"    Usage: {schema.usage_count} times")
+                    print(f"    Tags: {', '.join(schema.tags)}")
+                    print()
+
+        elif args.schema_command == "create":
+            # Convert file to document structure first
+            converter = UniversalToYAMLConverter(args.file)
+            doc_structure = converter.parse_text_structure(converter.extract_text_from_file())
+
+            schema = schema_manager.create_schema_from_document(
+                doc_structure,
+                args.name,
+                args.description,
+                args.category
+            )
+
+            print(f"✅ Created schema: {schema.name} ({schema.id})")
+
+        elif args.schema_command == "generate-ai":
+            # Check if AI is available
+            try:
+                from janusz.ai.ai_content_analyzer import AIContentAnalyzer
+                ai_analyzer = AIContentAnalyzer()
+                schema = schema_manager.generate_ai_schema(args.prompt, args.category)
+                print(f"🤖 Generated AI schema: {schema.name} ({schema.id})")
+            except Exception as e:
+                logger.error(f"AI schema generation failed: {e}")
+                logger.error("Make sure JANUSZ_OPENROUTER_API_KEY is set")
+                sys.exit(1)
+
+    elif args.command == "orchestrate":
+        try:
+            from janusz.ai.ai_content_analyzer import AIContentAnalyzer
+            ai_analyzer = AIContentAnalyzer() if getattr(args, 'use_ai', False) else None
+        except Exception:
+            ai_analyzer = None
+            if getattr(args, 'use_ai', False):
+                logger.warning("AI requested but not available")
+
+        orchestrator = AIOrchestrator(ai_analyzer=ai_analyzer)
+
+        # Load document if provided
+        document = None
+        if getattr(args, 'file', None):
+            converter = UniversalToYAMLConverter(args.file)
+            document = converter.parse_text_structure(converter.extract_text_from_file())
+
+        response = orchestrator.process_document_request(args.request, document)
+
+        print("🎯 Orchestrator Response:")
+        print(f"Recommended schemas: {', '.join(response.recommended_schemas) or 'None'}")
+        print(f"Confidence: {response.confidence_score:.1%}")
+        print(f"Reasoning: {response.reasoning}")
+
+        if response.alternative_options:
+            print("\nAlternatives:")
+            for alt in response.alternative_options:
+                print(f"  • {alt.get('reason', alt)}")
+
+        if response.processing_plan:
+            print("\nProcessing plan:")
+            for key, value in response.processing_plan.items():
+                print(f"  • {key}: {value}")
+
+        if response.estimated_time:
+            print(f"\nEstimated time: {response.estimated_time} seconds")
 
     elif args.command == "test":
         # Try to detect file type and use appropriate test function
