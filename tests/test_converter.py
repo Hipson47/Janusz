@@ -92,10 +92,10 @@ Content for section 2.
 
         structure = converter.parse_text_structure(test_text)
 
-        assert structure["metadata"]["title"] == "test"
-        assert structure["metadata"]["source_type"] == "text"
-        assert structure["content"]["raw_text"] == test_text
-        assert len(structure["content"]["sections"]) > 0
+        assert structure.metadata.title == "test"
+        assert structure.metadata.source_type == "text"
+        assert structure.content.raw_text == test_text
+        assert len(structure.content.sections) > 0
 
     def test_extract_key_concepts(self):
         """Test key concepts extraction."""

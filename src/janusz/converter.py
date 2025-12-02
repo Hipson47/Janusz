@@ -9,12 +9,14 @@ and converts them to structured YAML format for use with AI agents and orchestra
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import pdfplumber
 import yaml
 
+from .extraction_patterns import extract_best_practices_and_examples
 from .models import DocumentStructure
+from .nlp_utils import extract_keywords
 
 try:
     from docx import Document as DocxDocument
@@ -189,50 +191,185 @@ class UniversalToYAMLConverter:
             logger.error(f"Error extracting text from HTML {self.file_path}: {e}")
             return ""
 
-    def parse_text_structure(self, text: str) -> Dict[str, Any]:
-        """Parse extracted text into structured format."""
-        logger.info("Parsing text structure")
+    def parse_text_structure(self, text: str) -> DocumentStructure:
+        """Parse extracted text into hierarchical document structure."""
+        logger.info("Parsing text structure with hierarchical sections")
 
-        # Basic structure for AI agent playbooks
-        structure = {
-            "metadata": {
+        # Parse hierarchical sections
+        sections = self._parse_hierarchical_sections(text)
+
+        # Extract keywords using NLP
+        keywords = extract_keywords(text)
+
+        # Extract best practices and examples
+        best_practices, examples = extract_best_practices_and_examples(text, sections)
+
+        # Create analysis with confidence levels
+        analysis = {
+            "keywords": keywords,
+            "best_practices": best_practices,
+            "examples": examples
+        }
+
+        # Create document structure
+        doc_structure = DocumentStructure(
+            metadata={
                 "title": self.filename,
                 "source": str(self.file_path),
                 "source_type": self.detect_file_type(),
-                "converted_by": "Universal Document to YAML Converter",
-                "format_version": "2.0",
             },
-            "content": {"sections": [], "raw_text": text},
-        }
+            content={
+                "sections": sections,
+                "raw_text": text
+            },
+            analysis=analysis
+        )
 
-        # Try to identify sections based on common patterns
+        return doc_structure
+
+    def _parse_hierarchical_sections(self, text: str) -> List[dict]:
+        """
+        Parse text into hierarchical sections with proper nesting.
+
+        Returns a list of section dictionaries compatible with the existing format.
+        """
         lines = text.split("\n")
-        current_section = None
         sections = []
+        section_stack = []  # Stack for hierarchical sections
+        current_content = []
 
         for line in lines:
             line = line.strip()
             if not line:
+                if current_content:
+                    current_content.append("")
                 continue
 
-            # Look for section headers (common patterns)
-            if re.match(r"^(#{1,6}|\d+\.|\w+\:)", line) or len(line) < 100 and line.isupper():
-                if current_section:
-                    sections.append(current_section)
+            # Check for section headers (Markdown-style and other patterns)
+            header_match = re.match(r'^(#{1,6})\s+(.+)', line)  # Markdown headers
+            if header_match:
+                # Save current content to previous section
+                self._save_current_content(section_stack, current_content)
+                current_content = []
 
-                current_section = {"title": line, "content": [], "subsections": []}
-            elif current_section:
-                current_section["content"].append(line)
+                # Extract header level and title
+                level = len(header_match.group(1))
+                title = header_match.group(2).strip()
+
+                # Create new section
+                new_section = {
+                    "id": f"section_{len(sections)}",
+                    "title": title,
+                    "level": level,
+                    "content": [],
+                    "subsections": [],
+                    "children": []
+                }
+
+                # Handle hierarchy
+                self._add_section_to_hierarchy(sections, section_stack, new_section, level)
+
+            # Check for other header patterns
+            elif re.match(r'^\d+\.\s+.+$', line):  # Numbered sections like "1. Introduction"
+                self._save_current_content(section_stack, current_content)
+                current_content = []
+
+                level = 1  # Assume top level for numbered sections
+                title = line
+
+                new_section = {
+                    "id": f"section_{len(sections)}",
+                    "title": title,
+                    "level": level,
+                    "content": [],
+                    "subsections": [],
+                    "children": []
+                }
+
+                self._add_section_to_hierarchy(sections, section_stack, new_section, level)
+
+            elif len(line) < 100 and line.isupper() and not line.endswith('.'):
+                # ALL CAPS titles (shorter than 100 chars)
+                self._save_current_content(section_stack, current_content)
+                current_content = []
+
+                level = 1
+                title = line
+
+                new_section = {
+                    "id": f"section_{len(sections)}",
+                    "title": title,
+                    "level": level,
+                    "content": [],
+                    "subsections": [],
+                    "children": []
+                }
+
+                self._add_section_to_hierarchy(sections, section_stack, new_section, level)
+
             else:
-                # Content before first section
-                if not sections:
-                    sections.append({"title": "Introduction", "content": [line], "subsections": []})
+                # Regular content
+                current_content.append(line)
 
-        if current_section:
-            sections.append(current_section)
+        # Save final content
+        self._save_current_content(section_stack, current_content)
 
-        structure["content"]["sections"] = sections
-        return structure
+        # Flatten hierarchy for backward compatibility (but keep structure)
+        return self._flatten_sections_hierarchy(sections)
+
+    def _add_section_to_hierarchy(self, sections: List[dict], section_stack: List[dict],
+                                new_section: dict, level: int):
+        """Add a section to the hierarchy based on its level."""
+        # Pop sections from stack that are at the same or higher level
+        while section_stack and section_stack[-1]["level"] >= level:
+            section_stack.pop()
+
+        # Add to parent or root
+        if section_stack:
+            parent = section_stack[-1]
+            parent["subsections"].append(new_section)
+        else:
+            sections.append(new_section)
+
+        # Push to stack
+        section_stack.append(new_section)
+
+    def _save_current_content(self, section_stack: List[dict], current_content: List[str]):
+        """Save current content to the appropriate section."""
+        if not current_content or not section_stack:
+            return
+
+        # Find the deepest section in the stack
+        target_section = section_stack[-1]
+
+        # Filter out empty lines at start/end
+        content_lines = [line for line in current_content if line.strip()]
+        if content_lines:
+            target_section["content"].extend(content_lines)
+
+    def _flatten_sections_hierarchy(self, sections: List[dict]) -> List[dict]:
+        """Flatten hierarchical sections into a flat list for backward compatibility."""
+        flat_sections = []
+
+        def flatten_recursive(section_list: List[dict], result: List[dict]):
+            for section in section_list:
+                # Create a flat version of the section
+                flat_section = {
+                    "id": section.get("id"),
+                    "title": section["title"],
+                    "level": section.get("level", 1),
+                    "content": section.get("content", []),
+                    "subsections": section.get("subsections", []),  # Keep existing subsections
+                    "children": section.get("children", [])  # Add new children field
+                }
+                result.append(flat_section)
+
+                # Recursively flatten subsections
+                if section.get("subsections"):
+                    flatten_recursive(section["subsections"], result)
+
+        flatten_recursive(sections, flat_sections)
+        return flat_sections
 
     def extract_key_concepts(self, text: str) -> Dict[str, Any]:
         """Extract key concepts and patterns from the text."""
@@ -277,21 +414,11 @@ class UniversalToYAMLConverter:
                 logger.error(f"No text extracted from {self.file_path}")
                 return False
 
-            # Parse structure
-            structure = self.parse_text_structure(text)
+            # Parse structure (now returns DocumentStructure directly)
+            doc_structure = self.parse_text_structure(text)
 
-            # Extract concepts
-            concepts = self.extract_key_concepts(text)
-            structure["analysis"] = concepts
-
-            # Validate structure with Pydantic
-            try:
-                validated_doc = DocumentStructure.model_validate(structure)
-                # Use validated structure for YAML output
-                yaml_structure = validated_doc.model_dump()
-            except Exception as e:
-                logger.warning(f"Document structure validation failed, using raw structure: {e}")
-                yaml_structure = structure
+            # Convert to dict for YAML output
+            yaml_structure = doc_structure.model_dump()
 
             # Convert to YAML
             yaml_content = yaml.dump(

@@ -63,6 +63,12 @@ class YAMLToTOONConverter:
             )
 
             logger.info("TOON conversion completed")
+
+            # Validate TOON structure by decoding and checking format
+            if not self._validate_toon_structure():
+                logger.error("TOON structure validation failed")
+                return False
+
             return True
         except ToonCliError as e:
             logger.error(f"TOON CLI validation failed: {e}")
@@ -158,6 +164,60 @@ class YAMLToTOONConverter:
             return False
         except Exception as e:
             logger.error(f"TOON file validation failed: {e}")
+            return False
+
+    def _validate_toon_structure(self) -> bool:
+        """Validate TOON file structure by decoding and checking format."""
+        try:
+            # Validate TOON CLI availability before use
+            ensure_toon_available()
+
+            # Try to decode TOON back to JSON
+            result = subprocess.run(
+                ["toon", "--decode", str(self.toon_path)],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=DEFAULT_TOON_TIMEOUT,
+            )
+
+            # Parse the JSON to ensure it's valid
+            decoded_data = json.loads(result.stdout)
+
+            # Validate structure has required fields
+            if not isinstance(decoded_data, dict):
+                logger.error("Decoded TOON is not a valid object")
+                return False
+
+            # Check for required metadata
+            metadata = decoded_data.get("metadata", {})
+            if not metadata.get("format_version"):
+                logger.warning("Decoded TOON missing format_version")
+                # Not a hard failure for backward compatibility
+
+            if not metadata.get("title"):
+                logger.warning("Decoded TOON missing title")
+
+            # Check content structure
+            content = decoded_data.get("content", {})
+            if not isinstance(content.get("sections", []), list):
+                logger.error("Decoded TOON has invalid sections structure")
+                return False
+
+            logger.info("TOON structure validation successful")
+            return True
+
+        except ToonCliError as e:
+            logger.error(f"TOON CLI validation failed: {e}")
+            return False
+        except subprocess.CalledProcessError as e:
+            logger.error(f"TOON decode failed: {e.stderr}")
+            return False
+        except json.JSONDecodeError as e:
+            logger.error(f"Decoded TOON is not valid JSON: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"TOON structure validation failed: {e}")
             return False
 
 

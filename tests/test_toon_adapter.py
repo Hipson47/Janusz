@@ -45,7 +45,18 @@ class TestYAMLToTOONConverter:
     def test_json_to_toon_success(self, mock_run, mock_validate):
         """Test successful JSON to TOON conversion."""
         mock_validate.return_value = "/usr/bin/toon"
-        mock_run.return_value = MagicMock(stdout="", stderr="", returncode=0)
+
+        # Mock different responses for different calls
+        def mock_run_side_effect(*args, **kwargs):
+            cmd_args = args[0] if args else kwargs.get('args', [])
+            if '--decode' in cmd_args:
+                # Return valid JSON for decode
+                return MagicMock(stdout='{"test": "data"}', stderr="", returncode=0)
+            else:
+                # Return empty for encode/stats
+                return MagicMock(stdout="", stderr="", returncode=0)
+
+        mock_run.side_effect = mock_run_side_effect
 
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
             tmp_path = tmp.name
@@ -57,11 +68,18 @@ class TestYAMLToTOONConverter:
             success = converter.json_to_toon()
             assert success
 
-            # Verify subprocess was called correctly
-            mock_run.assert_called_once()
-            args, kwargs = mock_run.call_args
-            assert "toon" in args[0]
-            assert "--encode" in args[0]
+            # Verify subprocess was called correctly (encode + validation decode)
+            assert mock_run.call_count == 2
+
+            # Check that both encode and decode calls were made
+            calls = mock_run.call_args_list
+            encode_call = calls[0][0][0]  # First call arguments
+            decode_call = calls[1][0][0]  # Second call arguments
+
+            assert "toon" in encode_call
+            assert "--encode" in encode_call
+            assert "toon" in decode_call
+            assert "--decode" in decode_call
 
         finally:
             Path(tmp_path).unlink()
@@ -158,7 +176,18 @@ class TestYAMLToTOONConverter:
             with patch("janusz.toon_adapter.ensure_toon_available") as mock_validate, \
                  patch("subprocess.run") as mock_run:
                 mock_validate.return_value = "/usr/bin/toon"
-                mock_run.return_value = MagicMock(stdout="", stderr="", returncode=0)
+
+                # Mock different responses for different calls
+                def mock_run_side_effect(*args, **kwargs):
+                    cmd_args = args[0] if args else kwargs.get('args', [])
+                    if '--decode' in cmd_args:
+                        # Return valid JSON for decode
+                        return MagicMock(stdout='{"test": "data"}', stderr="", returncode=0)
+                    else:
+                        # Return empty for encode/stats
+                        return MagicMock(stdout="", stderr="", returncode=0)
+
+                mock_run.side_effect = mock_run_side_effect
 
                 converter.convert()
 
