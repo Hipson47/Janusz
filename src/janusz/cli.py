@@ -25,10 +25,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def convert_file_to_yaml(file_path: str) -> bool:
+def convert_file_to_yaml(file_path: str, use_ai: bool = False, ai_model: str = "anthropic/claude-3-haiku") -> bool:
     """Convert a single file to YAML format."""
     try:
-        converter = UniversalToYAMLConverter(file_path)
+        converter = UniversalToYAMLConverter(file_path, use_ai=use_ai, ai_model=ai_model)
         return converter.convert_to_yaml()
     except ValueError as e:
         # Invalid file format or unsupported extension
@@ -174,6 +174,14 @@ Supported input formats for json: JSON
         "--directory", "-d", default="new", help="Directory to process (default: new)"
     )
     convert_parser.add_argument("--file", "-f", help="Specific file to convert")
+    convert_parser.add_argument(
+        "--use-ai", action="store_true",
+        help="Enable AI-powered analysis (requires JANUSZ_OPENROUTER_API_KEY)"
+    )
+    convert_parser.add_argument(
+        "--ai-model", default="anthropic/claude-3-haiku",
+        help="AI model to use for analysis (default: anthropic/claude-3-haiku)"
+    )
 
     # Toon command
     toon_parser = subparsers.add_parser("toon", help="Convert YAML files to TOON")
@@ -207,10 +215,10 @@ Supported input formats for json: JSON
 
     if args.command == "convert":
         if args.file:
-            success = convert_file_to_yaml(args.file)
+            success = convert_file_to_yaml(args.file, use_ai=getattr(args, 'use_ai', False), ai_model=getattr(args, 'ai_model', 'anthropic/claude-3-haiku'))
             sys.exit(0 if success else 1)
         else:
-            convert_directory(args.directory)
+            convert_directory(args.directory, use_ai=getattr(args, 'use_ai', False), ai_model=getattr(args, 'ai_model', 'anthropic/claude-3-haiku'))
 
     elif args.command == "toon":
         validate = not args.no_validate

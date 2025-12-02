@@ -21,6 +21,11 @@ class Metadata(BaseModel):
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
     parser_version: str = "1.1.0"
 
+    # AI processing metadata (optional)
+    ai_processing_enabled: bool = False
+    ai_model_used: Optional[str] = None
+    ai_processing_time_seconds: Optional[float] = None
+
 
 class Section(BaseModel):
     """A hierarchical section within a document."""
@@ -47,6 +52,27 @@ class ExtractionItem(BaseModel):
     confidence_level: Literal["low", "medium", "high"] = "medium"
 
 
+class AIInsight(BaseModel):
+    """AI-generated insight with metadata."""
+    text: str
+    insight_type: Literal["summary", "improvement", "warning", "enhancement", "clarification"] = "enhancement"
+    confidence_score: float = Field(ge=0.0, le=1.0, default=0.5)
+    reasoning: Optional[str] = None
+    tags: List[str] = Field(default_factory=list)
+    source_section_ids: List[str] = Field(default_factory=list)
+
+
+class AIExtractionResult(BaseModel):
+    """Result from AI-powered extraction."""
+    best_practices: List[ExtractionItem] = Field(default_factory=list)
+    examples: List[ExtractionItem] = Field(default_factory=list)
+    insights: List[AIInsight] = Field(default_factory=list)
+    summary: Optional[str] = None
+    quality_score: float = Field(ge=0.0, le=1.0, default=0.5)
+    ai_model_used: Optional[str] = None
+    processing_time_seconds: Optional[float] = None
+
+
 class Content(BaseModel):
     """Content structure of a document."""
     sections: List[Section] = Field(default_factory=list)
@@ -58,6 +84,12 @@ class Analysis(BaseModel):
     keywords: List[Keyword] = Field(default_factory=list)
     best_practices: List[ExtractionItem] = Field(default_factory=list)
     examples: List[ExtractionItem] = Field(default_factory=list)
+
+    # AI-enhanced fields (optional)
+    ai_insights: Optional[List[AIInsight]] = None
+    ai_summary: Optional[str] = None
+    ai_quality_score: Optional[float] = None
+    ai_extraction_used: bool = False
 
 
 class DocumentStructure(BaseModel):

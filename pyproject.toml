@@ -44,6 +44,9 @@ dev = [
     "bandit>=1.7.0",
     "codecov>=2.1.0",
 ]
+ai = [
+    "httpx>=0.25.0",
+]
 nlp = [
     "spacy>=3.0.0",
     "nltk>=3.8.0",

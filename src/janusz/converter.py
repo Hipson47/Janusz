@@ -18,6 +18,14 @@ from .extraction_patterns import extract_best_practices_and_examples
 from .models import DocumentStructure
 from .nlp_utils import extract_keywords
 
+# Optional AI import
+try:
+    from .ai.ai_content_analyzer import AIContentAnalyzer
+    AI_AVAILABLE = True
+except ImportError:
+    AI_AVAILABLE = False
+    AIContentAnalyzer = None
+
 try:
     from docx import Document as DocxDocument
 
@@ -37,16 +45,29 @@ class UniversalToYAMLConverter:
 
     SUPPORTED_EXTENSIONS = {".pdf", ".md", ".txt", ".docx", ".html"}
 
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, use_ai: bool = False, ai_model: str = "anthropic/claude-3-haiku"):
         self.file_path = Path(file_path)
         self.filename = self.file_path.stem
         self.extension = self.file_path.suffix.lower()
         self.yaml_path = self.file_path.with_suffix(".yaml")
+        self.use_ai = use_ai and AI_AVAILABLE
+        self.ai_model = ai_model
 
         if self.extension not in self.SUPPORTED_EXTENSIONS:
             raise ValueError(
                 f"Unsupported file format: {self.extension}. Supported: {self.SUPPORTED_EXTENSIONS}"
             )
+
+        # Initialize AI analyzer if requested
+        if self.use_ai:
+            try:
+                self.ai_analyzer = AIContentAnalyzer(model=ai_model)
+                logger.info(f"AI analysis enabled with model: {ai_model}")
+            except Exception as e:
+                logger.warning(f"Failed to initialize AI analyzer: {e}. Falling back to standard analysis.")
+                self.use_ai = False
+        else:
+            self.ai_analyzer = None
 
     def detect_file_type(self) -> str:
         """Detect file type based on extension."""
@@ -204,12 +225,51 @@ class UniversalToYAMLConverter:
         # Extract best practices and examples
         best_practices, examples = extract_best_practices_and_examples(text, sections)
 
-        # Create analysis with confidence levels
+        # Create base analysis
         analysis = {
             "keywords": keywords,
             "best_practices": best_practices,
-            "examples": examples
+            "examples": examples,
+            "ai_extraction_used": False
         }
+
+        # Perform AI analysis if enabled
+        ai_result = None
+        if self.use_ai and self.ai_analyzer:
+            logger.info("Performing AI-enhanced analysis")
+            try:
+                # Create temporary document structure for AI analysis
+                temp_doc = DocumentStructure(
+                    metadata={
+                        "title": self.filename,
+                        "source": str(self.file_path),
+                        "source_type": self.detect_file_type(),
+                    },
+                    content={
+                        "sections": sections,
+                        "raw_text": text
+                    }
+                )
+
+                ai_result = self.ai_analyzer.analyze_document(temp_doc)
+
+                # Merge AI results with traditional analysis
+                if ai_result.best_practices:
+                    analysis["best_practices"].extend(ai_result.best_practices)
+                if ai_result.examples:
+                    analysis["examples"].extend(ai_result.examples)
+                if ai_result.insights:
+                    analysis["ai_insights"] = ai_result.insights
+                if ai_result.summary:
+                    analysis["ai_summary"] = ai_result.summary
+                if ai_result.quality_score is not None:
+                    analysis["ai_quality_score"] = ai_result.quality_score
+
+                analysis["ai_extraction_used"] = True
+                logger.info(f"AI analysis completed. Quality score: {ai_result.quality_score:.2f}")
+
+            except Exception as e:
+                logger.warning(f"AI analysis failed, falling back to traditional methods: {e}")
 
         # Create document structure
         doc_structure = DocumentStructure(
@@ -217,6 +277,9 @@ class UniversalToYAMLConverter:
                 "title": self.filename,
                 "source": str(self.file_path),
                 "source_type": self.detect_file_type(),
+                "ai_processing_enabled": self.use_ai,
+                "ai_model_used": self.ai_model if self.use_ai else None,
+                "ai_processing_time_seconds": ai_result.processing_time_seconds if ai_result else None,
             },
             content={
                 "sections": sections,
@@ -437,7 +500,7 @@ class UniversalToYAMLConverter:
             return False
 
 
-def process_directory(directory: str = "new") -> None:
+def process_directory(directory: str = "new", use_ai: bool = False, ai_model: str = "anthropic/claude-3-haiku") -> None:
     """Process all supported document files in a directory."""
     dir_path = Path(directory)
     dir_path.mkdir(exist_ok=True)  # Create directory if it doesn't exist
@@ -455,6 +518,8 @@ def process_directory(directory: str = "new") -> None:
         return
 
     logger.info(f"Found {len(supported_files)} supported files")
+    if use_ai:
+        logger.info("AI-enhanced analysis enabled"        if AI_AVAILABLE else "AI requested but not available (missing dependencies)")
 
     successful = 0
     failed = 0
@@ -462,7 +527,7 @@ def process_directory(directory: str = "new") -> None:
     for file_path in supported_files:
         logger.info(f"Processing: {file_path}")
         try:
-            converter = UniversalToYAMLConverter(file_path)
+            converter = UniversalToYAMLConverter(file_path, use_ai=use_ai, ai_model=ai_model)
             success = converter.convert_to_yaml()
 
             if success:
