@@ -7,6 +7,7 @@ Provides command-line interface for converting documents to YAML and YAML to TOO
 
 import argparse
 import logging
+import subprocess
 import sys
 from pathlib import Path
 
@@ -59,6 +60,10 @@ def convert_yaml_to_toon(yaml_path: str, validate: bool = True) -> bool:
         # TOON CLI validation or execution errors
         logger.error(f"TOON CLI error for YAML '{yaml_path}': {e}")
         return False
+    except subprocess.TimeoutExpired as e:
+        # TOON CLI timeout errors
+        logger.error(f"TOON CLI timeout for YAML '{yaml_path}': {e}")
+        return False
     except ValueError as e:
         # Invalid YAML file or path issues
         logger.error(f"Invalid YAML file '{yaml_path}': {e}")
@@ -88,6 +93,10 @@ def convert_json_to_toon(json_path: str, validate: bool = True) -> bool:
     except ToonCliError as e:
         # TOON CLI validation or execution errors
         logger.error(f"TOON CLI error for JSON '{json_path}': {e}")
+        return False
+    except subprocess.TimeoutExpired as e:
+        # TOON CLI timeout errors
+        logger.error(f"TOON CLI timeout for JSON '{json_path}': {e}")
         return False
     except ValueError as e:
         # Invalid JSON file or path issues

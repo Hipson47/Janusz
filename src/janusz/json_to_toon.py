@@ -12,7 +12,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from .toon_cli import ToonCliError, ensure_toon_available
+from .toon_cli import DEFAULT_TOON_TIMEOUT, ToonCliError, ensure_toon_available
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -53,6 +53,7 @@ class JSONToTOONConverter:
                 capture_output=True,
                 text=True,
                 check=True,
+                timeout=DEFAULT_TOON_TIMEOUT,
             )
 
             logger.info("TOON conversion completed")
@@ -72,12 +73,20 @@ class JSONToTOONConverter:
 
             # Get stats for JSON
             json_result = subprocess.run(
-                ["toon", "--stats", str(self.json_path)], capture_output=True, text=True, check=True
+                ["toon", "--stats", str(self.json_path)],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=DEFAULT_TOON_TIMEOUT,
             )
 
             # Get stats for TOON
             toon_result = subprocess.run(
-                ["toon", "--stats", str(self.toon_path)], capture_output=True, text=True, check=True
+                ["toon", "--stats", str(self.toon_path)],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=DEFAULT_TOON_TIMEOUT,
             )
 
             return {
@@ -124,6 +133,7 @@ class JSONToTOONConverter:
                 capture_output=True,
                 text=True,
                 check=True,
+                timeout=DEFAULT_TOON_TIMEOUT,
             )
 
             # Parse the JSON to ensure it's valid

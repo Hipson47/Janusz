@@ -14,6 +14,9 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+# Default timeout for TOON CLI operations (seconds)
+DEFAULT_TOON_TIMEOUT = 30
+
 
 class ToonCliError(Exception):
     """Exception raised when TOON CLI validation or execution fails."""

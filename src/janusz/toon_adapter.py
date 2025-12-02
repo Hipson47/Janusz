@@ -15,7 +15,7 @@ from typing import Any, Dict, Optional
 
 import yaml
 
-from .toon_cli import ToonCliError, ensure_toon_available
+from .toon_cli import DEFAULT_TOON_TIMEOUT, ToonCliError, ensure_toon_available
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -54,12 +54,12 @@ class YAMLToTOONConverter:
             ensure_toon_available()
 
             # Run TOON CLI to encode JSON to TOON
-            # TODO: v1.1.0 - Add timeout to subprocess.run calls
             subprocess.run(
                 ["toon", "--encode", str(self.json_temp_path), "-o", str(self.toon_path)],
                 capture_output=True,
                 text=True,
                 check=True,
+                timeout=DEFAULT_TOON_TIMEOUT,
             )
 
             logger.info("TOON conversion completed")
@@ -83,11 +83,16 @@ class YAMLToTOONConverter:
                 capture_output=True,
                 text=True,
                 check=True,
+                timeout=DEFAULT_TOON_TIMEOUT,
             )
 
             # Get stats for TOON
             toon_result = subprocess.run(
-                ["toon", "--stats", str(self.toon_path)], capture_output=True, text=True, check=True
+                ["toon", "--stats", str(self.toon_path)],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=DEFAULT_TOON_TIMEOUT,
             )
 
             return {
@@ -138,6 +143,7 @@ class YAMLToTOONConverter:
                 capture_output=True,
                 text=True,
                 check=True,
+                timeout=DEFAULT_TOON_TIMEOUT,
             )
 
             # Parse the JSON to ensure it's valid

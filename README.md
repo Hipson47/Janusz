@@ -78,7 +78,7 @@ janusz test document.yaml
 **Future Roadmap:**
 - 🟢 **v1.1.0**: RTF and EPUB support with dedicated parsers
 - 🟢 **v1.1.0**: TOON CLI compatibility versioning and timeouts
-- 🟡 **v1.0.1**: Pydantic models for data validation, edge-case tests
+- ✅ **v1.0.1**: Pydantic models for data validation, edge-case tests (implemented)
 
 ## Installation & Setup
 

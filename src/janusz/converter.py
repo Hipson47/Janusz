@@ -14,6 +14,8 @@ from typing import Any, Dict
 import pdfplumber
 import yaml
 
+from .models import DocumentStructure
+
 try:
     from docx import Document as DocxDocument
 
@@ -282,9 +284,18 @@ class UniversalToYAMLConverter:
             concepts = self.extract_key_concepts(text)
             structure["analysis"] = concepts
 
+            # Validate structure with Pydantic
+            try:
+                validated_doc = DocumentStructure.model_validate(structure)
+                # Use validated structure for YAML output
+                yaml_structure = validated_doc.model_dump()
+            except Exception as e:
+                logger.warning(f"Document structure validation failed, using raw structure: {e}")
+                yaml_structure = structure
+
             # Convert to YAML
             yaml_content = yaml.dump(
-                structure, default_flow_style=False, allow_unicode=True, sort_keys=False, indent=2
+                yaml_structure, default_flow_style=False, allow_unicode=True, sort_keys=False, indent=2
             )
 
             # Save YAML file
