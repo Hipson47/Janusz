@@ -1,0 +1,99 @@
+metadata:
+  title: sample_spec
+  source: examples/inputs/sample_spec.txt
+  source_type: text
+  converted_by: Janusz v1.1.0
+  format_version: 1.1.0
+  created_at: "2025-12-02T18:30:38.609203"
+  parser_version: 1.1.0
+content:
+  sections[6]:
+    - id: section_0
+      title: OVERVIEW
+      level: 1
+      content[1]: This specification defines the REST API for the user management system.
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: ENDPOINTS
+      level: 1
+      content[35]: GET /users,Returns a list of all users in the system.,"Query parameters:","- limit: Maximum number of users to return (default: 50)","- offset: Number of users to skip (default: 0)","Response format:","{","\"users\": [","{","\"id\": \"string\",","\"email\": \"string\",","\"name\": \"string\",","\"created_at\": \"datetime\"","}","],","\"total\": 100,","\"limit\": 50,","\"offset\": 0","}",POST /users,Creates a new user account.,"Request body must include:","- email: Valid email address (required)","- password: Minimum 8 characters (required)","- name: User's full name (optional)","Best Practice: Validate email format and password strength server-side.","Response: Returns the created user object with generated ID.","Error responses:","- 400 Bad Request: Invalid input data","- 409 Conflict: Email already exists","- 500 Internal Server Error: Database connection failed","DELETE /users/{id}",Removes a user account permanently.,Only administrators can delete user accounts.,"Security Note: Implement proper authorization checks."
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_2
+      title: AUTHENTICATION
+      level: 1
+      content[3]: All API requests require authentication via JWT tokens.,"Include the token in the Authorization header:","Authorization: Bearer <jwt_token>"
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_3
+      title: ERROR HANDLING
+      level: 1
+      content[8]: "All errors return JSON with the following structure:","{","\"error\": {","\"code\": \"string\",","\"message\": \"string\",","\"details\": {}","}","}"
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_4
+      title: LOGGING
+      level: 1
+      content[2]: All API requests and responses are logged for audit purposes.,"Sensitive data (passwords, tokens) are never logged."
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_5
+      title: RATE LIMITING
+      level: 1
+      content[2]: API calls are limited to 1000 requests per hour per IP address.,Exceeded limits return HTTP 429 Too Many Requests.
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+  raw_text: "API Specification v1.0\n\nOVERVIEW\nThis specification defines the REST API for the user management system.\n\nENDPOINTS\n\nGET /users\nReturns a list of all users in the system.\nQuery parameters:\n- limit: Maximum number of users to return (default: 50)\n- offset: Number of users to skip (default: 0)\n\nResponse format:\n{\n  \"users\": [\n    {\n      \"id\": \"string\",\n      \"email\": \"string\",\n      \"name\": \"string\",\n      \"created_at\": \"datetime\"\n    }\n  ],\n  \"total\": 100,\n  \"limit\": 50,\n  \"offset\": 0\n}\n\nPOST /users\nCreates a new user account.\nRequest body must include:\n- email: Valid email address (required)\n- password: Minimum 8 characters (required)\n- name: User's full name (optional)\n\nBest Practice: Validate email format and password strength server-side.\n\nResponse: Returns the created user object with generated ID.\n\nError responses:\n- 400 Bad Request: Invalid input data\n- 409 Conflict: Email already exists\n- 500 Internal Server Error: Database connection failed\n\nDELETE /users/{id}\nRemoves a user account permanently.\nOnly administrators can delete user accounts.\n\nSecurity Note: Implement proper authorization checks.\n\nAUTHENTICATION\nAll API requests require authentication via JWT tokens.\nInclude the token in the Authorization header:\nAuthorization: Bearer <jwt_token>\n\nERROR HANDLING\nAll errors return JSON with the following structure:\n{\n  \"error\": {\n    \"code\": \"string\",\n    \"message\": \"string\",\n    \"details\": {}\n  }\n}\n\nLOGGING\nAll API requests and responses are logged for audit purposes.\nSensitive data (passwords, tokens) are never logged.\n\nRATE LIMITING\nAPI calls are limited to 1000 requests per hour per IP address.\nExceeded limits return HTTP 429 Too Many Requests.\n"
+analysis:
+  keywords[30]{text,confidence_level}:
+    Specification,low
+    OVERVIEW,low
+    REST,low
+    ENDPOINTS,low
+    Returns,low
+    Query,low
+    Maximum,low
+    Number,low
+    Response,low
+    POST,low
+    Creates,low
+    Request,low
+    Valid,low
+    Minimum,low
+    User,low
+    Best,low
+    Practice,low
+    Validate,low
+    Error,low
+    Invalid,low
+    Conflict,low
+    Email,low
+    Internal,low
+    Server,low
+    Database,low
+    DELETE,low
+    Removes,low
+    Only,low
+    Security,low
+    Note,low
+  best_practices[3]:
+    - text: "POST /users\nCreates a new user account.\nRequest body must include:\n- email: Valid email address (required)\n- password: Minimum 8 characters (required)"
+      source_section_id: null
+      tags[1]: content_pattern
+      confidence_level: medium
+    - text: "- name: User's full name (optional)\nBest Practice: Validate email format and password strength server-side.\nResponse: Returns the created user object with generated ID."
+      source_section_id: null
+      tags[1]: content_pattern
+      confidence_level: medium
+    - text: "LOGGING\nAll API requests and responses are logged for audit purposes.\nSensitive data (passwords, tokens) are never logged.\nRATE LIMITING"
+      source_section_id: null
+      tags[1]: content_pattern
+      confidence_level: medium
+  examples[0]:

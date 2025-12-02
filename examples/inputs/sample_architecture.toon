@@ -1,0 +1,344 @@
+metadata:
+  title: sample_architecture
+  source: examples/inputs/sample_architecture.md
+  source_type: markdown
+  converted_by: Janusz v1.1.0
+  format_version: 1.1.0
+  created_at: "2025-12-02T18:21:14.325755"
+  parser_version: 1.1.0
+content:
+  sections[15]:
+    - id: section_0
+      title: Sample Architecture Document
+      level: 1
+      content[0]:
+      subsections[6]:
+        - id: section_1
+          title: Overview
+          level: 2
+          content[1]: "This document describes a sample microservices architecture for an e-commerce platform. The system handles user authentication, product catalog management, order processing, and payment integration."
+          subsections[0]:
+          children[0]:
+          keywords[0]:
+        - id: section_1
+          title: System Components
+          level: 2
+          content[0]:
+          subsections[3]:
+            - id: section_1
+              title: Authentication Service
+              level: 3
+              content[11]: "The authentication service handles user registration, login, and session management.","**Key Features:**","- JWT token-based authentication","- Password hashing with bcrypt","- Session management with Redis","- OAuth2 integration for social login","**Best Practices:**","- Always validate JWT tokens on each request","- Use secure password policies (minimum 12 characters)","- Implement rate limiting on authentication endpoints","- Store only hashed passwords in the database"
+              subsections[0]:
+              children[0]:
+              keywords[0]:
+            - id: section_1
+              title: Product Catalog Service
+              level: 3
+              content[6]: "Manages product information, categories, and inventory.","**Implementation Details:**","- RESTful API with JSON responses","- PostgreSQL database with proper indexing","- Elasticsearch for product search","- Image storage on AWS S3"
+              subsections[0]:
+              children[0]:
+              keywords[0]:
+            - id: section_1
+              title: Order Processing Service
+              level: 3
+              content[6]: "Handles order creation, payment processing, and fulfillment.","**Business Rules:**","- Orders must have valid payment information","- Inventory must be reserved before payment","- Failed payments should trigger order cancellation","- Email notifications for order status changes"
+              subsections[0]:
+              children[0]:
+              keywords[0]:
+          children[0]:
+          keywords[0]:
+        - id: section_1
+          title: Deployment Strategy
+          level: 2
+          content[0]:
+          subsections[3]:
+            - id: section_1
+              title: Containerization
+              level: 3
+              content[1]: All services are containerized using Docker with multi-stage builds for optimal image sizes.
+              subsections[0]:
+              children[0]:
+              keywords[0]:
+            - id: section_1
+              title: Orchestration
+              level: 3
+              content[5]: "Kubernetes is used for container orchestration with the following components:","- Ingress controller for API gateway","- Service mesh with Istio","- Horizontal Pod Autoscaling","- ConfigMaps and Secrets for configuration management"
+              subsections[0]:
+              children[0]:
+              keywords[0]:
+            - id: section_1
+              title: Monitoring
+              level: 3
+              content[4]: "- Prometheus for metrics collection","- Grafana for dashboards","- ELK stack for log aggregation","- AlertManager for incident response"
+              subsections[0]:
+              children[0]:
+              keywords[0]:
+          children[0]:
+          keywords[0]:
+        - id: section_1
+          title: Security Considerations
+          level: 2
+          content[0]:
+          subsections[2]:
+            - id: section_1
+              title: Data Protection
+              level: 3
+              content[3]: "- All data in transit is encrypted with TLS 1.3","- Sensitive data at rest is encrypted with AES-256","- Database backups are encrypted and stored off-site"
+              subsections[0]:
+              children[0]:
+              keywords[0]:
+            - id: section_1
+              title: Access Control
+              level: 3
+              content[3]: "- Role-based access control (RBAC) for all services","- Principle of least privilege applied","- Regular access reviews and audit logging"
+              subsections[0]:
+              children[0]:
+              keywords[0]:
+          children[0]:
+          keywords[0]:
+        - id: section_1
+          title: Performance Requirements
+          level: 2
+          content[4]: "- API response time < 200ms for 95th percentile","- System must handle 1000 concurrent users","- Database queries < 50ms average response time","- 99.9% uptime SLA"
+          subsections[0]:
+          children[0]:
+          keywords[0]:
+        - id: section_1
+          title: Future Enhancements
+          level: 2
+          content[4]: "- GraphQL API for flexible queries","- Event sourcing for better audit trails","- Machine learning for product recommendations","- Multi-region deployment for global scalability"
+          subsections[0]:
+          children[0]:
+          keywords[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Overview
+      level: 2
+      content[1]: "This document describes a sample microservices architecture for an e-commerce platform. The system handles user authentication, product catalog management, order processing, and payment integration."
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: System Components
+      level: 2
+      content[0]:
+      subsections[3]:
+        - id: section_1
+          title: Authentication Service
+          level: 3
+          content[11]: "The authentication service handles user registration, login, and session management.","**Key Features:**","- JWT token-based authentication","- Password hashing with bcrypt","- Session management with Redis","- OAuth2 integration for social login","**Best Practices:**","- Always validate JWT tokens on each request","- Use secure password policies (minimum 12 characters)","- Implement rate limiting on authentication endpoints","- Store only hashed passwords in the database"
+          subsections[0]:
+          children[0]:
+          keywords[0]:
+        - id: section_1
+          title: Product Catalog Service
+          level: 3
+          content[6]: "Manages product information, categories, and inventory.","**Implementation Details:**","- RESTful API with JSON responses","- PostgreSQL database with proper indexing","- Elasticsearch for product search","- Image storage on AWS S3"
+          subsections[0]:
+          children[0]:
+          keywords[0]:
+        - id: section_1
+          title: Order Processing Service
+          level: 3
+          content[6]: "Handles order creation, payment processing, and fulfillment.","**Business Rules:**","- Orders must have valid payment information","- Inventory must be reserved before payment","- Failed payments should trigger order cancellation","- Email notifications for order status changes"
+          subsections[0]:
+          children[0]:
+          keywords[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Authentication Service
+      level: 3
+      content[11]: "The authentication service handles user registration, login, and session management.","**Key Features:**","- JWT token-based authentication","- Password hashing with bcrypt","- Session management with Redis","- OAuth2 integration for social login","**Best Practices:**","- Always validate JWT tokens on each request","- Use secure password policies (minimum 12 characters)","- Implement rate limiting on authentication endpoints","- Store only hashed passwords in the database"
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Product Catalog Service
+      level: 3
+      content[6]: "Manages product information, categories, and inventory.","**Implementation Details:**","- RESTful API with JSON responses","- PostgreSQL database with proper indexing","- Elasticsearch for product search","- Image storage on AWS S3"
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Order Processing Service
+      level: 3
+      content[6]: "Handles order creation, payment processing, and fulfillment.","**Business Rules:**","- Orders must have valid payment information","- Inventory must be reserved before payment","- Failed payments should trigger order cancellation","- Email notifications for order status changes"
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Deployment Strategy
+      level: 2
+      content[0]:
+      subsections[3]:
+        - id: section_1
+          title: Containerization
+          level: 3
+          content[1]: All services are containerized using Docker with multi-stage builds for optimal image sizes.
+          subsections[0]:
+          children[0]:
+          keywords[0]:
+        - id: section_1
+          title: Orchestration
+          level: 3
+          content[5]: "Kubernetes is used for container orchestration with the following components:","- Ingress controller for API gateway","- Service mesh with Istio","- Horizontal Pod Autoscaling","- ConfigMaps and Secrets for configuration management"
+          subsections[0]:
+          children[0]:
+          keywords[0]:
+        - id: section_1
+          title: Monitoring
+          level: 3
+          content[4]: "- Prometheus for metrics collection","- Grafana for dashboards","- ELK stack for log aggregation","- AlertManager for incident response"
+          subsections[0]:
+          children[0]:
+          keywords[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Containerization
+      level: 3
+      content[1]: All services are containerized using Docker with multi-stage builds for optimal image sizes.
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Orchestration
+      level: 3
+      content[5]: "Kubernetes is used for container orchestration with the following components:","- Ingress controller for API gateway","- Service mesh with Istio","- Horizontal Pod Autoscaling","- ConfigMaps and Secrets for configuration management"
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Monitoring
+      level: 3
+      content[4]: "- Prometheus for metrics collection","- Grafana for dashboards","- ELK stack for log aggregation","- AlertManager for incident response"
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Security Considerations
+      level: 2
+      content[0]:
+      subsections[2]:
+        - id: section_1
+          title: Data Protection
+          level: 3
+          content[3]: "- All data in transit is encrypted with TLS 1.3","- Sensitive data at rest is encrypted with AES-256","- Database backups are encrypted and stored off-site"
+          subsections[0]:
+          children[0]:
+          keywords[0]:
+        - id: section_1
+          title: Access Control
+          level: 3
+          content[3]: "- Role-based access control (RBAC) for all services","- Principle of least privilege applied","- Regular access reviews and audit logging"
+          subsections[0]:
+          children[0]:
+          keywords[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Data Protection
+      level: 3
+      content[3]: "- All data in transit is encrypted with TLS 1.3","- Sensitive data at rest is encrypted with AES-256","- Database backups are encrypted and stored off-site"
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Access Control
+      level: 3
+      content[3]: "- Role-based access control (RBAC) for all services","- Principle of least privilege applied","- Regular access reviews and audit logging"
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Performance Requirements
+      level: 2
+      content[4]: "- API response time < 200ms for 95th percentile","- System must handle 1000 concurrent users","- Database queries < 50ms average response time","- 99.9% uptime SLA"
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+    - id: section_1
+      title: Future Enhancements
+      level: 2
+      content[4]: "- GraphQL API for flexible queries","- Event sourcing for better audit trails","- Machine learning for product recommendations","- Multi-region deployment for global scalability"
+      subsections[0]:
+      children[0]:
+      keywords[0]:
+  raw_text: "# Sample Architecture Document\n\n## Overview\n\nThis document describes a sample microservices architecture for an e-commerce platform. The system handles user authentication, product catalog management, order processing, and payment integration.\n\n## System Components\n\n### Authentication Service\n\nThe authentication service handles user registration, login, and session management.\n\n**Key Features:**\n- JWT token-based authentication\n- Password hashing with bcrypt\n- Session management with Redis\n- OAuth2 integration for social login\n\n**Best Practices:**\n- Always validate JWT tokens on each request\n- Use secure password policies (minimum 12 characters)\n- Implement rate limiting on authentication endpoints\n- Store only hashed passwords in the database\n\n### Product Catalog Service\n\nManages product information, categories, and inventory.\n\n**Implementation Details:**\n- RESTful API with JSON responses\n- PostgreSQL database with proper indexing\n- Elasticsearch for product search\n- Image storage on AWS S3\n\n### Order Processing Service\n\nHandles order creation, payment processing, and fulfillment.\n\n**Business Rules:**\n- Orders must have valid payment information\n- Inventory must be reserved before payment\n- Failed payments should trigger order cancellation\n- Email notifications for order status changes\n\n## Deployment Strategy\n\n### Containerization\n\nAll services are containerized using Docker with multi-stage builds for optimal image sizes.\n\n### Orchestration\n\nKubernetes is used for container orchestration with the following components:\n- Ingress controller for API gateway\n- Service mesh with Istio\n- Horizontal Pod Autoscaling\n- ConfigMaps and Secrets for configuration management\n\n### Monitoring\n\n- Prometheus for metrics collection\n- Grafana for dashboards\n- ELK stack for log aggregation\n- AlertManager for incident response\n\n## Security Considerations\n\n### Data Protection\n\n- All data in transit is encrypted with TLS 1.3\n- Sensitive data at rest is encrypted with AES-256\n- Database backups are encrypted and stored off-site\n\n### Access Control\n\n- Role-based access control (RBAC) for all services\n- Principle of least privilege applied\n- Regular access reviews and audit logging\n\n## Performance Requirements\n\n- API response time < 200ms for 95th percentile\n- System must handle 1000 concurrent users\n- Database queries < 50ms average response time\n- 99.9% uptime SLA\n\n## Future Enhancements\n\n- GraphQL API for flexible queries\n- Event sourcing for better audit trails\n- Machine learning for product recommendations\n- Multi-region deployment for global scalability\n"
+analysis:
+  keywords[30]{text,confidence_level}:
+    Sample,low
+    Architecture,low
+    Document,low
+    Overview,low
+    System,low
+    Components,low
+    Authentication,low
+    Service,low
+    Features,low
+    Password,low
+    Session,low
+    Redis,low
+    Best,low
+    Practices,low
+    Always,low
+    Implement,low
+    Store,low
+    Product,low
+    Catalog,low
+    Manages,low
+    Implementation,low
+    Details,low
+    RESTful,low
+    JSON,low
+    PostgreSQL,low
+    Elasticsearch,low
+    Image,low
+    Order,low
+    Processing,low
+    Handles,low
+  best_practices[7]:
+    - text: "- OAuth2 integration for social login\n**Best Practices:**\n- Always validate JWT tokens on each request\n- Use secure password policies (minimum 12 characters)"
+      source_section_id: section_8
+      tags[1]: content_pattern
+      confidence_level: medium
+    - text: "**Best Practices:**\n- Always validate JWT tokens on each request\n- Use secure password policies (minimum 12 characters)\n- Implement rate limiting on authentication endpoints"
+      source_section_id: section_8
+      tags[1]: content_pattern
+      confidence_level: medium
+    - text: "**Business Rules:**\n- Orders must have valid payment information\n- Inventory must be reserved before payment\n- Failed payments should trigger order cancellation"
+      source_section_id: section_34
+      tags[1]: content_pattern
+      confidence_level: medium
+    - text: "**Business Rules:**\n- Orders must have valid payment information\n- Inventory must be reserved before payment\n- Failed payments should trigger order cancellation\n- Email notifications for order status changes"
+      source_section_id: section_34
+      tags[1]: content_pattern
+      confidence_level: medium
+    - text: "- Orders must have valid payment information\n- Inventory must be reserved before payment\n- Failed payments should trigger order cancellation\n- Email notifications for order status changes"
+      source_section_id: section_34
+      tags[1]: content_pattern
+      confidence_level: medium
+    - text: "- API response time < 200ms for 95th percentile\n- System must handle 1000 concurrent users\n- Database queries < 50ms average response time\n- 99.9% uptime SLA"
+      source_section_id: section_79
+      tags[1]: content_pattern
+      confidence_level: medium
+    - text: "- GraphQL API for flexible queries\n- Event sourcing for better audit trails\n- Machine learning for product recommendations\n- Multi-region deployment for global scalability"
+      source_section_id: section_86
+      tags[1]: content_pattern
+      confidence_level: medium
+  examples[3]:
+    - text: "# Sample Architecture Document\n## Overview"
+      source_section_id: section_0
+      tags[1]: content_pattern
+      confidence_level: medium
+    - text: "## Overview\nThis document describes a sample microservices architecture for an e-commerce platform. The system handles user authentication, product catalog management, order processing, and payment integration.\n## System Components"
+      source_section_id: section_2
+      tags[1]: content_pattern
+      confidence_level: medium
+    - text: "- ELK stack for log aggregation\n- AlertManager for incident response\n## Security Considerations\n### Data Protection"
+      source_section_id: section_65
+      tags[1]: content_pattern
+      confidence_level: medium

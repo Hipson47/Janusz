@@ -1,0 +1,223 @@
+metadata:
+  title: sample_spec
+  source: examples/inputs/sample_spec.txt
+  source_type: text
+  converted_by: Janusz v1.1.0
+  format_version: 1.1.0
+  created_at: '2025-12-02T18:30:38.609203'
+  parser_version: 1.1.0
+content:
+  sections:
+  - id: section_0
+    title: OVERVIEW
+    level: 1
+    content:
+    - This specification defines the REST API for the user management system.
+    subsections: []
+    children: []
+    keywords: []
+  - id: section_1
+    title: ENDPOINTS
+    level: 1
+    content:
+    - GET /users
+    - Returns a list of all users in the system.
+    - 'Query parameters:'
+    - '- limit: Maximum number of users to return (default: 50)'
+    - '- offset: Number of users to skip (default: 0)'
+    - 'Response format:'
+    - '{'
+    - '"users": ['
+    - '{'
+    - '"id": "string",'
+    - '"email": "string",'
+    - '"name": "string",'
+    - '"created_at": "datetime"'
+    - '}'
+    - '],'
+    - '"total": 100,'
+    - '"limit": 50,'
+    - '"offset": 0'
+    - '}'
+    - POST /users
+    - Creates a new user account.
+    - 'Request body must include:'
+    - '- email: Valid email address (required)'
+    - '- password: Minimum 8 characters (required)'
+    - '- name: User''s full name (optional)'
+    - 'Best Practice: Validate email format and password strength server-side.'
+    - 'Response: Returns the created user object with generated ID.'
+    - 'Error responses:'
+    - '- 400 Bad Request: Invalid input data'
+    - '- 409 Conflict: Email already exists'
+    - '- 500 Internal Server Error: Database connection failed'
+    - DELETE /users/{id}
+    - Removes a user account permanently.
+    - Only administrators can delete user accounts.
+    - 'Security Note: Implement proper authorization checks.'
+    subsections: []
+    children: []
+    keywords: []
+  - id: section_2
+    title: AUTHENTICATION
+    level: 1
+    content:
+    - All API requests require authentication via JWT tokens.
+    - 'Include the token in the Authorization header:'
+    - 'Authorization: Bearer <jwt_token>'
+    subsections: []
+    children: []
+    keywords: []
+  - id: section_3
+    title: ERROR HANDLING
+    level: 1
+    content:
+    - 'All errors return JSON with the following structure:'
+    - '{'
+    - '"error": {'
+    - '"code": "string",'
+    - '"message": "string",'
+    - '"details": {}'
+    - '}'
+    - '}'
+    subsections: []
+    children: []
+    keywords: []
+  - id: section_4
+    title: LOGGING
+    level: 1
+    content:
+    - All API requests and responses are logged for audit purposes.
+    - Sensitive data (passwords, tokens) are never logged.
+    subsections: []
+    children: []
+    keywords: []
+  - id: section_5
+    title: RATE LIMITING
+    level: 1
+    content:
+    - API calls are limited to 1000 requests per hour per IP address.
+    - Exceeded limits return HTTP 429 Too Many Requests.
+    subsections: []
+    children: []
+    keywords: []
+  raw_text: "API Specification v1.0\n\nOVERVIEW\nThis specification defines the REST\
+    \ API for the user management system.\n\nENDPOINTS\n\nGET /users\nReturns a list\
+    \ of all users in the system.\nQuery parameters:\n- limit: Maximum number of users\
+    \ to return (default: 50)\n- offset: Number of users to skip (default: 0)\n\n\
+    Response format:\n{\n  \"users\": [\n    {\n      \"id\": \"string\",\n      \"\
+    email\": \"string\",\n      \"name\": \"string\",\n      \"created_at\": \"datetime\"\
+    \n    }\n  ],\n  \"total\": 100,\n  \"limit\": 50,\n  \"offset\": 0\n}\n\nPOST\
+    \ /users\nCreates a new user account.\nRequest body must include:\n- email: Valid\
+    \ email address (required)\n- password: Minimum 8 characters (required)\n- name:\
+    \ User's full name (optional)\n\nBest Practice: Validate email format and password\
+    \ strength server-side.\n\nResponse: Returns the created user object with generated\
+    \ ID.\n\nError responses:\n- 400 Bad Request: Invalid input data\n- 409 Conflict:\
+    \ Email already exists\n- 500 Internal Server Error: Database connection failed\n\
+    \nDELETE /users/{id}\nRemoves a user account permanently.\nOnly administrators\
+    \ can delete user accounts.\n\nSecurity Note: Implement proper authorization checks.\n\
+    \nAUTHENTICATION\nAll API requests require authentication via JWT tokens.\nInclude\
+    \ the token in the Authorization header:\nAuthorization: Bearer <jwt_token>\n\n\
+    ERROR HANDLING\nAll errors return JSON with the following structure:\n{\n  \"\
+    error\": {\n    \"code\": \"string\",\n    \"message\": \"string\",\n    \"details\"\
+    : {}\n  }\n}\n\nLOGGING\nAll API requests and responses are logged for audit purposes.\n\
+    Sensitive data (passwords, tokens) are never logged.\n\nRATE LIMITING\nAPI calls\
+    \ are limited to 1000 requests per hour per IP address.\nExceeded limits return\
+    \ HTTP 429 Too Many Requests.\n"
+analysis:
+  keywords:
+  - text: Specification
+    confidence_level: low
+  - text: OVERVIEW
+    confidence_level: low
+  - text: REST
+    confidence_level: low
+  - text: ENDPOINTS
+    confidence_level: low
+  - text: Returns
+    confidence_level: low
+  - text: Query
+    confidence_level: low
+  - text: Maximum
+    confidence_level: low
+  - text: Number
+    confidence_level: low
+  - text: Response
+    confidence_level: low
+  - text: POST
+    confidence_level: low
+  - text: Creates
+    confidence_level: low
+  - text: Request
+    confidence_level: low
+  - text: Valid
+    confidence_level: low
+  - text: Minimum
+    confidence_level: low
+  - text: User
+    confidence_level: low
+  - text: Best
+    confidence_level: low
+  - text: Practice
+    confidence_level: low
+  - text: Validate
+    confidence_level: low
+  - text: Error
+    confidence_level: low
+  - text: Invalid
+    confidence_level: low
+  - text: Conflict
+    confidence_level: low
+  - text: Email
+    confidence_level: low
+  - text: Internal
+    confidence_level: low
+  - text: Server
+    confidence_level: low
+  - text: Database
+    confidence_level: low
+  - text: DELETE
+    confidence_level: low
+  - text: Removes
+    confidence_level: low
+  - text: Only
+    confidence_level: low
+  - text: Security
+    confidence_level: low
+  - text: Note
+    confidence_level: low
+  best_practices:
+  - text: 'POST /users
+
+      Creates a new user account.
+
+      Request body must include:
+
+      - email: Valid email address (required)
+
+      - password: Minimum 8 characters (required)'
+    source_section_id: null
+    tags:
+    - content_pattern
+    confidence_level: medium
+  - text: '- name: User''s full name (optional)
+
+      Best Practice: Validate email format and password strength server-side.
+
+      Response: Returns the created user object with generated ID.'
+    source_section_id: null
+    tags:
+    - content_pattern
+    confidence_level: medium
+  - text: 'LOGGING
+
+      All API requests and responses are logged for audit purposes.
+
+      Sensitive data (passwords, tokens) are never logged.
+
+      RATE LIMITING'
+    source_section_id: null
+    tags:
+    - content_pattern
+    confidence_level: medium
+  examples: []
