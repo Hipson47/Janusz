@@ -15,12 +15,20 @@ jobs:
 
     - name: Install uv
       uses: astral-sh/setup-uv@v2
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+      timeout-minutes: 2
 
     - name: Set up Python
-      run: uv python install 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+      timeout-minutes: 2
 
     - name: Install dependencies
-      run: uv sync --dev
+      run: uv sync --dev --locked
+      timeout-minutes: 3
 
     - name: Run tests
       run: uv run pytest tests/
@@ -37,7 +45,7 @@ jobs:
   publish-to-pypi:
     runs-on: ubuntu-latest
     needs: build
-    environment: release
+    # environment: release  # Commented out - create this environment in repo settings if needed
     permissions:
       id-token: write
 
