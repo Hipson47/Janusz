@@ -228,6 +228,40 @@ For production deployments, consider:
 - **Parallel Processing**: Use multiple workers for large document sets
 - **Incremental Updates**: Only reprocess changed documents
 
+## GUI Demonstration
+
+### Running the GUI Demo
+
+```bash
+# Create sample documents for GUI testing
+python examples/gui_demo.py
+
+# Launch the GUI
+janusz gui
+
+# Or use the alternative launcher
+python scripts/gui.py
+```
+
+### GUI Features
+
+The Janusz GUI provides an intuitive desktop interface for:
+
+- **Document Selection**: Browse and select files from knowledge base directories
+- **Format Conversion**: Convert to YAML, JSON, or TOON formats
+- **AI Integration**: Enable AI-powered analysis for enhanced insights
+- **Progress Tracking**: Real-time processing status and detailed logs
+- **Batch Operations**: Process multiple files simultaneously
+
+### Sample Documents
+
+The `gui_demo.py` script creates sample technical documents including:
+
+- **AI Overview Document**: Comprehensive guide to AI-powered processing
+- **FastAPI Security Guide**: Technical documentation with best practices
+
+These documents showcase different types of content that benefit from AI-enhanced processing.
+
 ---
 
 *These examples demonstrate Janusz's capabilities for transforming unstructured knowledge into AI-optimized formats with significant token efficiency gains.*

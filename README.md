@@ -132,6 +132,54 @@ janusz json --no-toon            # Validate JSON files without TOON conversion
 # Testing and validation
 janusz test path/to/file.yaml    # Test TOON conversion with detailed output
 janusz test path/to/file.json    # Test JSON to TOON conversion
+
+# Graphical User Interface
+janusz gui                       # Launch the desktop GUI application
+python scripts/gui.py           # Alternative GUI launcher
+```
+
+## Graphical User Interface (GUI)
+
+Janusz includes a user-friendly desktop application for intuitive document processing:
+
+### Features
+- **File Selection**: Browse and select documents from knowledge base directories
+- **Format Conversion**: Convert files to YAML, JSON, or TOON formats
+- **AI Integration**: Enable AI-powered analysis for enhanced insights
+- **Progress Tracking**: Real-time progress bars and detailed logging
+- **Batch Processing**: Process multiple files simultaneously
+
+### Launching the GUI
+
+```bash
+# Via CLI command
+janusz gui
+
+# Or directly via script
+python scripts/gui.py
+```
+
+### GUI Requirements
+
+The GUI requires tkinter, which is included with most Python installations:
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install python3-tk
+```
+
+**macOS:** tkinter is included with Python from python.org
+
+**Windows:** tkinter is included with Python
+
+### Installing GUI Dependencies
+
+```bash
+# Install with GUI support
+uv sync --all-extras
+
+# Or with pip
+pip install -e .[gui]
 ```
 
 ### Make Commands

@@ -200,6 +200,9 @@ Supported input formats for json: JSON
     json_parser.add_argument("--no-validate", action="store_true", help="Skip TOON file validation")
     json_parser.add_argument("--no-toon", action="store_true", help="Only validate JSON files, don't convert to TOON")
 
+    # GUI command
+    gui_parser = subparsers.add_parser("gui", help="Launch the graphical user interface")
+
     # Test command
     test_parser = subparsers.add_parser("test", help="Test TOON conversion with detailed output")
     test_parser.add_argument("file", help="YAML or JSON file to test")
@@ -244,6 +247,15 @@ Supported input formats for json: JSON
                 sys.exit(0 if success else 1)
             else:
                 json_convert_directory(args.directory, validate=validate)
+
+    elif args.command == "gui":
+        try:
+            from .gui.main_app import main as gui_main
+            gui_main()
+        except ImportError as e:
+            logger.error(f"GUI components not available: {e}")
+            logger.error("Make sure tkinter is installed: pip install tk")
+            sys.exit(1)
 
     elif args.command == "test":
         # Try to detect file type and use appropriate test function

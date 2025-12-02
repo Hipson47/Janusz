@@ -47,6 +47,10 @@ dev = [
 ai = [
     "httpx>=0.25.0",
 ]
+gui = [
+    # tkinter is built-in on most systems, but some Linux distributions need it installed
+    # Note: tkinter is part of python3-tk package on Ubuntu/Debian
+]
 nlp = [
     "spacy>=3.0.0",
     "nltk>=3.8.0",
