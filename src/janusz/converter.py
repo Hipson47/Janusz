@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 class UniversalToYAMLConverter:
     """Converts various document formats to structured YAML format for AI agent knowledge bases."""
 
-    SUPPORTED_EXTENSIONS = {".pdf", ".md", ".txt", ".docx", ".html", ".rtf", ".epub"}
+    SUPPORTED_EXTENSIONS = {".pdf", ".md", ".txt", ".docx", ".html"}
 
     def __init__(self, file_path: str):
         self.file_path = Path(file_path)
@@ -52,8 +52,6 @@ class UniversalToYAMLConverter:
             ".txt": "text",
             ".docx": "docx",
             ".html": "html",
-            ".rtf": "rtf",
-            ".epub": "epub",
         }
         return ext_to_type.get(self.extension, "unknown")
 

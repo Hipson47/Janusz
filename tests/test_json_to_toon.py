@@ -46,9 +46,11 @@ class TestJSONToTOONConverter:
         converter = JSONToTOONConverter("nonexistent.json")
         assert converter.validate_json() is False
 
+    @patch("janusz.json_to_toon.ensure_toon_available")
     @patch("subprocess.run")
-    def test_json_to_toon_success(self, mock_run):
+    def test_json_to_toon_success(self, mock_run, mock_validate):
         """Test successful JSON to TOON conversion."""
+        mock_validate.return_value = "/usr/bin/toon"
         mock_run.return_value = MagicMock(stdout="", stderr="", returncode=0)
 
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
@@ -157,13 +159,15 @@ class TestJSONToTOONConverter:
             converter = JSONToTOONConverter(tmp_path)
 
             # Mock the external TOON CLI calls
-            with patch("subprocess.run") as mock_run:
+            with patch("janusz.json_to_toon.ensure_toon_available") as mock_validate, \
+                 patch("subprocess.run") as mock_run:
+                mock_validate.return_value = "/usr/bin/toon"
                 mock_run.return_value = MagicMock(stdout="", stderr="", returncode=0)
 
                 converter.convert()
 
-                # Should have made multiple subprocess calls
-                assert mock_run.call_count >= 2  # At least encode and validate
+                # Should have made multiple subprocess calls (validation + encode + validate)
+                assert mock_run.call_count >= 3
 
         finally:
             Path(tmp_path).unlink()

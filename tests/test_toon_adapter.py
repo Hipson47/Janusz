@@ -40,9 +40,11 @@ class TestYAMLToTOONConverter:
             if converter.json_temp_path.exists():
                 converter.json_temp_path.unlink()
 
+    @patch("janusz.toon_adapter.ensure_toon_available")
     @patch("subprocess.run")
-    def test_json_to_toon_success(self, mock_run):
+    def test_json_to_toon_success(self, mock_run, mock_validate):
         """Test successful JSON to TOON conversion."""
+        mock_validate.return_value = "/usr/bin/toon"
         mock_run.return_value = MagicMock(stdout="", stderr="", returncode=0)
 
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
@@ -153,13 +155,15 @@ class TestYAMLToTOONConverter:
             converter = YAMLToTOONConverter(tmp_path)
 
             # Mock the external TOON CLI calls
-            with patch("subprocess.run") as mock_run:
+            with patch("janusz.toon_adapter.ensure_toon_available") as mock_validate, \
+                 patch("subprocess.run") as mock_run:
+                mock_validate.return_value = "/usr/bin/toon"
                 mock_run.return_value = MagicMock(stdout="", stderr="", returncode=0)
 
                 converter.convert()
 
-                # Should have made multiple subprocess calls
-                assert mock_run.call_count >= 2  # At least encode and validate
+                # Should have made multiple subprocess calls (validation + encode + validate)
+                assert mock_run.call_count >= 3
 
                 # Temporary JSON file should be cleaned up
                 assert not converter.json_temp_path.exists()

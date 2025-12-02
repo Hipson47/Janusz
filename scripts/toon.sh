@@ -2,7 +2,7 @@
 
 # AI Agent Knowledge Base Pipeline Script
 # Automates Document -> YAML -> TOON conversion
-# Supports: PDF, MD, TXT, DOCX, HTML, RTF, EPUB
+# Supports: PDF, MD, TXT, DOCX, HTML
 
 # Function to check and install TOON CLI
 check_and_install_toon() {
@@ -101,7 +101,7 @@ check_and_install_toon() {
 
 echo "🔄 Starting AI Agent Knowledge Base Pipeline..."
 echo "Documents → YAML → TOON"
-echo "Supported formats: PDF, MD, TXT, DOCX, HTML, RTF, EPUB"
+echo "Supported formats: PDF, MD, TXT, DOCX, HTML"
 echo
 
 # KROK 0: Check and install TOON CLI

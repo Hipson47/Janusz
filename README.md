@@ -66,10 +66,19 @@ janusz test document.yaml
 | YAML | `.yaml` | ✅ Core | - |
 | DOCX | `.docx` | 🟡 Optional | `python-docx` |
 | HTML | `.html` | 🟡 Optional | `html2text`, `beautifulsoup4` |
-| RTF | `.rtf` | 🔄 Planned | - |
-| EPUB | `.epub` | 🔄 Planned | - |
+| RTF | `.rtf` | 🚧 Not Yet Supported | Planned for v1.1.0 |
+| EPUB | `.epub` | 🚧 Not Yet Supported | Planned for v1.1.0 |
 
+### Format Support & Roadmap
 
+**Current Support (v1.0.0):**
+- ✅ **Fully Supported**: PDF, Markdown, Plain Text, DOCX, HTML, JSON, YAML
+- 🟡 **Optional Dependencies**: DOCX (python-docx), HTML (html2text/beautifulsoup4)
+
+**Future Roadmap:**
+- 🟢 **v1.1.0**: RTF and EPUB support with dedicated parsers
+- 🟢 **v1.1.0**: TOON CLI compatibility versioning and timeouts
+- 🟡 **v1.0.1**: Pydantic models for data validation, edge-case tests
 
 ## Installation & Setup
 

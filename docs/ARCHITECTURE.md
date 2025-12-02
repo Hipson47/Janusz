@@ -22,7 +22,7 @@ converter  adapter  TOON CLI
 - Plain Text (.txt)
 - DOCX (via `python-docx`, optional)
 - HTML (via `html2text` + `beautifulsoup4`, optional)
-- RTF, EPUB (reserved for future)
+- RTF, EPUB (planned for v1.1.0)
 
 **Output**: Structured YAML with metadata, content sections, and analysis.
 
@@ -181,7 +181,7 @@ These rules ensure consistent development practices and security.
 ## Future Extensions
 
 ### Format Support
-- RTF, EPUB document processing
+- RTF, EPUB document processing (planned for v1.1.0)
 - Additional structured formats (XML, CSV)
 
 ### Pipeline Enhancements

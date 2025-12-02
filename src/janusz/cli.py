@@ -17,6 +17,7 @@ from .json_to_toon import convert_directory as json_convert_directory
 from .json_to_toon import test_toon_conversion as test_json_toon_conversion
 from .toon_adapter import YAMLToTOONConverter, test_toon_conversion
 from .toon_adapter import convert_directory as toon_convert_directory
+from .toon_cli import ToonCliError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -29,10 +30,20 @@ def convert_file_to_yaml(file_path: str) -> bool:
         converter = UniversalToYAMLConverter(file_path)
         return converter.convert_to_yaml()
     except ValueError as e:
-        logger.error(f"Error: {e}")
+        # Invalid file format or unsupported extension
+        logger.error(f"Invalid file format: {e}")
+        return False
+    except PermissionError as e:
+        # File permission issues
+        logger.error(f"Permission denied accessing file '{file_path}': {e}")
+        return False
+    except OSError as e:
+        # File system errors (file not found, disk full, etc.)
+        logger.error(f"File system error processing '{file_path}': {e}")
         return False
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        # Unexpected errors - log with full traceback for debugging
+        logger.error(f"Unexpected error converting '{file_path}': {e}", exc_info=True)
         return False
 
 
@@ -44,8 +55,25 @@ def convert_yaml_to_toon(yaml_path: str, validate: bool = True) -> bool:
         if success and validate:
             return converter.validate_toon_file()
         return success
+    except ToonCliError as e:
+        # TOON CLI validation or execution errors
+        logger.error(f"TOON CLI error for YAML '{yaml_path}': {e}")
+        return False
+    except ValueError as e:
+        # Invalid YAML file or path issues
+        logger.error(f"Invalid YAML file '{yaml_path}': {e}")
+        return False
+    except PermissionError as e:
+        # File permission issues
+        logger.error(f"Permission denied accessing YAML file '{yaml_path}': {e}")
+        return False
+    except OSError as e:
+        # File system errors
+        logger.error(f"File system error processing YAML '{yaml_path}': {e}")
+        return False
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        # Unexpected errors - log with full traceback for debugging
+        logger.error(f"Unexpected error converting YAML '{yaml_path}': {e}", exc_info=True)
         return False
 
 
@@ -57,14 +85,48 @@ def convert_json_to_toon(json_path: str, validate: bool = True) -> bool:
         if success and validate:
             return converter.validate_toon_file()
         return success
+    except ToonCliError as e:
+        # TOON CLI validation or execution errors
+        logger.error(f"TOON CLI error for JSON '{json_path}': {e}")
+        return False
+    except ValueError as e:
+        # Invalid JSON file or path issues
+        logger.error(f"Invalid JSON file '{json_path}': {e}")
+        return False
+    except PermissionError as e:
+        # File permission issues
+        logger.error(f"Permission denied accessing JSON file '{json_path}': {e}")
+        return False
+    except OSError as e:
+        # File system errors
+        logger.error(f"File system error processing JSON '{json_path}': {e}")
+        return False
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        # Unexpected errors - log with full traceback for debugging
+        logger.error(f"Unexpected error converting JSON '{json_path}': {e}", exc_info=True)
         return False
 
 
 def convert_file_to_json(json_path: str) -> bool:
     """Validate a single JSON file (no TOON conversion)."""
-    return convert_json_only(json_path)
+    try:
+        return convert_json_only(json_path)
+    except ValueError as e:
+        # Invalid JSON file or parsing errors
+        logger.error(f"Invalid JSON file '{json_path}': {e}")
+        return False
+    except PermissionError as e:
+        # File permission issues
+        logger.error(f"Permission denied accessing JSON file '{json_path}': {e}")
+        return False
+    except OSError as e:
+        # File system errors
+        logger.error(f"File system error processing JSON '{json_path}': {e}")
+        return False
+    except Exception as e:
+        # Unexpected errors - log with full traceback for debugging
+        logger.error(f"Unexpected error validating JSON '{json_path}': {e}", exc_info=True)
+        return False
 
 
 def main():
@@ -89,7 +151,7 @@ Examples:
   # Test TOON conversion with detailed output
   janusz test document.yaml
 
-Supported input formats for convert: PDF, MD, TXT, DOCX, HTML, RTF, EPUB
+Supported input formats for convert: PDF, MD, TXT, DOCX, HTML
 Supported input formats for toon: YAML
 Supported input formats for json: JSON
         """,

@@ -15,7 +15,7 @@ class TestUniversalToYAMLConverter:
 
     def test_supported_extensions(self):
         """Test that supported extensions are properly defined."""
-        expected_extensions = {".pdf", ".md", ".txt", ".docx", ".html", ".rtf", ".epub"}
+        expected_extensions = {".pdf", ".md", ".txt", ".docx", ".html"}
         assert UniversalToYAMLConverter.SUPPORTED_EXTENSIONS == expected_extensions
 
     def test_detect_file_type(self):

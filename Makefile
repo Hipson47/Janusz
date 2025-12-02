@@ -1,7 +1,7 @@
 # Janusz - AI Agent Knowledge Base Pipeline
 # Automates Document -> YAML -> TOON conversion
 # Works on 'new' directory by default - place your documents there
-# Supports: PDF, MD, TXT, DOCX, HTML, RTF, EPUB
+# Supports: PDF, MD, TXT, DOCX, HTML
 
 .PHONY: help clean install test convert toon all
 

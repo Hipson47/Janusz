@@ -12,6 +12,8 @@ import subprocess
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from .toon_cli import ToonCliError, ensure_toon_available
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -42,6 +44,9 @@ class JSONToTOONConverter:
         try:
             logger.info(f"Converting {self.json_path} to TOON")
 
+            # Validate TOON CLI availability before use
+            ensure_toon_available()
+
             # Run TOON CLI to encode JSON to TOON
             subprocess.run(
                 ["toon", "--encode", str(self.json_path), "-o", str(self.toon_path)],
@@ -52,16 +57,19 @@ class JSONToTOONConverter:
 
             logger.info("TOON conversion completed")
             return True
+        except ToonCliError as e:
+            logger.error(f"TOON CLI validation failed: {e}")
+            return False
         except subprocess.CalledProcessError as e:
             logger.error(f"TOON CLI error: {e.stderr}")
-            return False
-        except FileNotFoundError:
-            logger.error("TOON CLI not found. Make sure it's installed globally.")
             return False
 
     def get_token_stats(self) -> Optional[Dict[str, Any]]:
         """Get token statistics comparison between JSON and TOON."""
         try:
+            # Validate TOON CLI availability before use
+            ensure_toon_available()
+
             # Get stats for JSON
             json_result = subprocess.run(
                 ["toon", "--stats", str(self.json_path)], capture_output=True, text=True, check=True
@@ -107,6 +115,9 @@ class JSONToTOONConverter:
     def validate_toon_file(self) -> bool:
         """Validate that the TOON file can be decoded back to JSON."""
         try:
+            # Validate TOON CLI availability before use
+            ensure_toon_available()
+
             # Try to decode TOON back to JSON
             result = subprocess.run(
                 ["toon", "--decode", str(self.toon_path)],
@@ -122,6 +133,9 @@ class JSONToTOONConverter:
             )
             return True
 
+        except ToonCliError as e:
+            logger.error(f"TOON CLI validation failed: {e}")
+            return False
         except Exception as e:
             logger.error(f"TOON file validation failed: {e}")
             return False

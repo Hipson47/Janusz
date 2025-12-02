@@ -5,7 +5,7 @@ A Python package that converts various document formats to structured YAML
 and then optimizes them to TOON (Token-Oriented Object Notation) format
 for efficient AI agent prompting and knowledge storage.
 
-Supported input formats: PDF, MD, TXT, DOCX, HTML, RTF, EPUB
+Supported input formats: PDF, MD, TXT, DOCX, HTML
 Output formats: YAML (structured), TOON (optimized for AI)
 
 Example usage:
