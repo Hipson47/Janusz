@@ -166,6 +166,9 @@ Janusz includes a user-friendly desktop application for intuitive document proce
 - **RAG Search**: Natural language queries across indexed documents
 - **Document Indexing**: Add documents to RAG knowledge base for Q&A
 - **Advanced Settings**: Configurable search parameters and AI options
+- **Prompt Optimization**: AI-powered prompt improvement and testing
+- **Prompt Library**: Manage and reuse optimized prompt templates
+- **Benchmarking**: Compare prompt performance across test cases
 
 ### Launching the GUI
 
@@ -402,10 +405,50 @@ pip install html2text beautifulsoup4
 
 
 
+## Prompt Optimization System
+
+Janusz includes advanced AI-powered tools for optimizing and managing LLM prompts:
+
+### Prompt Optimization Features
+- **AI-Powered Optimization**: Automatically improve prompts for clarity, efficiency, specificity, and creativity
+- **Prompt Library**: Manage reusable prompt templates with categories and metadata
+- **Testing & Benchmarking**: Evaluate prompt performance against test cases
+- **GUI Integration**: User-friendly interface for prompt optimization workflows
+
+### Using Prompt Optimization
+
+#### CLI Commands
+
+```bash
+# Optimize a prompt
+janusz prompt optimize "Your prompt here" --goal clarity --model anthropic/claude-3-haiku
+
+# Test prompt performance
+janusz prompt test "Your prompt" --test-cases test_cases.json --output results.json
+
+# Benchmark multiple prompts
+janusz prompt benchmark --prompts prompts.json --test-cases tests.json --output benchmark.json
+
+# Manage prompt library
+janusz prompt library list                    # List all templates
+janusz prompt library search "API"           # Search templates
+janusz prompt library export library.json    # Export library
+janusz prompt library import templates.json  # Import templates
+```
+
+#### GUI Interface
+
+Launch the GUI with `janusz gui` and use the "🎯 Optymalizuj prompty" button for:
+- Interactive prompt optimization
+- Template management
+- Side-by-side comparison of results
+- Library integration
+
 ### Getting Help
 
 ```bash
 janusz --help              # CLI help
+janusz prompt --help       # Prompt commands help
 make help                  # Make targets
 ```
 

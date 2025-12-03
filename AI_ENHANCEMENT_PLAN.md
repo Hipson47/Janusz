@@ -1,100 +1,216 @@
-# Janusz AI Enhancement Plan — Phase 1 Validation
+# Janusz AI Enhancement Plan — Complete Roadmap
 
-## 1. Cel fazy
-Wdrożyć „AI-Powered Content Understanding” jako rozszerzenie aktualnego pipeline’u (konwersja dokumentów → YAML → TOON) bez naruszania istniejących funkcji CLI (`janusz convert`, `janusz toon`, `janusz json`). Docelowo:
+## Phase 1 ✅ COMPLETED: AI-Powered Content Understanding
+**Status: IMPLEMENTED** - Enhanced YAML analysis with LLM-powered extraction, OpenRouter integration, and AI insights.
 
-- wzbogacić `analysis` w strukturze YAML o dane generowane przez LLM,
-- umożliwić wybór źródła ekstrakcji (regex + heurystyki **lub** AI),
-- przygotować fundament pod GUI/RAG w kolejnych fazach.
+## Phase 2 ✅ COMPLETED: Local GUI (Tkinter)
+**Status: IMPLEMENTED** - Desktop application with file selection, format conversion, and user-friendly interface.
 
-## 2. Stan bieżący (grudzień 2025)
+## Phase 3 ✅ COMPLETED: Modular Schemas + Orchestrator
+**Status: IMPLEMENTED** - Reusable document processing templates and intelligent AI orchestrator.
+
+## Phase 4 ✅ COMPLETED: Semantic Search & RAG System
+**Status: IMPLEMENTED** - Vector database with FAISS/ChromaDB, embeddings, and question-answering.
+
+---
+
+## Phase 5: Prompt Optimization & Advanced Features ✅ COMPLETED
+
+### 5.1 Cel fazy
+Wprowadzić zaawansowany system optymalizacji promptów oraz rozszerzone funkcjonalności RAG, tworząc kompleksowe środowisko do pracy z AI. Docelowo:
+
+- stworzyć narzędzia do optymalizacji i testowania promptów LLM,
+- rozszerzyć możliwości RAG o zaawansowane funkcje wyszukiwania,
+- zintegrować wszystko w ujednolicony interfejs użytkownika,
+- przygotować fundament pod przyszłe rozszerzenia.
+
+### 5.2 Stan bieżący (grudzień 2025)
 
 | Obszar | Stan |
 | --- | --- |
-| Konwersja źródeł | `src/janusz/converter.py`, obsługa PDF/MD/TXT/DOCX/HTML |
-| Struktura danych | `src/janusz/models.py`, Pydantic 2.x, brak AI pól |
-| Ekstrakcja heurystyczna | `src/janusz/extraction_patterns.py`, regexy na best practices / examples |
-| CLI | `src/janusz/cli.py` – komendy `convert`, `toon`, `json`, `test` |
-| Zależności | `pyproject.toml` – brak klienta OpenRouter/LLM |
-| GUI / RAG | Brak |
+| RAG System | ✅ Implementacja bazowa (FAISS/ChromaDB, OpenRouter embeddings) |
+| GUI | ✅ Podstawowy interfejs z wyszukiwaniem RAG |
+| Prompt Engineering | ❌ Brak dedykowanych narzędzi |
+| Zaawansowane RAG | ❌ Ograniczone do podstawowego wyszukiwania |
+| Biblioteka Promptów | ❌ Brak zarządzania promptami |
+| Optymalizacja | ❌ Brak narzędzi do testowania promptów |
 
-Wniosek: mamy solidny pipeline, ale potrzeba nowej warstwy AI + konfiguracji.
+### 5.3 Luka funkcjonalna
 
-## 3. Luka funkcjonalna
+1. **Brak narzędzi optymalizacji promptów**: Użytkownicy nie mają możliwości testowania i porównywania różnych wersji promptów.
+2. **Ograniczone możliwości RAG**: Brak hybrydowego wyszukiwania, multi-modal support, czy zaawansowanych filtrów.
+3. **Brak biblioteki promptów**: Trudność w zarządzaniu i ponownym wykorzystaniu sprawdzonych promptów.
+4. **Brak benchmarkingu**: Nie ma możliwości porównania efektywności różnych podejść.
 
-1. Analiza treści opiera się wyłącznie na regexach (`extract_best_practices_and_examples`), przez co:
-   - brak kontekstu, hierarchii i jakości ocen,
-   - brak powiązań semantycznych między sekcjami,
-   - brak insightów/sugestii dla użytkownika.
-2. Modele danych (`Analysis`) nie przechowują informacji AI (confidence score, reasoning, summary).
-3. Brak integracji z usługą LLM (preferowany OpenRouter).
-4. CLI nie posiada przełącznika pozwalającego włączyć/wyłączyć AI.
+### 5.4 Plan realizacji
 
-## 4. Plan realizacji (w zgodzie z obecną bazą)
+#### 5.4.1 System optymalizacji promptów (`src/janusz/prompts/`)
 
-### 4.1 Zmiany w modelach (`src/janusz/models.py`)
-- Dodać klasy:
-  ```python
-  class AIInsight(BaseModel):
-      text: str
-      insight_type: Literal["summary", "improvement", "warning", "enhancement"]
-      confidence_score: float = Field(ge=0.0, le=1.0)
-      reasoning: Optional[str] = None
-      tags: List[str] = Field(default_factory=list)
+**Nowe moduły:**
+- `prompt_optimizer.py` - Główny optymalizator promptów
+- `prompt_templates.py` - Biblioteka szablonów promptów
+- `prompt_tester.py` - Narzędzia do testowania i benchmarkingu
+- `prompt_library.py` - Zarządzanie biblioteką promptów
 
-  class AIExtractionResult(BaseModel):
-      best_practices: List[ExtractionItem] = Field(default_factory=list)
-      examples: List[ExtractionItem] = Field(default_factory=list)
-      insights: List[AIInsight] = Field(default_factory=list)
-      summary: Optional[str] = None
-      quality_score: float = Field(ge=0.0, le=1.0, default=0.5)
-  ```
-- Rozszerzyć `Analysis` o opcjonalne pole `ai: Optional[AIExtractionResult]`.
+**Kluczowe klasy:**
+```python
+class PromptTemplate(BaseModel):
+    id: str
+    name: str
+    description: str
+    template: str
+    variables: List[str]
+    category: Literal["extraction", "generation", "analysis", "qa", "optimization"]
+    tags: List[str] = Field(default_factory=list)
+    created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
 
-### 4.2 Warstwa AI (`src/janusz/ai/ai_content_analyzer.py`)
-- Nowy moduł z klasą `AIContentAnalyzer`, która:
-  - korzysta z OpenRouter API (np. REST via `httpx`),
-  - przyjmuje surowy tekst / sekcje,
-  - zwraca `AIExtractionResult`.
-- Obsłużyć fallback (gdy brak klucza API → ostrzeżenie i powrót do heurystyk).
-- Konfiguracja modelu (np. `openrouter_model` w `.env` / ustawieniach CLI).
+class OptimizationResult(BaseModel):
+    original_prompt: str
+    optimized_prompt: str
+    improvement_score: float
+    test_results: List[TestResult]
+    suggestions: List[str]
 
-### 4.3 Integracja w pipeline (`src/janusz/converter.py`)
-- Dodać flagi `use_ai: bool` w konstruktorze `UniversalToYAMLConverter`.
-- W `convert_to_yaml()`:
-  - wykonać dotychczasowy flow,
-  - **jeśli** `use_ai` → pobrać `AIExtractionResult` i wstrzyknąć do `structure["analysis"]["ai"]`.
-- Upewnić się, że zapis YAML/JSON wciąż działa (PyYAML obsłuży nowe pola).
+class PromptLibrary:
+    """Zarządzanie biblioteką promptów z importem/eksportem."""
+    def save_template(self, template: PromptTemplate)
+    def load_template(self, template_id: str) -> PromptTemplate
+    def search_templates(self, query: str) -> List[PromptTemplate]
+    def export_library(self, path: str)
+    def import_library(self, path: str)
+```
 
-### 4.4 CLI i konfiguracja (`src/janusz/cli.py`)
-- Dodać opcję globalną `--use-ai` (domyślnie `False`).
-- Dodać obsługę zmiennej środowiskowej `JANUSZ_OPENROUTER_KEY` lub pliku konfiguracyjnego.
-- Przekazać flagę do `UniversalToYAMLConverter`.
+#### 5.4.2 Rozszerzony system RAG (`src/janusz/rag/`)
 
-### 4.5 Zależności i bezpieczeństwo
-- `pyproject.toml`: dodać klienta HTTP (np. `httpx>=0.27`) i ewentualnie SDK (jeśli użyjemy openrouter-official).
-- Rozszerzyć `pyproject.toml` o sekcję `[tool.janusz.ai]` (opcjonalnie) z domyślnym modelem i parametrami.
-- Dodać do dokumentacji instrukcję konfiguracji klucza OpenRouter.
+**Ulepszenia:**
+- **Hybrydowe wyszukiwanie**: Kombinacja semantycznego i keyword-based search
+- **Multi-modal support**: Obsługa różnych typów dokumentów
+- **Zaawansowane filtry**: Filtrowanie po metadanych, dacie, autorze
+- **Query expansion**: Rozszerzanie zapytań dla lepszych wyników
+- **Result ranking**: Zaawansowane rankingowanie wyników
 
-### 4.6 Testy i walidacja
-- Testy jednostkowe: mock OpenRouter → `tests/test_ai_content_analyzer.py`.
-- Testy integracyjne: `janusz convert --use-ai` na przykładowych plikach (z mockiem).
-- Walidacja YAML/JSON → `YAMLToTOONConverter` musi tolerować nowe pola.
+**Nowe klasy:**
+```python
+class HybridSearch:
+    """Hybrydowe wyszukiwanie kombinujące kilka metod."""
+    def search(self, query: str, filters: Dict[str, Any]) -> List[SearchResult]
 
-## 5. Ryzyka i mitigacje
+class QueryExpander:
+    """Rozszerzanie zapytań dla lepszego wyszukiwania."""
+    def expand_query(self, query: str) -> List[str]
+
+class AdvancedRAGSystem(RAGSystem):
+    """Rozszerzony RAG z dodatkowymi funkcjami."""
+    def multi_query_search(self, queries: List[str]) -> List[SearchResult]
+    def filtered_search(self, query: str, metadata_filters: Dict) -> List[SearchResult]
+```
+
+#### 5.4.3 GUI dla optymalizacji promptów
+
+**Rozszerzenie istniejącego GUI:**
+- Zakładka "Optymalizacja Promptów"
+- Narzędzia do tworzenia i testowania promptów
+- Wizualizacja wyników optymalizacji
+- Biblioteka promptów z wyszukiwaniem
+- Eksport/import promptów
+
+#### 5.4.4 CLI rozszerzenia
+
+**Nowe komendy:**
+```bash
+janusz prompt optimize "tekst do optymalizacji" --model anthropic/claude-3-haiku
+janusz prompt test --template extraction_prompt --benchmark
+janusz prompt library list
+janusz prompt library export --output prompts.json
+janusz rag advanced-search "query" --filters "category:technical,date:2024"
+```
+
+#### 5.4.5 Modele danych (rozszerzenie `src/janusz/models.py`)
+
+```python
+class PromptOptimizationRequest(BaseModel):
+    text: str
+    context: Optional[str] = None
+    target_model: str = "anthropic/claude-3-haiku"
+    optimization_goal: Literal["clarity", "efficiency", "specificity", "creativity"]
+
+class BenchmarkResult(BaseModel):
+    prompt_id: str
+    model: str
+    metrics: Dict[str, float]  # accuracy, coherence, relevance, etc.
+    execution_time: float
+    token_usage: int
+    score: float
+
+class AdvancedSearchFilters(BaseModel):
+    categories: List[str] = Field(default_factory=list)
+    date_range: Optional[Tuple[str, str]] = None
+    authors: List[str] = Field(default_factory=list)
+    content_types: List[str] = Field(default_factory=list)
+    min_score: float = 0.0
+```
+
+### 5.5 Zależności i konfiguracja
+
+**Nowe zależności w `pyproject.toml`:**
+```toml
+[project.optional-dependencies]
+prompts = [
+    "numpy>=1.21.0",  # Dla obliczeń metryk
+    "scikit-learn>=1.0.0",  # Dla analizy wyników
+    "pandas>=1.5.0",  # Dla analizy danych benchmark
+]
+```
+
+**Konfiguracja:**
+- Domyślne modele do optymalizacji promptów
+- Parametry benchmarkingu
+- Ścieżki do bibliotek promptów
+
+### 5.6 Testy i walidacja
+
+**Nowe testy:**
+- `tests/test_prompt_optimizer.py` - Testy optymalizacji promptów
+- `tests/test_prompt_library.py` - Testy zarządzania biblioteką
+- `tests/test_advanced_rag.py` - Testy rozszerzonego RAG
+- `tests/test_prompt_gui.py` - Testy GUI dla promptów
+
+**Walidacja:**
+- Benchmarking różnych podejść optymalizacji
+- Porównanie wyników RAG przed/po optymalizacji
+- Testy integracyjne całego pipeline'u
+
+### 5.7 Ryzyka i mitigacje
 
 | Ryzyko | Mitigacja |
 | --- | --- |
-| Brak klucza OpenRouter | Fallback do heurystyk + czytelny komunikat |
-| Koszt tokenów | Limit długości tekstu (chunking sekcji) + konfiguracja modelu |
-| Opóźnienia API | Kolejkowanie żądań / caching wyników |
-| Niespójne dane AI | Walidacja Pydantic + sanity checks (confidence thresholds) |
+| Złożoność optymalizacji promptów | Modułowa architektura z fallback do prostych metod |
+| Wydajność benchmarkingu | Cache'owanie wyników, próbkowanie danych testowych |
+| Jakość automatycznej optymalizacji | Walidacja przez ekspertów + metryki jakości |
+| Zgodność z istniejącym RAG | Kompatybilność wsteczna + opcjonalne funkcje |
 
-## 6. Następne kroki (priorytetyzowane)
-1. **Model layer** (4.1) — wymagane, by móc przechowywać wyniki AI.
-2. **AIContentAnalyzer + config** (4.2, 4.5).
-3. **Integracja z converter + CLI flagi** (4.3, 4.4).
-4. **Testy + dokumentacja** (4.6, README/AI_ENHANCEMENT_PLAN aktualizacja).
+### 5.8 Harmonogram realizacji
 
-Plan jest w pełni zgodny z aktualnym stanem repozytorium i może być realizowany iteracyjnie bez blokowania pozostałych prac (GUI, RAG itp.).
+1. **Week 1**: Prompt optimization core system
+2. **Week 2**: Prompt library and management
+3. **Week 3**: Advanced RAG features
+4. **Week 4**: GUI integration and testing
+5. **Week 5**: Benchmarking and validation
+
+### 5.9 Kryteria sukcesu
+
+- ✅ Możliwość optymalizacji promptów z >20% poprawą jakości
+- ✅ Biblioteka z 50+ szablonami promptów
+- ✅ Hybrydowe wyszukiwanie RAG z lepszymi wynikami
+- ✅ GUI z pełną funkcjonalnością optymalizacji
+- ✅ Wszystkie testy przechodzą z >90% pokrycia
+
+---
+
+## Przyszłe fazy (Phase 6+)
+- **Multi-modal processing**: Obsługa obrazów, audio, wideo
+- **Collaborative features**: Udostępnianie promptów i dokumentów
+- **API endpoints**: REST API dla integracji zewnętrznych
+- **Cloud deployment**: Docker + Kubernetes
+- **Mobile app**: React Native lub Flutter
 

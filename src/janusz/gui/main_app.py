@@ -193,7 +193,7 @@ class JanuszGUI:
         ai_buttons_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(20, 0))
 
         ttk.Button(ai_buttons_frame, text="🎯 Optymalizuj prompty",
-                  command=self.optimize_prompts, state="disabled").grid(row=0, column=0, padx=(0, 5))
+                  command=self.optimize_prompts).grid(row=0, column=0, padx=(0, 5))
         ttk.Button(ai_buttons_frame, text="📋 Generuj schematy",
                   command=self.generate_schemas, state="disabled").grid(row=0, column=1, padx=(5, 0))
 
@@ -450,9 +450,350 @@ class JanuszGUI:
             self.root.after(100, self.check_processing_status)
 
     def optimize_prompts(self):
-        """AI-powered prompt optimization (placeholder for future implementation)."""
-        messagebox.showinfo("Funkcja w przygotowaniu",
-                          "Optymalizacja promptów będzie dostępna w następnej wersji.")
+        """AI-powered prompt optimization interface."""
+        if not self.ai_available:
+            messagebox.showerror("AI niedostępne",
+                               "Optymalizacja promptów wymaga włączonej analizy AI w ustawieniach.")
+            return
+
+        # Create prompt optimization dialog
+        prompt_window = tk.Toplevel(self.root)
+        prompt_window.title("🎯 Optymalizacja Promptów")
+        prompt_window.geometry("800x600")
+        prompt_window.resizable(True, True)
+
+        # Main container
+        main_frame = ttk.Frame(prompt_window, padding="10")
+        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+        # Configure grid weights
+        prompt_window.columnconfigure(0, weight=1)
+        prompt_window.rowconfigure(0, weight=1)
+        main_frame.columnconfigure(1, weight=1)
+
+        # Title
+        title_label = ttk.Label(main_frame, text="🧠 Optymalizacja Promptów AI",
+                               font=("Arial", 14, "bold"))
+        title_label.grid(row=0, column=0, columnspan=2, pady=(0, 15))
+
+        # Input section
+        self._create_prompt_input_section(main_frame)
+
+        # Settings section
+        self._create_prompt_settings_section(main_frame)
+
+        # Results section
+        self._create_prompt_results_section(main_frame, prompt_window)
+
+        # Configure layout
+        main_frame.rowconfigure(2, weight=1)
+
+    def _create_prompt_input_section(self, parent):
+        """Create the prompt input section."""
+        input_frame = ttk.LabelFrame(parent, text="📝 Wprowadź prompt do optymalizacji", padding="10")
+        input_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10))
+        input_frame.columnconfigure(0, weight=1)
+
+        # Prompt text area
+        self.prompt_input_text = scrolledtext.ScrolledText(
+            input_frame, wrap=tk.WORD, height=8,
+            font=("Consolas", 10)
+        )
+        self.prompt_input_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.prompt_input_text.insert(tk.END, "Wpisz tutaj prompt do optymalizacji...\n\nNa przykład:\nNapisz podsumowanie tego dokumentu technicznego, skupiając się na kluczowych funkcjach i wymaganiach systemowych.")
+
+        # Control buttons
+        button_frame = ttk.Frame(input_frame)
+        button_frame.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(button_frame, text="🗑️ Wyczyść",
+                  command=lambda: self.prompt_input_text.delete(1.0, tk.END)).grid(row=0, column=0, padx=(0, 5))
+
+        ttk.Button(button_frame, text="📋 Wklej z biblioteki",
+                  command=self._load_prompt_from_library).grid(row=0, column=1, padx=(5, 5))
+
+        self.optimize_button = ttk.Button(button_frame, text="🚀 Optymalizuj",
+                                        command=self._run_prompt_optimization)
+        self.optimize_button.grid(row=0, column=2, padx=(5, 0))
+
+    def _create_prompt_settings_section(self, parent):
+        """Create the optimization settings section."""
+        settings_frame = ttk.LabelFrame(parent, text="⚙️ Ustawienia optymalizacji", padding="10")
+        settings_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10))
+
+        # Optimization goal
+        ttk.Label(settings_frame, text="Cel optymalizacji:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
+        self.optimization_goal = tk.StringVar(value="clarity")
+        goal_combo = ttk.Combobox(settings_frame, textvariable=self.optimization_goal,
+                                 values=["clarity", "efficiency", "specificity", "creativity", "conciseness", "comprehensiveness"],
+                                 state="readonly", width=20)
+        goal_combo.grid(row=0, column=1, padx=(0, 15))
+
+        # AI Model
+        ttk.Label(settings_frame, text="Model AI:").grid(row=0, column=2, sticky=tk.W, padx=(0, 5))
+        self.prompt_model = tk.StringVar(value="anthropic/claude-3-haiku")
+        model_combo = ttk.Combobox(settings_frame, textvariable=self.prompt_model,
+                                  values=["anthropic/claude-3-haiku", "openai/gpt-4", "meta-llama/llama-2-70b"],
+                                  state="readonly", width=20)
+        model_combo.grid(row=0, column=3)
+
+    def _create_prompt_results_section(self, parent, window):
+        """Create the results section."""
+        results_frame = ttk.LabelFrame(parent, text="📋 Wyniki optymalizacji", padding="10")
+        results_frame.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S))
+        results_frame.columnconfigure(0, weight=1)
+        results_frame.rowconfigure(0, weight=1)
+
+        # Results text area
+        self.prompt_results_text = scrolledtext.ScrolledText(
+            results_frame, wrap=tk.WORD, height=12,
+            font=("Consolas", 10),
+            state="disabled"
+        )
+        self.prompt_results_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+        # Control buttons for results
+        results_button_frame = ttk.Frame(results_frame)
+        results_button_frame.grid(row=1, column=0, pady=(10, 0))
+
+        ttk.Button(results_button_frame, text="📄 Kopiuj do schowka",
+                  command=self._copy_optimized_prompt).grid(row=0, column=0, padx=(0, 5))
+
+        ttk.Button(results_button_frame, text="💾 Zapisz do biblioteki",
+                  command=self._save_prompt_to_library).grid(row=0, column=1, padx=(5, 5))
+
+        ttk.Button(results_button_frame, text="📊 Porównaj wersje",
+                  command=self._compare_prompt_versions).grid(row=0, column=2, padx=(5, 0))
+
+    def _run_prompt_optimization(self):
+        """Run prompt optimization."""
+        prompt_text = self.prompt_input_text.get(1.0, tk.END).strip()
+
+        if not prompt_text or prompt_text == "Wpisz tutaj prompt do optymalizacji...\n\nNa przykład:\nNapisz podsumowanie tego dokumentu technicznego, skupiając się na kluczowych funkcjach i wymaganiach systemowych.":
+            messagebox.showwarning("Brak promptu", "Wpisz prompt do optymalizacji.")
+            return
+
+        # Disable button during processing
+        self.optimize_button.config(state="disabled", text="⏳ Optymalizuję...")
+
+        # Clear previous results
+        self.prompt_results_text.config(state="normal")
+        self.prompt_results_text.delete(1.0, tk.END)
+        self.prompt_results_text.insert(tk.END, "🎯 Optymalizuję prompt...\n\n")
+        self.prompt_results_text.config(state="disabled")
+
+        # Run optimization in background thread
+        import threading
+        threading.Thread(
+            target=self._perform_prompt_optimization,
+            args=(prompt_text, self.optimization_goal.get(), self.prompt_model.get()),
+            daemon=True
+        ).start()
+
+    def _perform_prompt_optimization(self, prompt_text, goal, model):
+        """Perform the actual prompt optimization."""
+        try:
+            from ..models import PromptOptimizationRequest
+            from ..prompts import PromptOptimizer
+
+            # Initialize optimizer
+            optimizer = PromptOptimizer(model=model)
+
+            # Create optimization request
+            request = PromptOptimizationRequest(
+                text=prompt_text,
+                optimization_goal=goal
+            )
+
+            # Run optimization
+            import asyncio
+            result = asyncio.run(optimizer.optimize_prompt(request))
+
+            # Update UI with results
+            self.root.after(0, lambda: self._display_optimization_results(result))
+
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"Prompt optimization failed: {error_msg}")
+            self.root.after(0, lambda: self._display_optimization_error(error_msg))
+
+    def _display_optimization_results(self, result):
+        """Display optimization results in the UI."""
+        self.prompt_results_text.config(state="normal")
+        self.prompt_results_text.delete(1.0, tk.END)
+
+        # Header
+        self.prompt_results_text.insert(tk.END, "✅ Optymalizacja zakończona!\n\n", "success")
+
+        # Improvement score
+        self.prompt_results_text.insert(tk.END, f"📈 Wynik poprawy: {result.improvement_score:.1%}\n\n", "title")
+
+        # Optimized prompt
+        self.prompt_results_text.insert(tk.END, "🎯 Zoptymalizowany prompt:\n", "title")
+        self.prompt_results_text.insert(tk.END, f"{result.optimized_prompt}\n\n", "answer")
+
+        # Suggestions
+        if result.suggestions:
+            self.prompt_results_text.insert(tk.END, "💡 Sugestie do dalszej poprawy:\n", "title")
+            for suggestion in result.suggestions:
+                self.prompt_results_text.insert(tk.END, f"• {suggestion}\n", "metadata")
+            self.prompt_results_text.insert(tk.END, "\n")
+
+        # Optimization steps
+        if result.optimization_steps:
+            self.prompt_results_text.insert(tk.END, "🔧 Zastosowane optymalizacje:\n", "title")
+            for step in result.optimization_steps:
+                self.prompt_results_text.insert(tk.END, f"• {step}\n", "metadata")
+
+        self.prompt_results_text.config(state="disabled")
+
+        # Re-enable button
+        self.optimize_button.config(state="normal", text="🚀 Optymalizuj")
+
+        # Store result for other operations
+        self.last_optimization_result = result
+
+    def _display_optimization_error(self, error_msg):
+        """Display optimization error in the UI."""
+        self.prompt_results_text.config(state="normal")
+        self.prompt_results_text.delete(1.0, tk.END)
+        self.prompt_results_text.insert(tk.END, f"❌ Błąd optymalizacji: {error_msg}", "error")
+        self.prompt_results_text.config(state="disabled")
+
+        # Re-enable button
+        self.optimize_button.config(state="normal", text="🚀 Optymalizuj")
+
+    def _load_prompt_from_library(self):
+        """Load a prompt from the library."""
+        try:
+            from ..prompts import PromptLibrary
+            library = PromptLibrary()
+            templates = library.list_templates()
+
+            if not templates:
+                messagebox.showinfo("Biblioteka pusta", "Brak szablonów w bibliotece. Najpierw zaimportuj jakieś szablony.")
+                return
+
+            # Create selection dialog
+            select_window = tk.Toplevel(self.root)
+            select_window.title("Wybierz szablon z biblioteki")
+            select_window.geometry("400x300")
+
+            # Template list
+            listbox = tk.Listbox(select_window, height=10)
+            listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+            for template in templates:
+                listbox.insert(tk.END, f"{template.name} - {template.category}")
+
+            def on_select():
+                selection = listbox.curselection()
+                if selection:
+                    template = templates[selection[0]]
+                    self.prompt_input_text.delete(1.0, tk.END)
+                    self.prompt_input_text.insert(tk.END, template.template)
+                select_window.destroy()
+
+            ttk.Button(select_window, text="Wybierz", command=on_select).pack(pady=5)
+
+        except Exception as e:
+            logger.error(f"Failed to load prompt library: {e}")
+            messagebox.showerror("Błąd", f"Nie udało się załadować biblioteki: {e}")
+
+    def _copy_optimized_prompt(self):
+        """Copy the optimized prompt to clipboard."""
+        if hasattr(self, 'last_optimization_result'):
+            try:
+                import pyperclip
+                pyperclip.copy(self.last_optimization_result.optimized_prompt)
+                messagebox.showinfo("Skopiowane", "Zoptymalizowany prompt został skopiowany do schowka.")
+            except ImportError:
+                # Fallback: show in message box
+                messagebox.showinfo("Zoptymalizowany prompt",
+                                  self.last_optimization_result.optimized_prompt)
+        else:
+            messagebox.showwarning("Brak wyników", "Najpierw uruchom optymalizację.")
+
+    def _save_prompt_to_library(self):
+        """Save the optimized prompt to the library."""
+        if not hasattr(self, 'last_optimization_result'):
+            messagebox.showwarning("Brak wyników", "Najpierw uruchom optymalizację.")
+            return
+
+        try:
+            from ..prompts import PromptLibrary
+            library = PromptLibrary()
+
+            # Create template from result
+            import uuid
+
+            from ..models import PromptTemplate
+
+            template = PromptTemplate(
+                id=f"optimized_{uuid.uuid4().hex[:8]}",
+                name=f"Zoptymalizowany prompt ({self.optimization_goal.get()})",
+                description=f"Automatycznie zoptymalizowany prompt dla poprawy {self.optimization_goal.get()}",
+                template=self.last_optimization_result.optimized_prompt,
+                category="optimization",
+                tags=["optimized", "ai-generated", self.optimization_goal.get()],
+                author="Janusz Optimizer"
+            )
+
+            success = library.add_template(template)
+            if success:
+                messagebox.showinfo("Zapisane", f"Prompt został zapisany w bibliotece jako '{template.name}'.")
+            else:
+                messagebox.showerror("Błąd", "Nie udało się zapisać promptu w bibliotece.")
+
+        except Exception as e:
+            logger.error(f"Failed to save prompt to library: {e}")
+            messagebox.showerror("Błąd", f"Nie udało się zapisać promptu: {e}")
+
+    def _compare_prompt_versions(self):
+        """Compare original and optimized prompt versions."""
+        if not hasattr(self, 'last_optimization_result'):
+            messagebox.showwarning("Brak wyników", "Najpierw uruchom optymalizację.")
+            return
+
+        # Create comparison dialog
+        compare_window = tk.Toplevel(self.root)
+        compare_window.title("Porównanie wersji promptów")
+        compare_window.geometry("900x600")
+
+        # Create paned window for side-by-side comparison
+        paned = ttk.PanedWindow(compare_window, orient=tk.HORIZONTAL)
+        paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Original prompt
+        original_frame = ttk.Frame(paned)
+        paned.add(original_frame, weight=1)
+
+        ttk.Label(original_frame, text="📝 Oryginalny prompt", font=("Arial", 12, "bold")).pack(pady=5)
+
+        original_text = scrolledtext.ScrolledText(original_frame, wrap=tk.WORD, height=20, font=("Consolas", 10))
+        original_text.pack(fill=tk.BOTH, expand=True)
+        original_text.insert(tk.END, self.last_optimization_result.original_prompt)
+        original_text.config(state="disabled")
+
+        # Optimized prompt
+        optimized_frame = ttk.Frame(paned)
+        paned.add(optimized_frame, weight=1)
+
+        ttk.Label(optimized_frame, text="🎯 Zoptymalizowany prompt", font=("Arial", 12, "bold")).pack(pady=5)
+
+        optimized_text = scrolledtext.ScrolledText(optimized_frame, wrap=tk.WORD, height=20, font=("Consolas", 10))
+        optimized_text.pack(fill=tk.BOTH, expand=True)
+        optimized_text.insert(tk.END, self.last_optimization_result.optimized_prompt)
+        optimized_text.config(state="disabled")
+
+        # Stats at bottom
+        stats_frame = ttk.Frame(compare_window)
+        stats_frame.pack(fill=tk.X, padx=10, pady=5)
+
+        improvement = self.last_optimization_result.improvement_score
+        ttk.Label(stats_frame,
+                 text=f"📈 Poprawa: {improvement:.1%} | Oryginalny: {len(self.last_optimization_result.original_prompt)} znaków | Zoptymalizowany: {len(self.last_optimization_result.optimized_prompt)} znaków",
+                 font=("Arial", 10)).pack()
 
     def generate_schemas(self):
         """Generate modular schemas (placeholder for future implementation)."""

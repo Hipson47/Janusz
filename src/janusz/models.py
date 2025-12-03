@@ -6,7 +6,7 @@ This module defines Pydantic models for structured data validation.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -184,3 +184,85 @@ class DocumentStructure(BaseModel):
     analysis: Optional[Analysis] = None
     applied_schema: Optional[str] = None  # ID of applied modular schema
     vector_document: Optional[VectorDocument] = None  # For RAG indexing
+
+
+# Phase 5: Prompt Optimization Models
+
+class PromptTemplate(BaseModel):
+    """A template for LLM prompts with variables and metadata."""
+    id: str
+    name: str
+    description: str
+    template: str
+    variables: List[str] = Field(default_factory=list)
+    category: Literal["extraction", "generation", "analysis", "qa", "optimization", "coding", "writing", "custom"]
+    tags: List[str] = Field(default_factory=list)
+    author: Optional[str] = None
+    version: str = "1.0.0"
+    created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+    usage_count: int = 0
+    average_score: float = Field(ge=0.0, le=1.0, default=0.5)
+
+
+class TestResult(BaseModel):
+    """Result of a single prompt test."""
+    prompt_id: str
+    test_input: str
+    expected_output: Optional[str] = None
+    actual_output: str
+    execution_time: float
+    token_usage: int
+    quality_score: float = Field(ge=0.0, le=1.0)
+    metrics: Dict[str, float] = Field(default_factory=dict)  # accuracy, coherence, relevance, etc.
+    feedback: Optional[str] = None
+
+
+class OptimizationResult(BaseModel):
+    """Result of prompt optimization."""
+    original_prompt: str
+    optimized_prompt: str
+    improvement_score: float = Field(ge=0.0, le=1.0)
+    optimization_steps: List[str] = Field(default_factory=list)
+    test_results_before: List[TestResult] = Field(default_factory=list)
+    test_results_after: List[TestResult] = Field(default_factory=list)
+    suggestions: List[str] = Field(default_factory=list)
+    created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+
+
+class BenchmarkResult(BaseModel):
+    """Comprehensive benchmark result for prompt evaluation."""
+    prompt_id: str
+    model_name: str
+    test_dataset: str
+    metrics: Dict[str, float] = Field(default_factory=dict)
+    average_score: float = Field(ge=0.0, le=1.0)
+    execution_time: float
+    total_token_usage: int
+    sample_size: int
+    confidence_interval: Optional[Tuple[float, float]] = None
+    comparison_baseline: Optional[str] = None
+    improvement_percentage: Optional[float] = None
+
+
+class PromptOptimizationRequest(BaseModel):
+    """Request for prompt optimization."""
+    text: str
+    context: Optional[str] = None
+    target_model: str = "anthropic/claude-3-haiku"
+    optimization_goal: Literal["clarity", "efficiency", "specificity", "creativity", "conciseness", "comprehensiveness"]
+    constraints: List[str] = Field(default_factory=list)
+    test_cases: List[Dict[str, str]] = Field(default_factory=list)
+
+
+class AdvancedSearchFilters(BaseModel):
+    """Advanced filters for RAG search."""
+    categories: List[str] = Field(default_factory=list)
+    date_range: Optional[Tuple[str, str]] = None
+    authors: List[str] = Field(default_factory=list)
+    content_types: List[str] = Field(default_factory=list)
+    source_types: List[str] = Field(default_factory=list)
+    tags: List[str] = Field(default_factory=list)
+    min_score: float = 0.0
+    max_results: int = 10
+    include_metadata: bool = True

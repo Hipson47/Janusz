@@ -25,6 +25,7 @@ from .json_to_toon import (
     test_toon_conversion as test_json_toon_conversion,
 )
 from .orchestrator.ai_orchestrator import AIOrchestrator
+from .prompts import PromptLibrary, PromptOptimizer, PromptTester
 from .rag.rag_system import RAGSystem
 from .schemas.schema_manager import SchemaManager
 from .toon_adapter import (
@@ -270,6 +271,53 @@ Supported input formats for json: JSON
     # RAG clear
     rag_subparsers.add_parser("clear", help="Clear RAG index")
 
+    # Prompt commands
+    prompt_parser = subparsers.add_parser("prompt", help="Prompt optimization and management tools")
+    prompt_subparsers = prompt_parser.add_subparsers(dest="prompt_command", help="Prompt operations")
+
+    # Prompt optimize
+    optimize_parser = prompt_subparsers.add_parser("optimize", help="Optimize a prompt for better performance")
+    optimize_parser.add_argument("text", help="Prompt text to optimize")
+    optimize_parser.add_argument("--goal", "-g", choices=["clarity", "efficiency", "specificity", "creativity", "conciseness", "comprehensiveness"],
+                               default="clarity", help="Optimization goal")
+    optimize_parser.add_argument("--model", "-m", default="anthropic/claude-3-haiku", help="AI model to use")
+    optimize_parser.add_argument("--output", "-o", help="Save optimized prompt to file")
+
+    # Prompt test
+    test_parser = prompt_subparsers.add_parser("test", help="Test prompt performance against test cases")
+    test_parser.add_argument("prompt", help="Prompt to test")
+    test_parser.add_argument("--test-cases", "-t", required=True, help="JSON file with test cases")
+    test_parser.add_argument("--output", "-o", help="Save test results to file")
+    test_parser.add_argument("--model", "-m", default="anthropic/claude-3-haiku", help="AI model to use")
+
+    # Prompt benchmark
+    benchmark_parser = prompt_subparsers.add_parser("benchmark", help="Benchmark multiple prompts")
+    benchmark_parser.add_argument("--prompts", "-p", required=True, help="JSON file with prompts to benchmark")
+    benchmark_parser.add_argument("--test-cases", "-t", required=True, help="JSON file with test cases")
+    benchmark_parser.add_argument("--output", "-o", help="Save benchmark results to file")
+    benchmark_parser.add_argument("--model", "-m", default="anthropic/claude-3-haiku", help="AI model to use")
+
+    # Prompt library commands
+    library_parser = prompt_subparsers.add_parser("library", help="Manage prompt library")
+    library_subparsers = library_parser.add_subparsers(dest="library_command", help="Library operations")
+
+    # Library list
+    library_subparsers.add_parser("list", help="List available prompt templates")
+
+    # Library search
+    search_parser = library_subparsers.add_parser("search", help="Search prompt templates")
+    search_parser.add_argument("query", help="Search query")
+    search_parser.add_argument("--limit", "-l", type=int, default=10, help="Maximum results")
+
+    # Library export
+    export_parser = library_subparsers.add_parser("export", help="Export prompt library")
+    export_parser.add_argument("output", help="Output file path")
+
+    # Library import
+    import_parser = library_subparsers.add_parser("import", help="Import prompt library")
+    import_parser.add_argument("input", help="Input file path")
+    import_parser.add_argument("--overwrite", action="store_true", help="Overwrite existing templates")
+
     # Test command
     test_parser = subparsers.add_parser("test", help="Test TOON conversion with detailed output")
     test_parser.add_argument("file", help="YAML or JSON file to test")
@@ -448,6 +496,150 @@ Supported input formats for json: JSON
                 print("✅ RAG index cleared")
             else:
                 print("Operation cancelled")
+
+    elif args.command == "prompt":
+        # Initialize prompt tools
+        try:
+            optimizer = PromptOptimizer(model=getattr(args, 'model', 'anthropic/claude-3-haiku'))
+            tester = PromptTester(model=getattr(args, 'model', 'anthropic/claude-3-haiku'))
+            library = PromptLibrary()
+        except Exception as e:
+            logger.error(f"Failed to initialize prompt tools: {e}")
+            sys.exit(1)
+
+        if args.prompt_command == "optimize":
+            import asyncio
+            import json
+
+            # Prepare optimization request
+            request_data = {
+                "text": args.text,
+                "optimization_goal": getattr(args, 'goal', 'clarity')
+            }
+
+            # Create optimization request
+            from .models import PromptOptimizationRequest
+            request = PromptOptimizationRequest(**request_data)
+
+            try:
+                print(f"🎯 Optimizing prompt for {request.optimization_goal}...")
+                result = asyncio.run(optimizer.optimize_prompt(request))
+
+                print("✅ Optimization completed!")
+                print(f"📈 Improvement score: {result.improvement_score:.1%}")
+                print("\n📝 Optimized prompt:")
+                print(result.optimized_prompt)
+                print("\n💡 Suggestions:")
+                for suggestion in result.suggestions:
+                    print(f"  • {suggestion}")
+
+                # Save to file if requested
+                if getattr(args, 'output', None):
+                    output_data = result.model_dump()
+                    with open(args.output, 'w', encoding='utf-8') as f:
+                        json.dump(output_data, f, indent=2, ensure_ascii=False)
+                    print(f"💾 Results saved to: {args.output}")
+
+            except Exception as e:
+                logger.error(f"Prompt optimization failed: {e}")
+                sys.exit(1)
+
+        elif args.prompt_command == "test":
+            import asyncio
+            import json
+
+            try:
+                # Load test cases
+                with open(args.test_cases, encoding='utf-8') as f:
+                    test_data = json.load(f)
+
+                test_cases = test_data.get('test_cases', [])
+
+                print(f"🧪 Testing prompt against {len(test_cases)} test cases...")
+                results = asyncio.run(tester.test_prompt(args.prompt, test_cases))
+
+                # Calculate summary stats
+                scores = [r.quality_score for r in results]
+                avg_score = sum(scores) / len(scores) if scores else 0
+
+                print("✅ Testing completed!")
+                print(f"📊 Average quality score: {avg_score:.1%}")
+                print(f"📈 Test results: {len([r for r in results if r.quality_score >= 0.7])}/{len(results)} passed (≥70%)")
+
+                # Save results if requested
+                if getattr(args, 'output', None):
+                    tester.save_test_results(results, args.output)
+                    print(f"💾 Results saved to: {args.output}")
+
+            except Exception as e:
+                logger.error(f"Prompt testing failed: {e}")
+                sys.exit(1)
+
+        elif args.prompt_command == "benchmark":
+            import asyncio
+            import json
+
+            try:
+                # Load prompts and test cases
+                with open(args.prompts, encoding='utf-8') as f:
+                    prompts_data = json.load(f)
+
+                with open(args.test_cases, encoding='utf-8') as f:
+                    test_data = json.load(f)
+
+                prompts = prompts_data.get('prompts', {})
+                test_cases = test_data.get('test_cases', [])
+
+                print(f"🏁 Benchmarking {len(prompts)} prompts against {len(test_cases)} test cases...")
+                results = asyncio.run(tester.benchmark_prompts(prompts, test_cases))
+
+                # Sort by performance
+                results.sort(key=lambda x: x.average_score, reverse=True)
+
+                print("✅ Benchmarking completed!")
+                print("\n📊 Results Summary:")
+                for i, result in enumerate(results[:5], 1):  # Top 5
+                    print(f"{i}. {result.prompt_id}: {result.average_score:.1%} (±{result.metrics.get('std_dev', 0):.1%})")
+
+                # Save results if requested
+                if getattr(args, 'output', None):
+                    tester.save_benchmark_results(results, args.output)
+                    print(f"💾 Results saved to: {args.output}")
+
+            except Exception as e:
+                logger.error(f"Prompt benchmarking failed: {e}")
+                sys.exit(1)
+
+        elif args.prompt_command == "library":
+            if args.library_command == "list":
+                templates = library.list_templates()
+                if not templates:
+                    print("📚 No templates in library. Use 'janusz prompt library import' to add some.")
+                else:
+                    print(f"📚 Found {len(templates)} templates:")
+                    for template in templates:
+                        print(f"  • {template.name} ({template.id}) - {template.category}")
+
+            elif args.library_command == "search":
+                results = library.search_templates(args.query, limit=getattr(args, 'limit', 10))
+                if not results:
+                    print(f"🔍 No templates found for query: '{args.query}'")
+                else:
+                    print(f"🔍 Found {len(results)} templates matching '{args.query}':")
+                    for template in results:
+                        print(f"  • {template.name} ({template.id})")
+                        print(f"    {template.description[:100]}{'...' if len(template.description) > 100 else ''}")
+
+            elif args.library_command == "export":
+                library.export_library(args.output)
+                print(f"📤 Library exported to: {args.output}")
+
+            elif args.library_command == "import":
+                count = library.import_library(args.input, overwrite=getattr(args, 'overwrite', False))
+                print(f"📥 Imported {count} templates from: {args.input}")
+
+            else:
+                print("Unknown library command. Use 'janusz prompt library --help' for available options.")
 
     elif args.command == "test":
         # Try to detect file type and use appropriate test function
