@@ -6,7 +6,7 @@ This module defines Pydantic models for structured data validation.
 """
 
 from datetime import datetime
-from typing import List, Literal, Optional, Dict, Any
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 

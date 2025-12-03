@@ -8,13 +8,12 @@ Provides AI-powered schema generation and intelligent matching.
 
 import json
 import logging
-import os
-from pathlib import Path
-from typing import Dict, List, Optional, Any
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from ..models import ModularSchema, SchemaComponent, DocumentStructure
 from ..ai.ai_content_analyzer import AIContentAnalyzer
+from ..models import DocumentStructure, ModularSchema
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +49,7 @@ class SchemaManager:
 
         for schema_file in self.schema_dir.glob("*.json"):
             try:
-                with open(schema_file, 'r', encoding='utf-8') as f:
+                with open(schema_file, encoding='utf-8') as f:
                     schema_data = json.load(f)
                     schema = ModularSchema(**schema_data)
                     self._schemas_cache[schema.id] = schema

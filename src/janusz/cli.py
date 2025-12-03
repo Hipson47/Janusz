@@ -13,14 +13,27 @@ from pathlib import Path
 
 from .converter import UniversalToYAMLConverter
 from .converter import process_directory as convert_directory
-from .schemas.schema_manager import SchemaManager
+from .json_to_toon import (
+    JSONToTOONConverter,
+    convert_directory_json_only,
+    convert_json_only,
+)
+from .json_to_toon import (
+    convert_directory as json_convert_directory,
+)
+from .json_to_toon import (
+    test_toon_conversion as test_json_toon_conversion,
+)
 from .orchestrator.ai_orchestrator import AIOrchestrator
 from .rag.rag_system import RAGSystem
-from .json_to_toon import JSONToTOONConverter, convert_directory_json_only, convert_json_only
-from .json_to_toon import convert_directory as json_convert_directory
-from .json_to_toon import test_toon_conversion as test_json_toon_conversion
-from .toon_adapter import YAMLToTOONConverter, test_toon_conversion
-from .toon_adapter import convert_directory as toon_convert_directory
+from .schemas.schema_manager import SchemaManager
+from .toon_adapter import (
+    YAMLToTOONConverter,
+    test_toon_conversion,
+)
+from .toon_adapter import (
+    convert_directory as toon_convert_directory,
+)
 from .toon_cli import ToonCliError
 
 # Configure logging
@@ -204,7 +217,7 @@ Supported input formats for json: JSON
     json_parser.add_argument("--no-toon", action="store_true", help="Only validate JSON files, don't convert to TOON")
 
     # GUI command
-    gui_parser = subparsers.add_parser("gui", help="Launch the graphical user interface")
+    subparsers.add_parser("gui", help="Launch the graphical user interface")
 
     # Schema commands
     schema_parser = subparsers.add_parser("schema", help="Manage modular schemas")
@@ -252,10 +265,10 @@ Supported input formats for json: JSON
     rag_query_parser.add_argument("--max-results", "-n", type=int, default=5, help="Maximum results")
 
     # RAG stats
-    rag_stats_parser = rag_subparsers.add_parser("stats", help="Show RAG system statistics")
+    rag_subparsers.add_parser("stats", help="Show RAG system statistics")
 
     # RAG clear
-    rag_clear_parser = rag_subparsers.add_parser("clear", help="Clear RAG index")
+    rag_subparsers.add_parser("clear", help="Clear RAG index")
 
     # Test command
     test_parser = subparsers.add_parser("test", help="Test TOON conversion with detailed output")

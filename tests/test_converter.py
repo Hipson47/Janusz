@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+
 from janusz.converter import UniversalToYAMLConverter
 
 
@@ -89,6 +90,8 @@ Content for section 2.
         converter.filename = "test"
         converter.file_path = Path("test.txt")
         converter.detect_file_type = lambda: "text"
+        converter.use_ai = False
+        converter.ai_analyzer = None
 
         structure = converter.parse_text_structure(test_text)
 

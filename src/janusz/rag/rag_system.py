@@ -7,13 +7,13 @@ using vector search and language model generation.
 """
 
 import logging
-from typing import List, Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from ..models import RAGQuery, RAGResponse, SearchResult, VectorDocument, DocumentStructure
-from .vector_store import VectorStoreFactory, VectorStoreBase
-from .embeddings import EmbeddingManager, EmbeddingConfig
 from ..ai.ai_content_analyzer import AIContentAnalyzer
+from ..models import DocumentStructure, RAGQuery, RAGResponse, SearchResult, VectorDocument
+from .embeddings import EmbeddingManager
+from .vector_store import VectorStoreBase, VectorStoreFactory
 
 logger = logging.getLogger(__name__)
 
@@ -309,21 +309,6 @@ class RAGSystem:
             context_parts.append(f"Document: {result.metadata.get('title', 'Unknown')}")
             context_parts.append(f"Content: {result.content}")
             context_parts.append("---")
-
-        context = "\n".join(context_parts)
-
-        # Create prompt for answer generation
-        prompt = f"""
-        Based on the following document excerpts, answer the question accurately.
-        If the documents don't contain enough information to answer fully, say so.
-
-        Question: {question}
-
-        Document Context:
-        {context}
-
-        Answer concisely but comprehensively. Include specific references to the documents when relevant.
-        """
 
         try:
             # Use AI analyzer to generate response

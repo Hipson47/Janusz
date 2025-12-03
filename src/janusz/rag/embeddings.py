@@ -8,8 +8,8 @@ with automatic fallback and chunking support.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -81,8 +81,8 @@ class OpenRouterEmbeddings(EmbeddingProvider):
                 },
                 timeout=30.0
             )
-        except ImportError:
-            raise ImportError("httpx required for OpenRouter embeddings")
+        except ImportError as err:
+            raise ImportError("httpx required for OpenRouter embeddings") from err
 
     def embed_text(self, text: str) -> List[float]:
         """Convert single text to embedding."""
@@ -158,8 +158,8 @@ class SentenceTransformerEmbeddings(EmbeddingProvider):
         """
         try:
             from sentence_transformers import SentenceTransformer
-        except ImportError:
-            raise ImportError("sentence-transformers required for local embeddings")
+        except ImportError as err:
+            raise ImportError("sentence-transformers required for local embeddings") from err
 
         self.model = SentenceTransformer(model_name)
         self._dimension = self.model.get_sentence_embedding_dimension()
@@ -389,4 +389,4 @@ class DummyEmbeddings(EmbeddingProvider):
 
 
 # Import here to avoid circular imports
-import os
+import os  # noqa: E402

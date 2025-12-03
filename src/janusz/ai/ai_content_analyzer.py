@@ -10,12 +10,16 @@ of insights, summaries, and quality assessments.
 import json
 import logging
 import time
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
+
 import httpx
 
 from ..models import (
-    AIInsight, AIExtractionResult, ExtractionItem,
-    DocumentStructure, Section
+    AIExtractionResult,
+    AIInsight,
+    DocumentStructure,
+    ExtractionItem,
+    Section,
 )
 
 logger = logging.getLogger(__name__)
@@ -351,4 +355,4 @@ class AIContentAnalyzer:
 
 
 # Import here to avoid circular imports
-import os
+import os  # noqa: E402

@@ -7,18 +7,19 @@ Provides an intuitive interface for converting documents to various formats with
 advanced AI features.
 """
 
-import os
-import sys
-from pathlib import Path
-from typing import List, Dict, Any
-import threading
-import queue
 import logging
+import os
+import queue
+import sys
+import threading
+from pathlib import Path
+from typing import Dict, List
 
 # Check for tkinter availability
 try:
     import tkinter as tk
-    from tkinter import ttk, filedialog, messagebox, scrolledtext
+    from tkinter import filedialog, messagebox, scrolledtext, ttk
+
     TKINTER_AVAILABLE = True
 except ImportError:
     TKINTER_AVAILABLE = False
@@ -32,9 +33,8 @@ except ImportError:
 current_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(current_dir))
 
-from janusz.converter import UniversalToYAMLConverter, process_directory
-from janusz.models import DocumentStructure
-from janusz.rag.rag_system import RAGSystem
+from janusz.converter import UniversalToYAMLConverter  # noqa: E402
+from janusz.rag.rag_system import RAGSystem  # noqa: E402
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -294,7 +294,7 @@ class JanuszGUI:
                 size = os.path.getsize(file_path)
                 size_str = f"{size} bytes" if size < 1024 else f"{size//1024} KB"
                 ttk.Label(self.scrollable_frame, text=size_str, foreground="gray").grid(row=i, column=1, sticky=tk.W)
-            except:
+            except Exception:
                 pass
 
         self.log_message("INFO", f"Znaleziono {len(available_files)} plików")
@@ -399,10 +399,11 @@ class JanuszGUI:
     def convert_yaml_to_json(self, yaml_path: Path):
         """Convert YAML to JSON format."""
         try:
-            import yaml
             import json
 
-            with open(yaml_path, 'r', encoding='utf-8') as f:
+            import yaml
+
+            with open(yaml_path, encoding='utf-8') as f:
                 data = yaml.safe_load(f)
 
             json_path = yaml_path.with_suffix(".json")
@@ -652,7 +653,9 @@ class JanuszGUI:
 
             # Statistics
             self.rag_results_text.insert(tk.END, "📊 Statystyki zapytania:\n", "title")
-            self.rag_results_text.insert(tk.END, ".1f"            self.rag_results_text.insert(tk.END, f"• Czas przetwarzania: {response.processing_time:.2f}s\n")
+            self.rag_results_text.insert(tk.END, f"• Ufność: {response.confidence_score:.1f}\n")
+            if response.processing_time:
+                self.rag_results_text.insert(tk.END, f"• Czas przetwarzania: {response.processing_time:.2f}s\n")
             self.rag_results_text.insert(tk.END, f"• Liczba źródeł: {len(response.sources)}\n\n")
 
             # Sources (if enabled)
@@ -730,7 +733,7 @@ class JanuszGUI:
             self.rag_results_text.insert(tk.END, "🤖 Odpowiedź:\n", "bold")
             self.rag_results_text.insert(tk.END, f"{response.answer}\n\n")
 
-            self.rag_results_text.insert(tk.END, f"📊 Statystyki:\n")
+            self.rag_results_text.insert(tk.END, "📊 Statystyki:\n")
             self.rag_results_text.insert(tk.END, f"• Poziom ufności: {response.confidence_score:.1%}\n")
             self.rag_results_text.insert(tk.END, f"• Czas przetwarzania: {response.processing_time:.2f}s\n")
             self.rag_results_text.insert(tk.END, f"• Liczba źródeł: {len(response.sources)}\n\n")
@@ -832,7 +835,7 @@ class JanuszGUI:
 def main():
     """Main entry point for the GUI application."""
     root = tk.Tk()
-    app = JanuszGUI(root)
+    JanuszGUI(root)
     root.mainloop()
 
 

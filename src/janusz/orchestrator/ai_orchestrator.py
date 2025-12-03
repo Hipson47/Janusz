@@ -7,15 +7,17 @@ including schema selection, AI model routing, and context-aware decision making.
 """
 
 import logging
-from typing import Dict, List, Optional, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
+from ..ai.ai_content_analyzer import AIContentAnalyzer
 from ..models import (
-    OrchestratorContext, OrchestratorResponse, DocumentStructure,
-    ModularSchema
+    DocumentStructure,
+    ModularSchema,
+    OrchestratorContext,
+    OrchestratorResponse,
 )
 from ..schemas.schema_manager import SchemaManager
-from ..ai.ai_content_analyzer import AIContentAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -493,4 +495,4 @@ class AIOrchestrator:
 
 
 # Import here to avoid circular imports
-import json
+import json  # noqa: E402

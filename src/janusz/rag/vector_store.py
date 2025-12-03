@@ -7,13 +7,12 @@ with automatic fallback and chunking support.
 """
 
 import logging
-import os
 import uuid
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
-from ..models import VectorDocument, SearchResult
+from ..models import VectorDocument
 
 logger = logging.getLogger(__name__)
 
@@ -70,11 +69,11 @@ class FAISSVectorStore(VectorStoreBase):
         """
         try:
             import faiss
-            import numpy as np
-        except ImportError:
-            raise VectorStoreError("FAISS not available. Install with: pip install faiss-cpu")
+        except ImportError as err:
+            raise VectorStoreError("FAISS not available. Install with: pip install faiss-cpu") from err
 
         self.dimension = dimension
+        self._faiss = faiss  # Store faiss reference
         self.index = faiss.IndexFlatIP(dimension)  # Inner product for cosine similarity
         self.doc_store: Dict[str, VectorDocument] = {}
         self.index_file = Path(index_file) if index_file else None
@@ -185,7 +184,7 @@ class FAISSVectorStore(VectorStoreBase):
     def _save_index(self):
         """Save FAISS index to file."""
         try:
-            faiss.write_index(self.index, str(self.index_file))
+            self._faiss.write_index(self.index, str(self.index_file))
             logger.info(f"Saved FAISS index to {self.index_file}")
         except Exception as e:
             logger.error(f"Failed to save FAISS index: {e}")
@@ -193,8 +192,7 @@ class FAISSVectorStore(VectorStoreBase):
     def _load_index(self):
         """Load FAISS index from file."""
         try:
-            import faiss
-            self.index = faiss.read_index(str(self.index_file))
+            self.index = self._faiss.read_index(str(self.index_file))
             logger.info(f"Loaded FAISS index from {self.index_file}")
         except Exception as e:
             logger.error(f"Failed to load FAISS index: {e}")
@@ -215,8 +213,8 @@ class ChromaDBVectorStore(VectorStoreBase):
         try:
             import chromadb
             from chromadb.config import Settings
-        except ImportError:
-            raise VectorStoreError("ChromaDB not available. Install with: pip install chromadb")
+        except ImportError as err:
+            raise VectorStoreError("ChromaDB not available. Install with: pip install chromadb") from err
 
         self.collection_name = collection_name
         self.persist_directory = persist_directory
@@ -368,17 +366,11 @@ class VectorStoreFactory:
     @staticmethod
     def _is_faiss_available() -> bool:
         """Check if FAISS is available."""
-        try:
-            import faiss
-            return True
-        except ImportError:
-            return False
+        import importlib.util
+        return importlib.util.find_spec("faiss") is not None
 
     @staticmethod
     def _is_chromadb_available() -> bool:
         """Check if ChromaDB is available."""
-        try:
-            import chromadb
-            return True
-        except ImportError:
-            return False
+        import importlib.util
+        return importlib.util.find_spec("chromadb") is not None
