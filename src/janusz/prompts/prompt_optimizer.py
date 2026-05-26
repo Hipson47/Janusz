@@ -8,7 +8,7 @@ to improve prompt quality, clarity, and effectiveness.
 
 import logging
 import time
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from ..ai.ai_content_analyzer import AIContentAnalyzer
 from ..models import (
@@ -41,6 +41,14 @@ class PromptOptimizer:
             "conciseness": self._optimize_for_conciseness,
             "comprehensiveness": self._optimize_for_comprehensiveness,
         }
+
+    def _chat_content(self, messages: List[Dict[str, str]], **kwargs: Any) -> str:
+        """Run the synchronous AI client and return message content."""
+        response = self.ai_analyzer.client.chat_completion(messages=messages, **kwargs)
+        try:
+            return str(response["choices"][0]["message"]["content"])
+        except (KeyError, IndexError, TypeError):
+            return str(response)
 
     async def optimize_prompt(self, request: PromptOptimizationRequest) -> OptimizationResult:
         """
@@ -101,7 +109,9 @@ class PromptOptimizer:
             suggestions=suggestions,
         )
 
-    async def _optimize_for_clarity(self, request: PromptOptimizationRequest, steps: List[str]) -> str:
+    async def _optimize_for_clarity(
+        self, request: PromptOptimizationRequest, steps: List[str]
+    ) -> str:
         """Optimize prompt for clarity and understandability."""
         steps.append("Analyzing prompt clarity and structure")
 
@@ -128,13 +138,16 @@ class PromptOptimizer:
         Explain your changes briefly, then provide the optimized prompt.
         """
 
-        response = await self.ai_analyzer.client.chat_completion(
+        response = self._chat_content(
             messages=[
-                {"role": "system", "content": "You are an expert prompt engineer specializing in clarity optimization."},
-                {"role": "user", "content": optimization_prompt}
+                {
+                    "role": "system",
+                    "content": "You are an expert prompt engineer specializing in clarity optimization.",
+                },
+                {"role": "user", "content": optimization_prompt},
             ],
             temperature=0.3,
-            max_tokens=2048
+            max_tokens=2048,
         )
 
         if response:
@@ -145,7 +158,9 @@ class PromptOptimizer:
 
         return request.text  # Fallback
 
-    async def _optimize_for_efficiency(self, request: PromptOptimizationRequest, steps: List[str]) -> str:
+    async def _optimize_for_efficiency(
+        self, request: PromptOptimizationRequest, steps: List[str]
+    ) -> str:
         """Optimize prompt for token efficiency and conciseness."""
         steps.append("Analyzing prompt for token efficiency")
 
@@ -167,13 +182,16 @@ class PromptOptimizer:
         Show both the optimized prompt and the estimated token savings.
         """
 
-        response = await self.ai_analyzer.client.chat_completion(
+        response = self._chat_content(
             messages=[
-                {"role": "system", "content": "You are an expert at optimizing prompts for token efficiency."},
-                {"role": "user", "content": optimization_prompt}
+                {
+                    "role": "system",
+                    "content": "You are an expert at optimizing prompts for token efficiency.",
+                },
+                {"role": "user", "content": optimization_prompt},
             ],
             temperature=0.2,
-            max_tokens=1024
+            max_tokens=1024,
         )
 
         if response:
@@ -183,7 +201,9 @@ class PromptOptimizer:
 
         return request.text
 
-    async def _optimize_for_specificity(self, request: PromptOptimizationRequest, steps: List[str]) -> str:
+    async def _optimize_for_specificity(
+        self, request: PromptOptimizationRequest, steps: List[str]
+    ) -> str:
         """Optimize prompt for specificity and precision."""
         steps.append("Enhancing prompt specificity and precision")
 
@@ -206,13 +226,16 @@ class PromptOptimizer:
         Provide an optimized version with much more specific instructions and requirements.
         """
 
-        response = await self.ai_analyzer.client.chat_completion(
+        response = self._chat_content(
             messages=[
-                {"role": "system", "content": "You are an expert at making prompts highly specific and actionable."},
-                {"role": "user", "content": optimization_prompt}
+                {
+                    "role": "system",
+                    "content": "You are an expert at making prompts highly specific and actionable.",
+                },
+                {"role": "user", "content": optimization_prompt},
             ],
             temperature=0.3,
-            max_tokens=1536
+            max_tokens=1536,
         )
 
         if response:
@@ -222,7 +245,9 @@ class PromptOptimizer:
 
         return request.text
 
-    async def _optimize_for_creativity(self, request: PromptOptimizationRequest, steps: List[str]) -> str:
+    async def _optimize_for_creativity(
+        self, request: PromptOptimizationRequest, steps: List[str]
+    ) -> str:
         """Optimize prompt to encourage creative outputs."""
         steps.append("Enhancing prompt for creative thinking")
 
@@ -243,13 +268,16 @@ class PromptOptimizer:
         Provide an optimized version that stimulates creative thinking and novel solutions.
         """
 
-        response = await self.ai_analyzer.client.chat_completion(
+        response = self._chat_content(
             messages=[
-                {"role": "system", "content": "You are an expert at crafting prompts that unleash creativity."},
-                {"role": "user", "content": optimization_prompt}
+                {
+                    "role": "system",
+                    "content": "You are an expert at crafting prompts that unleash creativity.",
+                },
+                {"role": "user", "content": optimization_prompt},
             ],
             temperature=0.7,
-            max_tokens=1536
+            max_tokens=1536,
         )
 
         if response:
@@ -259,7 +287,9 @@ class PromptOptimizer:
 
         return request.text
 
-    async def _optimize_for_conciseness(self, request: PromptOptimizationRequest, steps: List[str]) -> str:
+    async def _optimize_for_conciseness(
+        self, request: PromptOptimizationRequest, steps: List[str]
+    ) -> str:
         """Optimize prompt for maximum conciseness."""
         steps.append("Making prompt more concise")
 
@@ -280,13 +310,16 @@ class PromptOptimizer:
         Provide a much more concise version that achieves the same results.
         """
 
-        response = await self.ai_analyzer.client.chat_completion(
+        response = self._chat_content(
             messages=[
-                {"role": "system", "content": "You are an expert at making prompts concise and to-the-point."},
-                {"role": "user", "content": optimization_prompt}
+                {
+                    "role": "system",
+                    "content": "You are an expert at making prompts concise and to-the-point.",
+                },
+                {"role": "user", "content": optimization_prompt},
             ],
             temperature=0.2,
-            max_tokens=1024
+            max_tokens=1024,
         )
 
         if response:
@@ -296,7 +329,9 @@ class PromptOptimizer:
 
         return request.text
 
-    async def _optimize_for_comprehensiveness(self, request: PromptOptimizationRequest, steps: List[str]) -> str:
+    async def _optimize_for_comprehensiveness(
+        self, request: PromptOptimizationRequest, steps: List[str]
+    ) -> str:
         """Optimize prompt for comprehensive coverage."""
         steps.append("Making prompt more comprehensive")
 
@@ -319,13 +354,16 @@ class PromptOptimizer:
         Provide an optimized version that covers all important aspects comprehensively.
         """
 
-        response = await self.ai_analyzer.client.chat_completion(
+        response = self._chat_content(
             messages=[
-                {"role": "system", "content": "You are an expert at making prompts comprehensive and thorough."},
-                {"role": "user", "content": optimization_prompt}
+                {
+                    "role": "system",
+                    "content": "You are an expert at making prompts comprehensive and thorough.",
+                },
+                {"role": "user", "content": optimization_prompt},
             ],
             temperature=0.3,
-            max_tokens=2048
+            max_tokens=2048,
         )
 
         if response:
@@ -335,7 +373,9 @@ class PromptOptimizer:
 
         return request.text
 
-    async def _test_prompt_quality(self, prompt: str, test_cases: List[Dict[str, str]], label: str) -> List[TestResult]:
+    async def _test_prompt_quality(
+        self, prompt: str, test_cases: List[Dict[str, str]], label: str
+    ) -> List[TestResult]:
         """Test prompt quality against provided test cases."""
         results = []
 
@@ -350,12 +390,10 @@ class PromptOptimizer:
             """
 
             try:
-                response = await self.ai_analyzer.client.chat_completion(
-                    messages=[
-                        {"role": "user", "content": test_prompt}
-                    ],
+                response = self._chat_content(
+                    messages=[{"role": "user", "content": test_prompt}],
                     temperature=0.5,
-                    max_tokens=512
+                    max_tokens=512,
                 )
 
                 execution_time = time.time() - start_time
@@ -363,45 +401,53 @@ class PromptOptimizer:
                 if response:
                     # Simple quality scoring based on response characteristics
                     quality_score = self._calculate_quality_score(
-                        response, test_case.get('expected', '')
+                        response, test_case.get("expected", "")
                     )
 
-                    results.append(TestResult(
-                        prompt_id=f"{label}_test_{i}",
-                        test_input=test_case.get('input', ''),
-                        expected_output=test_case.get('expected', ''),
-                        actual_output=response,
-                        execution_time=execution_time,
-                        token_usage=len(response.split()) * 1.3,  # Rough estimate
-                        quality_score=quality_score,
-                        metrics={"response_length": len(response)}
-                    ))
+                    results.append(
+                        TestResult(
+                            prompt_id=f"{label}_test_{i}",
+                            test_input=test_case.get("input", ""),
+                            expected_output=test_case.get("expected", ""),
+                            actual_output=response,
+                            execution_time=execution_time,
+                            token_usage=int(len(response.split()) * 1.3),  # Rough estimate
+                            quality_score=quality_score,
+                            metrics={"response_length": len(response)},
+                        )
+                    )
                 else:
-                    results.append(TestResult(
-                        prompt_id=f"{label}_test_{i}",
-                        test_input=test_case.get('input', ''),
-                        expected_output=test_case.get('expected', ''),
-                        actual_output="No response generated",
-                        execution_time=time.time() - start_time,
-                        token_usage=0,
-                        quality_score=0.0,
-                    ))
+                    results.append(
+                        TestResult(
+                            prompt_id=f"{label}_test_{i}",
+                            test_input=test_case.get("input", ""),
+                            expected_output=test_case.get("expected", ""),
+                            actual_output="No response generated",
+                            execution_time=time.time() - start_time,
+                            token_usage=0,
+                            quality_score=0.0,
+                        )
+                    )
 
             except Exception as e:
                 logger.error(f"Error testing prompt: {e}")
-                results.append(TestResult(
-                    prompt_id=f"{label}_test_{i}",
-                    test_input=test_case.get('input', ''),
-                    expected_output=test_case.get('expected', ''),
-                    actual_output=f"Error: {str(e)}",
-                    execution_time=time.time() - start_time,
-                    token_usage=0,
-                    quality_score=0.0,
-                ))
+                results.append(
+                    TestResult(
+                        prompt_id=f"{label}_test_{i}",
+                        test_input=test_case.get("input", ""),
+                        expected_output=test_case.get("expected", ""),
+                        actual_output=f"Error: {str(e)}",
+                        execution_time=time.time() - start_time,
+                        token_usage=0,
+                        quality_score=0.0,
+                    )
+                )
 
         return results
 
-    def _calculate_improvement_score(self, before_results: List[TestResult], after_results: List[TestResult]) -> float:
+    def _calculate_improvement_score(
+        self, before_results: List[TestResult], after_results: List[TestResult]
+    ) -> float:
         """Calculate improvement score between before and after optimization."""
         if not before_results or not after_results or len(before_results) != len(after_results):
             return 0.0
@@ -435,7 +481,7 @@ class PromptOptimizer:
                 score += 0.3 * min(1.0, overlap / len(expected_words))
 
         # Coherence (basic check)
-        if len(response.split('.')) > 2:  # Has multiple sentences
+        if len(response.split(".")) > 2:  # Has multiple sentences
             score += 0.1
 
         return min(1.0, score)
@@ -443,7 +489,7 @@ class PromptOptimizer:
     def _extract_optimized_prompt_from_response(self, response: str) -> str:
         """Extract the optimized prompt from AI response."""
         # Look for common patterns in the response
-        lines = response.split('\n')
+        lines = response.split("\n")
         optimized_lines = []
 
         in_optimized_section = False
@@ -453,34 +499,39 @@ class PromptOptimizer:
                 continue
 
             # Look for section markers
-            if any(marker in line.lower() for marker in ['optimized prompt', 'improved prompt', 'optimized version']):
+            if any(
+                marker in line.lower()
+                for marker in ["optimized prompt", "improved prompt", "optimized version"]
+            ):
                 in_optimized_section = True
                 continue
 
             if in_optimized_section:
                 # Stop if we hit another section
-                if any(marker in line.lower() for marker in ['explanation', 'changes', 'analysis', '---', '===']):
+                if any(
+                    marker in line.lower()
+                    for marker in ["explanation", "changes", "analysis", "---", "==="]
+                ):
                     break
                 optimized_lines.append(line)
 
         # If we found optimized lines, join them
         if optimized_lines:
-            return '\n'.join(optimized_lines)
+            return "\n".join(optimized_lines)
 
         # Fallback: try to extract content between code blocks or quotes
-        if '```' in response:
-            parts = response.split('```')
+        if "```" in response:
+            parts = response.split("```")
             if len(parts) >= 3:
                 return parts[1].strip()
 
         # Last resort: return the whole response
         return response.strip()
 
-    async def _generate_improvement_suggestions(self, original: str, optimized: str, goal: str) -> List[str]:
+    async def _generate_improvement_suggestions(
+        self, original: str, optimized: str, goal: str
+    ) -> List[str]:
         """Generate suggestions for further improvement."""
-        if not self.ai_analyzer.client.is_available:
-            return ["Consider adding more specific examples", "Test the prompt with different inputs"]
-
         suggestion_prompt = f"""
         Compare the original and optimized prompts and suggest further improvements.
 
@@ -494,19 +545,22 @@ class PromptOptimizer:
         """
 
         try:
-            response = await self.ai_analyzer.client.chat_completion(
+            response = self._chat_content(
                 messages=[
                     {"role": "system", "content": "You are an expert prompt engineer."},
-                    {"role": "user", "content": suggestion_prompt}
+                    {"role": "user", "content": suggestion_prompt},
                 ],
                 temperature=0.4,
-                max_tokens=512
+                max_tokens=512,
             )
 
             if response:
                 # Split into bullet points
-                suggestions = [line.strip('- •').strip() for line in response.split('\n')
-                             if line.strip().startswith(('- ', '• ', '* '))]
+                suggestions = [
+                    line.strip("- •").strip()
+                    for line in response.split("\n")
+                    if line.strip().startswith(("- ", "• ", "* "))
+                ]
                 return suggestions[:5] if suggestions else [response[:200]]
 
         except Exception as e:

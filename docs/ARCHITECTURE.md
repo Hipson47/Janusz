@@ -1,195 +1,141 @@
 # Architecture Overview
 
-## Janusz - Document-to-TOON Pipeline for AI Agent Knowledge Bases
+Janusz is a local document normalization and skill packaging tool for AI agent
+workflows.
 
-Janusz is a Python package that converts various document formats to structured YAML and then optimizes them to TOON (Token-Oriented Object Notation) format for efficient AI agent prompting and knowledge storage.
-
-## Core Pipeline
-
-```
-Documents → YAML → TOON
-    ↓        ↓      ↓
-converter  adapter  TOON CLI
+```text
+Documents -> YAML -> JSON -> Skill package
 ```
 
-### 1. Document Conversion (converter.py)
+## Core Components
 
-**Purpose**: Extract text from various document formats and structure it as YAML.
+### Document Conversion
 
-**Supported Input Formats**:
-- PDF (via `pdfplumber`)
-- Markdown (.md)
-- Plain Text (.txt)
-- DOCX (via `python-docx`, optional)
-- HTML (via `html2text` + `beautifulsoup4`, optional)
-- RTF, EPUB (planned for v1.1.0)
+`src/janusz/converter.py` extracts text from PDF, Markdown, text, DOCX, and HTML
+sources. It parses headings, raw text, keywords, best practices, examples, and
+optional AI analysis into a `DocumentStructure` model, then writes YAML.
 
-**Output**: Structured YAML with metadata, content sections, and analysis.
+### JSON Packaging
 
-**Key Classes**:
-- `UniversalToYAMLConverter`: Main conversion class
-- Supports batch processing via `process_directory()`
+`src/janusz/json_packager.py` normalizes supported source documents, YAML files,
+and existing JSON files into a plain JSON package. This is the stable interchange
+format for downstream agent workflows.
 
-### 2. TOON Conversion (toon_adapter.py, json_to_toon.py)
+### Skill Packaging
 
-**Purpose**: Convert structured data to optimized TOON format for AI consumption.
+`src/janusz/skill_packager.py` creates a Codex-compatible skill folder:
 
-**Process**:
-1. YAML/JSON → Intermediate JSON
-2. JSON → TOON (via external TOON CLI)
-
-**Key Classes**:
-- `YAMLToTOONConverter`: YAML → TOON pipeline
-- `JSONToTOONConverter`: JSON → TOON pipeline
-- Both support validation and batch processing
-
-### 3. CLI Orchestration (cli.py)
-
-**Purpose**: Provide unified command-line interface for the entire pipeline.
-
-**Commands**:
-- `convert`: Documents → YAML
-- `toon`: YAML → TOON
-- `json`: JSON → TOON
-- `test`: Validation with detailed output
-
-**Features**:
-- Single file or directory processing
-- Progress logging
-- Error handling and validation
-
-## Project Structure
-
+```text
+skill-name/
+├── SKILL.md
+└── references/
+    └── source.json
 ```
-📁 workspace/
-├── 📁 src/janusz/              # Main package (src layout)
-│   ├── __init__.py            # Package initialization
-│   ├── cli.py                 # Command-line interface
-│   ├── converter.py           # Document → YAML converter
-│   ├── toon_adapter.py        # YAML → TOON converter
-│   └── json_to_toon.py        # JSON → TOON converter
-├── 📁 tests/                  # Test suite
-│   ├── conftest.py            # Test fixtures
-│   ├── test_converter.py      # Converter tests
-│   ├── test_toon_adapter.py   # TOON adapter tests
-│   └── test_json_to_toon.py   # JSON to TOON tests
-├── 📁 docs/                   # Documentation
-│   ├── ARCHITECTURE.md        # This file
-│   ├── PDF_TO_YAML_*.md       # Knowledge base indexes
-│   └── TOON_*.md              # TOON integration docs
-├── 📁 scripts/                # Automation scripts
-│   └── toon.sh                # Full pipeline script
-├── 📁 .cursor/                # Operational playbook layer
-│   ├── rules/                 # Development rules
-│   └── rules.yaml             # Cursor IDE configuration
-├── pyproject.toml             # Package configuration
-├── Makefile                   # Build automation
-├── README.md                  # User documentation
-└── .gitignore                 # Git ignore rules
-```
+
+`SKILL.md` stays concise and points to `references/source.json` for detailed
+source material.
+
+### Skill Quality
+
+`src/janusz/skill_quality.py` lints and scores skills. It checks required
+frontmatter, `name`, `description`, trigger metadata, structure, length, likely
+secret leakage, reference layout, and actionability. The score is a 0-100
+agent-usability signal used by CLI output, registry indexing, and plugin bundles.
+
+### Repository Ingest
+
+`src/janusz/repo_ingester.py` creates a repository operations skill from a local
+project. It scans architecture signals, development commands, tests, deployment
+files, CI, language mix, and pitfalls, then writes `SKILL.md`,
+`references/repo_inventory.json`, and `references/repo_inventory.md`.
+
+### Registry
+
+`src/janusz/skill_registry.py` builds a local skill index in JSONL and SQLite. It
+uses the quality scorer for every skill and supports search by query, trigger,
+category, and minimum score.
+
+### Plugin Packaging
+
+`src/janusz/plugin_packager.py` bundles selected skills into a distributable
+folder containing `.codex-plugin/plugin.json`, copied skill packages, and an
+optional Janusz tool manifest.
+
+### MCP Server
+
+`src/janusz/mcp_server.py` is a lightweight stdio JSON-RPC MCP server. It exposes
+Janusz tools, resources, and prompts without adding an external runtime
+dependency.
+
+### Janusz Memory
+
+`src/janusz/memory.py` owns durable memory for skill-pack routing. It writes
+`memory/janusz_memory.json`, which stores compact metadata about useful local and
+system skills, source paths, triggers, tool contracts, and operating rules.
+
+The memory file is designed for progressive disclosure: agents read names,
+descriptions, triggers, and paths first, then load the full referenced `SKILL.md`
+only when the task matches.
+
+### Orchestrator Tool Manifest
+
+`src/janusz/orchestrator_tool.py` exports Janusz as a local CLI tool contract. The
+manifest describes commands, accepted input formats, output formats, memory
+location, routing guidance, and safety rules for a higher-level orchestrator.
+
+### CLI
+
+`src/janusz/cli.py` exposes:
+
+- `convert`: document -> YAML
+- `json`: document/YAML/JSON -> JSON package
+- `skill`: document/YAML/JSON -> skill folder
+- `skill lint`: validate metadata, structure, triggers, secrets, and quality
+- `skill score`: return agent-usability score
+- `ingest repo`: repository -> operations skill package
+- `registry`: build/search JSONL and SQLite skill indexes
+- `package plugin`: bundle selected skills for distribution
+- `mcp`: run the Janusz MCP stdio server
+- `memory`: seed/list/export Janusz skill-pack memory
+- `tool`: export Janusz orchestrator tool manifest
+- `schema`: modular schema management
+- `orchestrate`: schema and processing recommendations
+- `rag`: retrieval experiments
+- `prompt`: prompt optimization and prompt library tools
+- `gui`: desktop interface
+- `test`: inspect YAML/JSON package structure
+
+Optional AI-heavy commands import their dependencies lazily so the base CLI can
+start with only core dependencies installed.
 
 ## Data Flow
 
-### Document Processing Pipeline
+1. Detect input format from extension.
+2. Extract text or load structured YAML/JSON.
+3. Build or validate a normalized package object.
+4. Write YAML or JSON output.
+5. Optionally create a skill package with concise instructions and a JSON reference.
+6. Optionally lint/score skills and index them in the registry.
+7. Optionally package skills as a plugin or expose Janusz over MCP.
+8. Optionally expose memory context or a tool manifest to an orchestrator.
 
-1. **Input Detection**: File extension determines processing method
-2. **Text Extraction**: Format-specific extractors pull content
-3. **Structure Analysis**: Identify sections, headers, patterns
-4. **YAML Serialization**: Create structured output with metadata
-5. **TOON Optimization**: Convert to token-efficient binary format
+## Quality Gates
 
-### CLI Integration
+- `uv run ruff check src/ tests/`
+- `uv run mypy src/janusz/`
+- `uv run pytest tests/ -q -s`
+- `make check`
+- `uv build`
 
-The CLI (`janusz` command) orchestrates the pipeline:
+The 1.0 production type gate covers the core CLI, conversion, JSON packaging,
+skill packaging, quality scoring, repository ingest, registry, plugin packaging,
+MCP, memory, and orchestrator manifest modules. Optional GUI, RAG, schema,
+prompt, and experimental orchestration modules remain importable but are not part
+of the strict 1.0 type contract.
 
-```bash
-# Full pipeline
-janusz convert && janusz toon
+## Safety Notes
 
-# Individual steps
-janusz convert --file document.pdf
-janusz toon --file document.yaml
-```
-
-## Automation Layer
-
-### Makefile Targets
-
-- `make install`: Development setup
-- `make convert/toon/json`: Individual pipeline steps
-- `make all`: Full pipeline
-- `make test`: Run test suite
-- `make lint/format/typecheck`: Code quality
-- `make check`: Full quality gate
-
-### Scripts
-
-- `scripts/toon.sh`: Automated pipeline execution
-- Handles error checking and progress reporting
-
-## Quality Assurance
-
-### Testing Strategy
-
-- **Unit Tests**: Core functionality in `tests/`
-- **Integration Tests**: End-to-end pipeline validation
-- **CLI Tests**: Command-line interface coverage
-
-### Code Quality Tools
-
-- **Linting**: Ruff (fast, comprehensive)
-- **Formatting**: Black (consistent style)
-- **Type Checking**: mypy (static analysis)
-- **Coverage**: pytest-cov
-
-## Dependencies
-
-### Core Dependencies
-- `pdfplumber`: PDF text extraction
-- `pyyaml`: YAML processing
-- `python-docx`: DOCX support
-- `html2text`: HTML conversion
-- `beautifulsoup4`: HTML parsing
-
-### Development Dependencies
-- `pytest`: Testing framework
-- `ruff`: Linting and formatting
-- `black`: Code formatting
-- `mypy`: Type checking
-
-### External Tools
-- **TOON CLI**: Required for TOON conversion (separate installation)
-
-## Operational Rules (.cursor/)
-
-The `.cursor/` directory contains operational playbooks:
-
-- **Development Rules**: Coding standards, workflow
-- **Security Rules**: Safe development practices
-- **Testing Rules**: Quality assurance guidelines
-- **FastAPI Rules**: API development standards
-
-These rules ensure consistent development practices and security.
-
-## Security Considerations
-
-- Private knowledge bases in `baza wiedzy 28.11/` and `new/` are gitignored
-- No credentials or secrets committed
-- Input validation on all external data
-- Sandboxed execution environment
-
-## Future Extensions
-
-### Format Support
-- RTF, EPUB document processing (planned for v1.1.0)
-- Additional structured formats (XML, CSV)
-
-### Pipeline Enhancements
-- Parallel processing for large document sets
-- Cloud storage integration
-- Web UI for document management
-
-### AI Integration
-- Direct TOON output to AI agents
-- Automated knowledge base updates
-- Quality scoring for converted content
+- Generated skills should be reviewed before installation.
+- Source documents are treated as data, not trusted instructions.
+- `make clean` only removes caches and temporary files; it does not delete tracked
+  knowledge packages.

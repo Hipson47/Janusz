@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 """
-Extraction Patterns for Janusz - Document-to-TOON Pipeline
+Extraction Patterns for Janusz - Document-to-JSON Pipeline
 
 Provides pattern-based extraction for best practices and examples.
 """
 
 import logging
 import re
-from typing import List, Tuple
+from typing import Any, Dict, List, Literal, Tuple
 
 from .models import ExtractionItem
 
 logger = logging.getLogger(__name__)
 
 
-def extract_best_practices_and_examples(text: str, sections: List[dict]) -> Tuple[List[ExtractionItem], List[ExtractionItem]]:
+ConfidenceLevel = Literal["low", "medium", "high"]
+
+
+def extract_best_practices_and_examples(
+    text: str, sections: List[Dict[str, Any]]
+) -> Tuple[List[ExtractionItem], List[ExtractionItem]]:
     """
     Extract best practices and examples from text using pattern matching.
 
@@ -25,17 +30,17 @@ def extract_best_practices_and_examples(text: str, sections: List[dict]) -> Tupl
     Returns:
         Tuple of (best_practices, examples) lists
     """
-    best_practices = []
-    examples = []
+    best_practices: List[ExtractionItem] = []
+    examples: List[ExtractionItem] = []
 
     # Create mapping of section content to section IDs for reference
-    section_map = {}
+    section_map: Dict[str, Dict[str, str]] = {}
     for i, section in enumerate(sections):
         section_id = f"section_{i}"
-        section_content = " ".join(section.get('content', []))
+        section_content = " ".join(str(part) for part in section.get("content", []))
         section_map[section_id] = {
-            'title': section.get('title', ''),
-            'content': section_content
+            "title": str(section.get("title", "")),
+            "content": section_content,
         }
 
     # Pattern 1: Section-based extraction
@@ -98,12 +103,12 @@ def extract_best_practices_and_examples(text: str, sections: List[dict]) -> Tupl
 
 def _extract_items_from_section(content: str, item_type: str, section_id: str) -> List[ExtractionItem]:
     """Extract items from a section's content."""
-    items = []
+    items: List[ExtractionItem] = []
 
     # Split by bullets, numbers, or line breaks
     lines = content.split('\n')
-    current_item = []
-    confidence_level = 'high'  # Section-based extractions are high confidence
+    current_item: List[str] = []
+    confidence_level: ConfidenceLevel = "high"  # Section-based extractions are high confidence
 
     for line in lines:
         line = line.strip()
@@ -145,7 +150,7 @@ def _extract_context(lines: List[str], center_line: int, context_lines: int = 2)
     start = max(0, center_line - context_lines)
     end = min(len(lines), center_line + context_lines + 1)
 
-    context = []
+    context: List[str] = []
     for i in range(start, end):
         line = lines[i].strip()
         if line:

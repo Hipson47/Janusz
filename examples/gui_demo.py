@@ -166,7 +166,7 @@ def demo_gui_features():
 
     print("\n🎯 GUI Features:")
     print("  • File selection from knowledge base")
-    print("  • Format conversion (YAML/JSON/TOON)")
+    print("  • Format conversion (YAML/JSON/Skill)")
     print("  • AI-powered analysis")
     print("  • Progress tracking")
     print("  • Batch processing")

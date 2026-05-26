@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Data Models for Janusz - Document-to-TOON Pipeline
+Data Models for Janusz - Document-to-JSON Pipeline
 
 This module defines Pydantic models for structured data validation.
 """
@@ -16,10 +16,10 @@ class Metadata(BaseModel):
     title: str
     source: str
     source_type: str
-    converted_by: str = "Janusz v1.1.0"
-    format_version: str = "1.1.0"
+    converted_by: str = "Janusz v1.0.0"
+    format_version: str = "1.0.0"
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
-    parser_version: str = "1.1.0"
+    parser_version: str = "1.0.0"
 
     # AI processing metadata (optional)
     ai_processing_enabled: bool = False

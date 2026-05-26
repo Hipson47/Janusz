@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-NLP Utilities for Janusz - Document-to-TOON Pipeline
+NLP Utilities for Janusz - Document-to-JSON Pipeline
 
 Provides NLP-based keyword extraction with graceful fallback to heuristics.
 """
@@ -34,38 +34,34 @@ def extract_keywords_nlp(text: str) -> List[Keyword]:
     keywords = []
 
     try:
-        # Try spaCy first
         import spacy
+    except ImportError:
+        logger.warning("spaCy not available, falling back to NLTK")
+    else:
         try:
             nlp = spacy.load("en_core_web_sm")
         except OSError:
-            # Try to download the model
-            logger.info("Downloading spaCy language model...")
-            import subprocess
-            subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"],
-                         check=True, capture_output=True)
-            nlp = spacy.load("en_core_web_sm")
+            logger.warning("spaCy model en_core_web_sm not installed, falling back to NLTK")
+        else:
+            doc = nlp(text)
 
-        doc = nlp(text)
+            # Extract noun phrases and important nouns
+            for chunk in doc.noun_chunks:
+                if len(chunk.text.strip()) > 3 and chunk.text.lower().strip() not in STOPWORDS:
+                    keywords.append(Keyword(
+                        text=chunk.text.strip(),
+                        confidence_level="high"
+                    ))
 
-        # Extract noun phrases and important nouns
-        for chunk in doc.noun_chunks:
-            if len(chunk.text.strip()) > 3 and chunk.text.lower().strip() not in STOPWORDS:
-                keywords.append(Keyword(
-                    text=chunk.text.strip(),
-                    confidence_level="high"
-                ))
+            # Extract named entities
+            for ent in doc.ents:
+                if ent.label_ in ['ORG', 'PRODUCT', 'GPE', 'PERSON', 'WORK_OF_ART']:
+                    keywords.append(Keyword(
+                        text=ent.text.strip(),
+                        confidence_level="high"
+                    ))
 
-        # Extract named entities
-        for ent in doc.ents:
-            if ent.label_ in ['ORG', 'PRODUCT', 'GPE', 'PERSON', 'WORK_OF_ART']:
-                keywords.append(Keyword(
-                    text=ent.text.strip(),
-                    confidence_level="high"
-                ))
-
-    except ImportError:
-        logger.warning("spaCy not available, falling back to NLTK")
+    if not keywords:
         try:
             # Fallback to NLTK
             import nltk

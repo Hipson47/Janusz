@@ -1,22 +1,20 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "janusz"
 version = "1.0.0"
-description = "Document-to-TOON pipeline for AI agent knowledge bases"
+description = "Document-to-JSON and skill packaging pipeline for AI agent knowledge bases"
 readme = "README.md"
-license = {file = "LICENSE"}
-requires-python = ">=3.8"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -24,9 +22,13 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-    "pdfplumber>=0.9.0",
+    "pdfplumber>=0.11.9",
+    "pdfminer-six>=20251230",
+    "pillow>=12.2.0",
+    "cryptography>=46.0.7",
     "pyyaml>=6.0",
     "python-docx>=1.0.0",
+    "lxml>=6.1.0",
     "html2text>=2020.1.16",
     "beautifulsoup4>=4.12.0",
     "pydantic>=2.0.0",
@@ -34,15 +36,23 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0.0",
+    "httpx>=0.25.0",
+    "pip>=26.1.1",
+    "pytest>=9.0.3",
     "pytest-cov>=4.0.0",
     "ruff>=0.1.0",
-    "black>=23.0.0",
+    "black>=26.3.1",
     "mypy>=1.0.0",
-    "pip-audit>=2.0.0",
+    "pip-audit>=2.10.0",
     "pre-commit>=3.0.0",
     "bandit>=1.7.0",
     "codecov>=2.1.0",
+    "filelock>=3.20.3",
+    "idna>=3.15",
+    "pygments>=2.20.0",
+    "requests>=2.33.0",
+    "urllib3>=2.7.0",
+    "virtualenv>=20.36.1",
 ]
 ai = [
     "httpx>=0.25.0",
@@ -51,6 +61,11 @@ rag = [
     "faiss-cpu>=1.7.0",
     "chromadb>=0.4.0",
     "sentence-transformers>=2.2.0",
+    "filelock>=3.20.3",
+    "idna>=3.15",
+    "kubernetes>=36.0.0",
+    "requests>=2.33.0",
+    "urllib3>=2.7.0",
 ]
 prompts = [
     "numpy>=1.21.0",
@@ -64,12 +79,15 @@ gui = [
 nlp = [
     "spacy>=3.0.0",
     "nltk>=3.8.0",
+    "idna>=3.15",
+    "requests>=2.33.0",
+    "urllib3>=2.7.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-username/janusz"
-Repository = "https://github.com/your-username/janusz"
-Issues = "https://github.com/your-username/janusz/issues"
+Homepage = "https://github.com/Hipson47/Janusz"
+Repository = "https://github.com/Hipson47/Janusz"
+Issues = "https://github.com/Hipson47/Janusz/issues"
 
 [project.scripts]
 janusz = "janusz.cli:main"
@@ -114,7 +132,7 @@ line-length = 100
 target-version = ['py38']
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
@@ -146,9 +164,28 @@ module = [
     "nltk.*",
     "spacy.*",
     "PIL.*",
-    "fitz.*"
+    "fitz.*",
+    "faiss",
+    "numpy",
+    "chromadb",
+    "chromadb.*",
+    "sentence_transformers",
+    "pyperclip"
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Production 1.0 focuses strict typing on the core CLI, packaging, memory,
+# registry, plugin, and MCP surface. Legacy optional modules remain available
+# but are not part of the 1.0 type gate until they are separately hardened.
+module = [
+    "janusz.gui.*",
+    "janusz.orchestrator.*",
+    "janusz.prompts.*",
+    "janusz.rag.*",
+    "janusz.schemas.*"
+]
+ignore_errors = true
 
 [[tool.mypy.overrides]]
 # Generated code and build artifacts
@@ -180,5 +217,7 @@ skips = ["B101", "B601"]  # Skip assert checks and shell usage in subprocess
 
 [dependency-groups]
 dev = [
+    "httpx>=0.25.0",
+    "pip>=26.1.1",
     "pip-audit>=2.7.3",
 ]

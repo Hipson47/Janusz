@@ -1,5 +1,5 @@
 """
-Edge Case Tests for Janusz - Document-to-TOON Pipeline
+Edge Case Tests for Janusz - Document-to-JSON Pipeline
 
 Tests for edge cases and error conditions.
 """

@@ -9,7 +9,7 @@ and converts them to structured YAML format for use with AI agents and orchestra
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pdfplumber
 import yaml
@@ -19,12 +19,14 @@ from .models import DocumentStructure
 from .nlp_utils import extract_keywords
 
 # Optional AI import
+AIContentAnalyzer: Any = None
 try:
-    from .ai.ai_content_analyzer import AIContentAnalyzer
+    from .ai.ai_content_analyzer import AIContentAnalyzer as _AIContentAnalyzer
+
+    AIContentAnalyzer = _AIContentAnalyzer
     AI_AVAILABLE = True
 except ImportError:
     AI_AVAILABLE = False
-    AIContentAnalyzer = None
 
 try:
     from docx import Document as DocxDocument
@@ -45,13 +47,16 @@ class UniversalToYAMLConverter:
 
     SUPPORTED_EXTENSIONS = {".pdf", ".md", ".txt", ".docx", ".html"}
 
-    def __init__(self, file_path: str, use_ai: bool = False, ai_model: str = "anthropic/claude-3-haiku"):
+    def __init__(
+        self, file_path: str, use_ai: bool = False, ai_model: str = "anthropic/claude-3-haiku"
+    ):
         self.file_path = Path(file_path)
         self.filename = self.file_path.stem
         self.extension = self.file_path.suffix.lower()
         self.yaml_path = self.file_path.with_suffix(".yaml")
         self.use_ai = use_ai and AI_AVAILABLE
         self.ai_model = ai_model
+        self.ai_analyzer: Optional[Any] = None
 
         if self.extension not in self.SUPPORTED_EXTENSIONS:
             raise ValueError(
@@ -66,9 +71,6 @@ class UniversalToYAMLConverter:
             except Exception as e:
                 logger.warning(f"Failed to initialize AI analyzer: {e}. Falling back to standard analysis.")
                 self.use_ai = False
-        else:
-            self.ai_analyzer = None
-
     def detect_file_type(self) -> str:
         """Detect file type based on extension."""
         ext_to_type = {
@@ -153,8 +155,8 @@ class UniversalToYAMLConverter:
             return ""
 
         try:
-            doc = DocxDocument(self.file_path)
-            text_content = []
+            doc = DocxDocument(str(self.file_path))
+            text_content: List[str] = []
 
             # Extract text from paragraphs
             for paragraph in doc.paragraphs:
@@ -226,7 +228,7 @@ class UniversalToYAMLConverter:
         best_practices, examples = extract_best_practices_and_examples(text, sections)
 
         # Create base analysis
-        analysis = {
+        analysis: Dict[str, Any] = {
             "keywords": keywords,
             "best_practices": best_practices,
             "examples": examples,
@@ -239,15 +241,17 @@ class UniversalToYAMLConverter:
             logger.info("Performing AI-enhanced analysis")
             try:
                 # Create temporary document structure for AI analysis
-                temp_doc = DocumentStructure(
-                    metadata={
+                temp_doc = DocumentStructure.model_validate(
+                    {
+                        "metadata": {
                         "title": self.filename,
                         "source": str(self.file_path),
                         "source_type": self.detect_file_type(),
-                    },
-                    content={
+                        },
+                        "content": {
                         "sections": sections,
-                        "raw_text": text
+                            "raw_text": text,
+                        },
                     }
                 )
 
@@ -272,34 +276,38 @@ class UniversalToYAMLConverter:
                 logger.warning(f"AI analysis failed, falling back to traditional methods: {e}")
 
         # Create document structure
-        doc_structure = DocumentStructure(
-            metadata={
-                "title": self.filename,
-                "source": str(self.file_path),
-                "source_type": self.detect_file_type(),
-                "ai_processing_enabled": self.use_ai,
-                "ai_model_used": self.ai_model if self.use_ai else None,
-                "ai_processing_time_seconds": ai_result.processing_time_seconds if ai_result else None,
-            },
-            content={
-                "sections": sections,
-                "raw_text": text
-            },
-            analysis=analysis
+        doc_structure = DocumentStructure.model_validate(
+            {
+                "metadata": {
+                    "title": self.filename,
+                    "source": str(self.file_path),
+                    "source_type": self.detect_file_type(),
+                    "ai_processing_enabled": self.use_ai,
+                    "ai_model_used": self.ai_model if self.use_ai else None,
+                    "ai_processing_time_seconds": (
+                        ai_result.processing_time_seconds if ai_result else None
+                    ),
+                },
+                "content": {
+                    "sections": sections,
+                    "raw_text": text,
+                },
+                "analysis": analysis,
+            }
         )
 
         return doc_structure
 
-    def _parse_hierarchical_sections(self, text: str) -> List[dict]:
+    def _parse_hierarchical_sections(self, text: str) -> List[Dict[str, Any]]:
         """
         Parse text into hierarchical sections with proper nesting.
 
         Returns a list of section dictionaries compatible with the existing format.
         """
         lines = text.split("\n")
-        sections = []
-        section_stack = []  # Stack for hierarchical sections
-        current_content = []
+        sections: List[Dict[str, Any]] = []
+        section_stack: List[Dict[str, Any]] = []  # Stack for hierarchical sections
+        current_content: List[str] = []
 
         for line in lines:
             line = line.strip()
@@ -320,7 +328,7 @@ class UniversalToYAMLConverter:
                 title = header_match.group(2).strip()
 
                 # Create new section
-                new_section = {
+                new_section: Dict[str, Any] = {
                     "id": f"section_{len(sections)}",
                     "title": title,
                     "level": level,
@@ -380,8 +388,13 @@ class UniversalToYAMLConverter:
         # Flatten hierarchy for backward compatibility (but keep structure)
         return self._flatten_sections_hierarchy(sections)
 
-    def _add_section_to_hierarchy(self, sections: List[dict], section_stack: List[dict],
-                                new_section: dict, level: int):
+    def _add_section_to_hierarchy(
+        self,
+        sections: List[Dict[str, Any]],
+        section_stack: List[Dict[str, Any]],
+        new_section: Dict[str, Any],
+        level: int,
+    ) -> None:
         """Add a section to the hierarchy based on its level."""
         # Pop sections from stack that are at the same or higher level
         while section_stack and section_stack[-1]["level"] >= level:
@@ -397,7 +410,9 @@ class UniversalToYAMLConverter:
         # Push to stack
         section_stack.append(new_section)
 
-    def _save_current_content(self, section_stack: List[dict], current_content: List[str]):
+    def _save_current_content(
+        self, section_stack: List[Dict[str, Any]], current_content: List[str]
+    ) -> None:
         """Save current content to the appropriate section."""
         if not current_content or not section_stack:
             return
@@ -410,11 +425,15 @@ class UniversalToYAMLConverter:
         if content_lines:
             target_section["content"].extend(content_lines)
 
-    def _flatten_sections_hierarchy(self, sections: List[dict]) -> List[dict]:
+    def _flatten_sections_hierarchy(
+        self, sections: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Flatten hierarchical sections into a flat list for backward compatibility."""
-        flat_sections = []
+        flat_sections: List[Dict[str, Any]] = []
 
-        def flatten_recursive(section_list: List[dict], result: List[dict]):
+        def flatten_recursive(
+            section_list: List[Dict[str, Any]], result: List[Dict[str, Any]]
+        ) -> None:
             for section in section_list:
                 # Create a flat version of the section
                 flat_section = {
@@ -436,7 +455,12 @@ class UniversalToYAMLConverter:
 
     def extract_key_concepts(self, text: str) -> Dict[str, Any]:
         """Extract key concepts and patterns from the text."""
-        concepts = {"keywords": [], "patterns": [], "best_practices": [], "examples": []}
+        concepts: Dict[str, Any] = {
+            "keywords": [],
+            "patterns": [],
+            "best_practices": [],
+            "examples": [],
+        }
 
         # Extract potential keywords (capitalized words/phrases)
         keywords = re.findall(r"\b[A-Z][a-zA-Z]{3,}\b", text)
@@ -500,12 +524,14 @@ class UniversalToYAMLConverter:
             return False
 
 
-def process_directory(directory: str = "new", use_ai: bool = False, ai_model: str = "anthropic/claude-3-haiku") -> None:
+def process_directory(
+    directory: str = "new", use_ai: bool = False, ai_model: str = "anthropic/claude-3-haiku"
+) -> None:
     """Process all supported document files in a directory."""
     dir_path = Path(directory)
     dir_path.mkdir(exist_ok=True)  # Create directory if it doesn't exist
 
-    supported_files = []
+    supported_files: List[Path] = []
 
     for ext in UniversalToYAMLConverter.SUPPORTED_EXTENSIONS:
         pattern = f"**/*{ext}"
@@ -527,7 +553,7 @@ def process_directory(directory: str = "new", use_ai: bool = False, ai_model: st
     for file_path in supported_files:
         logger.info(f"Processing: {file_path}")
         try:
-            converter = UniversalToYAMLConverter(file_path, use_ai=use_ai, ai_model=ai_model)
+            converter = UniversalToYAMLConverter(str(file_path), use_ai=use_ai, ai_model=ai_model)
             success = converter.convert_to_yaml()
 
             if success:

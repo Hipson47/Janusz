@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AI Content Analyzer for Janusz - Document-to-TOON Pipeline
+AI Content Analyzer for Janusz - Document-to-JSON Pipeline
 
 This module provides AI-powered content analysis using OpenRouter API.
 Enhances document understanding with LLM capabilities for better extraction
@@ -9,8 +9,9 @@ of insights, summaries, and quality assessments.
 
 import json
 import logging
+import os
 import time
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import httpx
 
@@ -59,7 +60,7 @@ class OpenRouterClient:
             timeout=60.0
         )
 
-    def chat_completion(self, messages: List[Dict], **kwargs) -> Dict:
+    def chat_completion(self, messages: List[Dict[str, str]], **kwargs: Any) -> Dict[str, Any]:
         """Make a chat completion request to OpenRouter."""
         data = {
             "model": kwargs.get("model", self.model),
@@ -71,12 +72,12 @@ class OpenRouterClient:
         try:
             response = self.client.post("/chat/completions", json=data)
             response.raise_for_status()
-            return response.json()
+            return cast(Dict[str, Any], response.json())
         except httpx.HTTPError as e:
             logger.error(f"OpenRouter API error: {e}")
             raise OpenRouterError(f"API request failed: {e}") from e
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Clean up HTTP client."""
         if hasattr(self, 'client'):
             self.client.close()
@@ -107,7 +108,7 @@ class AIContentAnalyzer:
         """
         self.client = OpenRouterClient(api_key=api_key, model=model)
         self.enable_cache = enable_cache
-        self._response_cache = {} if enable_cache else None
+        self._response_cache: Optional[Dict[str, Any]] = {} if enable_cache else None
         self.model_used = model
 
     def analyze_document(self, document: DocumentStructure) -> AIExtractionResult:
@@ -352,7 +353,3 @@ class AIContentAnalyzer:
         except Exception as e:
             logger.error(f"Failed to fetch available models: {e}")
             return ["anthropic/claude-3-haiku", "openai/gpt-4", "meta-llama/llama-2-70b-chat"]
-
-
-# Import here to avoid circular imports
-import os  # noqa: E402

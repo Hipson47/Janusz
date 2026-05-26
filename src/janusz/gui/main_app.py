@@ -47,7 +47,7 @@ class JanuszGUI:
 
     Features:
     - File selection from knowledge base
-    - Multiple output format support (YAML/JSON/TOON)
+    - Multiple output format support (YAML/JSON/Skill)
     - AI-powered analysis options
     - Real-time progress tracking
     - Modular schema generation
@@ -167,7 +167,7 @@ class JanuszGUI:
         output_frame = ttk.LabelFrame(parent, text="🎯 Format wyjściowy", padding="10")
         output_frame.grid(row=2, column=0, sticky=(tk.W, tk.E, tk.N), pady=(0, 10))
 
-        formats = ["YAML", "JSON", "TOON"]
+        formats = ["YAML", "JSON", "Skill"]
         for i, fmt in enumerate(formats):
             ttk.Radiobutton(output_frame, text=fmt, variable=self.output_format,
                            value=fmt).grid(row=i//2, column=i%2, sticky=tk.W, padx=(0, 20))
@@ -294,8 +294,8 @@ class JanuszGUI:
                 size = os.path.getsize(file_path)
                 size_str = f"{size} bytes" if size < 1024 else f"{size//1024} KB"
                 ttk.Label(self.scrollable_frame, text=size_str, foreground="gray").grid(row=i, column=1, sticky=tk.W)
-            except Exception:
-                pass
+            except OSError as e:
+                logger.debug("Could not read file size for %s: %s", file_path, e)
 
         self.log_message("INFO", f"Znaleziono {len(available_files)} plików")
 
@@ -375,8 +375,8 @@ class JanuszGUI:
                         # Convert to final format if needed
                         if self.output_format.get() == "JSON":
                             self.convert_yaml_to_json(yaml_path)
-                        elif self.output_format.get() == "TOON":
-                            self.convert_yaml_to_toon(yaml_path)
+                        elif self.output_format.get() == "Skill":
+                            self.convert_yaml_to_skill(yaml_path)
 
                         self.processing_queue.put(("log", f"✅ {os.path.basename(file_path)} - sukces"))
                     else:
@@ -413,14 +413,15 @@ class JanuszGUI:
         except Exception as e:
             self.processing_queue.put(("log", f"Błąd konwersji do JSON: {e}"))
 
-    def convert_yaml_to_toon(self, yaml_path: Path):
-        """Convert YAML to TOON format."""
+    def convert_yaml_to_skill(self, yaml_path: Path):
+        """Convert YAML to a Codex skill package."""
         try:
-            from janusz.toon_adapter import YAMLToTOONConverter
-            converter = YAMLToTOONConverter(str(yaml_path))
-            converter.convert()
+            from janusz.skill_packager import create_skill_package
+
+            skills_dir = yaml_path.parent / "skills"
+            create_skill_package(str(yaml_path), output_dir=str(skills_dir), overwrite=True)
         except Exception as e:
-            self.processing_queue.put(("log", f"Błąd konwersji do TOON: {e}"))
+            self.processing_queue.put(("log", f"Błąd tworzenia skill: {e}"))
 
     def check_processing_status(self):
         """Check for processing updates from background thread."""
