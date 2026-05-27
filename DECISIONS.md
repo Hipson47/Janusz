@@ -57,3 +57,19 @@
 - Risk: Collecting before limiting can be slower in huge workspaces.
 - Reversal plan: Replace with a bounded heap or paginated resource API if large
   workspace performance becomes a problem.
+
+## ADR-005: Hide Non-File JSON Paths From MCP Package Resources
+
+- Decision: MCP JSON package discovery reports only resolved paths that are
+  files.
+- Context: Mutation-driven tests exposed that a dangling `*.json` symlink could
+  be surfaced as a package-like entry even though its target did not exist.
+- Alternatives considered:
+  - Report symlink paths without checking target existence.
+  - Raise an error for dangling symlinks.
+- Reason: Resource listings should be robust and should not advertise paths that
+  cannot be read as package files.
+- Risk: A legitimate package represented by an unusual filesystem object will be
+  hidden.
+- Reversal plan: Add an explicit opt-in resource mode if a real use case needs
+  non-regular package entries.

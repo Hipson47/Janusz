@@ -482,6 +482,8 @@ def find_json_packages(root: Path, limit: int = 100) -> list[dict[str, str]]:
                 continue
             path = current_path / filename
             resolved = path.resolve(strict=False)
+            if not resolved.is_file():
+                continue
             if not is_safe_workspace_path(root, resolved):
                 continue
             packages.append({"path": str(resolved.relative_to(root)), "name": resolved.name})

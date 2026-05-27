@@ -32,6 +32,17 @@ Experimental surface:
 
 ## Last completed loop
 
+Autonomous loop 4 completed on 2026-05-27:
+
+- selected `BL-P2-002` as the next reliability task;
+- ran a full mutation baseline;
+- added MCP package discovery tests for limits, bounded resource output,
+  non-JSON traversal, ignored directory pruning, and dangling JSON symlinks;
+- fixed package discovery so dangling JSON symlinks and other non-file resolved
+  paths are not reported as packages;
+- verified MCP tests, coverage, mypy, Bandit, `make check`, `make release-check`,
+  fresh review searches, and diff hygiene.
+
 Autonomous loop 3 completed on 2026-05-27:
 
 - selected `BL-P2-003` as the next safe packaging-confidence task;
@@ -61,23 +72,35 @@ Current RC hardening loop completed on 2026-05-27:
 
 ## Commands last run
 
+- `uv run mutmut run --max-children 4`: completed, 3188 mutants processed,
+  1233 killed, 1708 survived, 247 no-tests
+- targeted `mutmut` run for `find_json_packages`: killed several MCP discovery
+  mutants; default-limit and equivalent negative-limit mutants still survived
+- `uv run ruff check src/janusz/mcp_server.py tests/test_mcp_server.py`: passed
+- `uv run ruff format src/janusz/mcp_server.py tests/test_mcp_server.py`:
+  formatted `tests/test_mcp_server.py`
+- `uv run ruff format --check src/janusz/mcp_server.py tests/test_mcp_server.py`:
+  passed
+- `uv run pytest tests/test_mcp_server.py -q`: passed, 19 tests
+- `uv run mypy src/janusz`: passed
+- `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70`:
+  passed, 70 tests, 71.65% coverage
+- `uv run bandit -q -r src/janusz`: passed
+- `git diff --check`: passed
+- `make check`: passed, 70 tests
+- `make release-check`: passed after loop 4, including lock check, lint,
+  format, mypy, compileall, coverage, `pip-audit`, build, and expanded
+  `make wheel-smoke`
 - `uv lock --check`: passed
 - `uv sync --group dev --locked`: passed
 - `uv run ruff check .`: passed
 - `uv run ruff format --check .`: passed
-- `uv run mypy src/janusz`: passed
 - `uv run python -m compileall -q src scripts examples tests`: passed
-- `uv run pytest tests -q`: passed, 64 tests
-- `uv run pytest tests/test_mcp_server.py -q`: passed, 14 tests
-- `make check`: passed, 65 tests after deterministic MCP discovery test
-- `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70`: passed, 71.49%
-- `uv run bandit -q -r src/janusz`: passed
+- `uv run pytest tests -q`: passed, 70 tests
 - `uv run pip-audit`: passed; local `janusz` skipped because it is not on PyPI
 - `uv build`: passed
 - `make wheel-smoke`: passed, including manifest export and registry build/search
-- `make check`: passed
 - `uv run pre-commit run --all-files`: passed
-- `make release-check`: passed
 - fresh repository searches: no unresolved P0/P1 findings
 
 ## Known blockers
@@ -87,8 +110,9 @@ None.
 ## Next recommended task
 
 Pick `BL-P2-002`: raise mutation score for core modules by adding meaningful
-tests around high-value survivors. Start with `json_packager`, `skill_quality`,
-or MCP paths where surviving mutants map to stable behavior.
+tests around high-value survivors. Start with `json_packager` and
+`skill_quality`, then return to remaining MCP survivors that represent
+non-equivalent behavior.
 
 ## Assumptions
 

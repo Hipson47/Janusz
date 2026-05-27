@@ -6,8 +6,11 @@
 
 - Severity: P2
 - Area: reliability and test quality
-- Evidence: `uv run mutmut run` completed with 3138 mutants processed, 1178
-  killed, 1713 survived, and 247 no-tests.
+- Evidence: latest full `uv run mutmut run --max-children 4` completed with
+  3188 mutants processed, 1233 killed, 1708 survived, and 247 no-tests. Loop 4
+  added MCP package discovery tests and fixed a dangling JSON symlink listing
+  edge case, but the global mutation score remains below the long-term 80%
+  target.
 - Affected files:
   - `tests/test_json_packager.py`
   - `tests/test_skill_packager.py`
@@ -24,6 +27,16 @@
   - `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70`
   - `uv run mutmut run`
 - Status: open
+
+#### Latest Loop 4 Progress
+
+- Added tests for MCP package discovery limits, the bounded `janusz://packages`
+  resource default, non-JSON file traversal, ignored directory pruning, and
+  dangling JSON symlinks.
+- Fixed package discovery to skip resolved paths that are not files.
+- Targeted MCP tests, coverage gate, mypy, Bandit, and `make check` passed.
+- Keep this item open and continue with high-value surviving mutants in
+  `json_packager`, `skill_quality`, and remaining MCP edge cases.
 
 ### BL-P3-001: RAG Persistence Hardening Plan
 

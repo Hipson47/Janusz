@@ -51,18 +51,19 @@ beta as documented in `docs/PRODUCTION_READINESS.md`.
 | `uv run ruff format --check .` | Passed; 53 files already formatted. |
 | `uv run mypy src/janusz` | Passed; no issues in 32 source files. |
 | `uv run python -m compileall -q src scripts examples tests` | Passed. |
-| `uv run pytest tests -q` | Passed; 64 tests. |
-| `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70` | Passed; 71.49% total coverage. |
+| `uv run pytest tests -q` | Passed; 70 tests. |
+| `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70` | Passed; 71.65% total coverage. |
 | `uv run bandit -q -r src/janusz` | Passed. |
 | `uv run pip-audit` | Passed; no known vulnerabilities found, local `janusz` skipped because it is not on PyPI. |
 | `uv build` | Passed; built sdist and wheel. |
-| clean wheel smoke in `/tmp/janusz-wheel-test` | Passed; installed wheel, ran `janusz --help`, `janusz --version`, JSON conversion, and skill packaging. |
+| clean wheel smoke in `/tmp/janusz-wheel-test` | Passed; installed wheel, ran `janusz --help`, `janusz --version`, JSON conversion, skill packaging, tool manifest export, registry build, and registry search. |
 | `uv run pre-commit run --all-files` | Passed after hook alignment. |
-| `uv run mutmut run` | Completed; 3138 mutants processed, 1178 killed, 1713 survived, 247 no-tests. |
+| `uv run mutmut run --max-children 4` | Completed; 3188 mutants processed, 1233 killed, 1708 survived, 247 no-tests. |
 | targeted MCP/schema P1 tests | Passed; 4 tests. |
 | `uv run pytest tests/test_mcp_server.py tests/test_cli_orchestrator_commands.py -q` | Passed; 25 tests. |
-| `make check` | Passed; lint, format, mypy, and 64-test developer gate completed. |
-| `make wheel-smoke` | Passed; clean wheel install, `janusz --version`, JSON conversion, and skill packaging completed. |
+| `uv run pytest tests/test_mcp_server.py -q` | Passed; 19 tests after MCP mutation coverage improvements. |
+| `make check` | Passed; lint, format, mypy, and 70-test developer gate completed. |
+| `make wheel-smoke` | Passed; clean wheel install, `janusz --version`, JSON conversion, skill packaging, manifest export, registry build, and registry search completed. |
 | `make release-check` | Passed; lock, lint, format, mypy, compile, coverage, Bandit, pip-audit, build, wheel smoke, and version check completed. |
 
 ## Security Review
@@ -71,6 +72,8 @@ beta as documented in `docs/PRODUCTION_READINESS.md`.
   denied, size-limited, and covered by tests.
 - MCP package resource discovery uses the same sensitive-path policy and skips
   sensitive JSON files and symlink escapes.
+- MCP package resource discovery skips dangling JSON symlinks and other resolved
+  paths that are not files.
 - Optional AI client no longer imports `httpx` during core module import.
 - `schema generate-ai` lazily wires the AI analyzer and is covered by offline
   fake-analyzer and missing-configuration tests.
@@ -82,7 +85,9 @@ beta as documented in `docs/PRODUCTION_READINESS.md`.
 ## Remaining P2 Items
 
 - Mutation testing is configured and executable, but the current mutation score
-  is below the long-term 80% target. This should drive future test-depth work.
+  is below the long-term 80% target. The latest full run killed 1233 of 2941
+  tested mutants, with 1708 survivors and 247 no-tests. This should drive future
+  test-depth work.
 - Optional AI/RAG/GUI/schema/prompt/orchestration modules are not part of the
   hardened 1.0 stable contract and should receive separate hardening before any
   future stability promotion.

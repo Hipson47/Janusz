@@ -99,3 +99,56 @@
   - extended `Makefile` `wheel-smoke` target.
 - Remaining issues:
   - P2 mutation score/test-depth debt.
+
+## Loop 4: MCP Mutation Coverage and Dangling Symlink Handling
+
+- Date: 2026-05-27
+- Review findings:
+  - P2: mutation testing showed surviving MCP package discovery mutants around
+    limits, traversal, ignored directories, and non-file JSON paths.
+  - P2: a new dangling JSON symlink test exposed that package discovery could
+    report a non-existent symlink target as a package entry.
+- Commands run:
+  - `uv run mutmut run --max-children 4`: completed, 3188 mutants processed,
+    1233 killed, 1708 survived, 247 no-tests.
+  - targeted `mutmut` run for selected `find_json_packages` mutants: several
+    traversal/limit mutants killed; default-limit and equivalent negative-limit
+    mutants still survived.
+  - `uv run ruff check src/janusz/mcp_server.py tests/test_mcp_server.py`:
+    passed.
+  - `uv run ruff format --check src/janusz/mcp_server.py tests/test_mcp_server.py`:
+    passed after formatting the new tests.
+  - `uv run pytest tests/test_mcp_server.py -q`: passed, 19 tests.
+  - `uv run mypy src/janusz`: passed.
+  - `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70`:
+    passed, 70 tests, 71.65% coverage.
+  - `uv run bandit -q -r src/janusz`: passed.
+  - `git diff --check`: passed.
+  - `make check`: passed, 70 tests.
+  - `make release-check`: passed, including lock check, lint, format, mypy,
+    compileall, coverage, `pip-audit`, build, and expanded wheel smoke.
+- Results:
+  - MCP package discovery now has tests for explicit limits, default resource
+    bounds, non-JSON file traversal, ignored directory pruning, and dangling
+    JSON symlink handling.
+  - Global mutation score remains below the long-term 80% target, so
+    `BL-P2-002` remains open.
+- Fixes applied:
+  - `find_json_packages()` now skips resolved paths that are not files.
+- Remaining issues:
+  - P2 mutation score/test-depth debt in `json_packager`, `skill_quality`, and
+    remaining core modules.
+
+## Fresh Review After Loop 4
+
+- Date: 2026-05-27
+- Searches:
+  - hardcoded absolute paths and developer usernames;
+  - sensitive markers and placeholder values;
+  - broad suppressions and skipped-test markers;
+  - optional dependency import references;
+  - production/beta/experimental documentation claims.
+- Result:
+  - no unresolved P0/P1 findings;
+  - matches were expected policy markers, tests, documented experimental RAG/GUI
+    placeholders, or lazy optional imports.

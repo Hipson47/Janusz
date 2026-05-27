@@ -15,6 +15,8 @@
   sensitive JSON paths or symlink escapes outside the workspace root.
 - Made MCP JSON package discovery deterministic and pruned ignored or sensitive
   directories before traversal.
+- Strengthened MCP package discovery tests for limits, resource defaults,
+  ignored directories, non-JSON files, and dangling JSON symlinks.
 - Fixed `janusz schema generate-ai` analyzer wiring and added offline tests for
   successful fake generation and missing provider configuration.
 - Expanded clean-wheel smoke coverage to exercise tool manifest export and

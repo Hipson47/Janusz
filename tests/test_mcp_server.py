@@ -235,6 +235,69 @@ def test_mcp_package_discovery_returns_sorted_relative_paths(temp_dir):
     ]
 
 
+def test_mcp_package_discovery_honors_limits(temp_dir):
+    """Package discovery should enforce caller limits after deterministic sorting."""
+    for index in range(101):
+        (temp_dir / f"package-{index:03}.json").write_text("{}", encoding="utf-8")
+
+    assert find_json_packages(temp_dir, limit=0) == []
+    assert find_json_packages(temp_dir, limit=-1) == []
+    assert [package["path"] for package in find_json_packages(temp_dir, limit=1)] == [
+        "package-000.json"
+    ]
+    assert len(find_json_packages(temp_dir)) == 100
+
+
+def test_mcp_packages_resource_uses_bounded_default_limit(temp_dir):
+    """The packages resource should not emit unbounded package listings by default."""
+    for index in range(101):
+        (temp_dir / f"package-{index:03}.json").write_text("{}", encoding="utf-8")
+    server = JanuszMCPServer(root=temp_dir, memory_path=temp_dir / "memory.json")
+
+    response = server.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "resources/read",
+            "params": {"uri": "janusz://packages"},
+        }
+    )
+
+    packages = json.loads(response["result"]["contents"][0]["text"])["packages"]
+    assert len(packages) == 100
+    assert packages[-1]["path"] == "package-099.json"
+
+
+def test_mcp_package_discovery_skips_non_json_without_stopping(temp_dir):
+    """A non-JSON file should not prevent later JSON packages from being listed."""
+    (temp_dir / "00-readme.txt").write_text("not a package", encoding="utf-8")
+    (temp_dir / "01-package.json").write_text("{}", encoding="utf-8")
+
+    assert find_json_packages(temp_dir) == [{"path": "01-package.json", "name": "01-package.json"}]
+
+
+def test_mcp_package_discovery_prunes_ignored_safe_dirs(temp_dir):
+    """Ignored non-sensitive directories should be pruned before package discovery."""
+    ignored = temp_dir / ".venv"
+    ignored.mkdir()
+    (ignored / "hidden.json").write_text("{}", encoding="utf-8")
+    (temp_dir / "visible.json").write_text("{}", encoding="utf-8")
+
+    assert find_json_packages(temp_dir) == [{"path": "visible.json", "name": "visible.json"}]
+
+
+def test_mcp_package_discovery_ignores_dangling_json_symlink(temp_dir):
+    """Dangling symlinks should not break package resource generation."""
+    link = temp_dir / "dangling.json"
+    try:
+        link.symlink_to(temp_dir / "missing.json")
+    except OSError:
+        return
+    (temp_dir / "safe.json").write_text("{}", encoding="utf-8")
+
+    assert find_json_packages(temp_dir) == [{"path": "safe.json", "name": "safe.json"}]
+
+
 def test_mcp_rejects_path_traversal_without_leaking_root(temp_dir):
     """Tool calls should not access files outside the configured workspace."""
     outside = temp_dir.parent / "outside.json"
