@@ -32,6 +32,14 @@ Experimental surface:
 
 ## Last completed loop
 
+Autonomous loop 3 completed on 2026-05-27:
+
+- selected `BL-P2-003` as the next safe packaging-confidence task;
+- expanded `make wheel-smoke` to exercise `janusz tool manifest`;
+- expanded `make wheel-smoke` to build and search a JSONL skill registry from
+  the installed wheel;
+- verified `make wheel-smoke`.
+
 Autonomous loop 2 completed on 2026-05-27:
 
 - selected `BL-P2-001` as the highest-value safe task after P0/P1 were clean;
@@ -66,7 +74,7 @@ Current RC hardening loop completed on 2026-05-27:
 - `uv run bandit -q -r src/janusz`: passed
 - `uv run pip-audit`: passed; local `janusz` skipped because it is not on PyPI
 - `uv build`: passed
-- `make wheel-smoke`: passed
+- `make wheel-smoke`: passed, including manifest export and registry build/search
 - `make check`: passed
 - `uv run pre-commit run --all-files`: passed
 - `make release-check`: passed
@@ -78,9 +86,9 @@ None.
 
 ## Next recommended task
 
-Pick `BL-P2-003`: expand clean-wheel smoke coverage to exercise
-`janusz tool manifest` and a registry build/search flow from the installed
-artifact. This raises packaging confidence without changing public APIs.
+Pick `BL-P2-002`: raise mutation score for core modules by adding meaningful
+tests around high-value survivors. Start with `json_packager`, `skill_quality`,
+or MCP paths where surviving mutants map to stable behavior.
 
 ## Assumptions
 

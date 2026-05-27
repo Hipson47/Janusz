@@ -17,6 +17,8 @@
   directories before traversal.
 - Fixed `janusz schema generate-ai` analyzer wiring and added offline tests for
   successful fake generation and missing provider configuration.
+- Expanded clean-wheel smoke coverage to exercise tool manifest export and
+  registry build/search from the installed artifact.
 - Removed hardcoded local developer paths from the orchestrator manifest and
   memory catalog.
 - Repaired the RAG example and documented RAG, GUI, AI, prompt, schema, and AI

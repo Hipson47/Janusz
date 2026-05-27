@@ -25,26 +25,6 @@
   - `uv run mutmut run`
 - Status: open
 
-### BL-P2-003: Expand Clean-Wheel Smoke Coverage
-
-- Severity: P2
-- Area: packaging reliability
-- Evidence: Current wheel smoke covers help/version, JSON conversion, and skill
-  packaging. MCP/tool manifest and registry smoke from an installed wheel would
-  further protect integration contracts.
-- Affected files:
-  - `Makefile`
-  - `tests/` or `scripts/`
-- Acceptance criteria:
-  - clean wheel smoke exercises `janusz tool manifest`;
-  - clean wheel smoke exercises one registry build/search flow;
-  - runtime remains reasonable.
-- Validation commands:
-  - `uv build`
-  - `make wheel-smoke`
-  - `make release-check`
-- Status: open
-
 ### BL-P3-001: RAG Persistence Hardening Plan
 
 - Severity: P3
@@ -73,6 +53,15 @@
 - Resolution: Replaced recursive glob package discovery with deterministic
   `os.walk` traversal, sorted resource output, and directory pruning for ignored
   or sensitive paths before descent.
+
+### BL-P2-003: Expand Clean-Wheel Smoke Coverage
+
+- Severity: P2
+- Area: packaging reliability
+- Status: completed
+- Resolution: Wheel smoke now exercises help/version, JSON conversion, skill
+  packaging, tool manifest export, registry build, and registry search from the
+  installed wheel.
 
 ### BL-P1-001: MCP Packages Sensitive Path Disclosure
 

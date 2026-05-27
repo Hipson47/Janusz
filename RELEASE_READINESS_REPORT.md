@@ -48,7 +48,7 @@ Latest known results:
 - `uv run bandit -q -r src/janusz`: passed
 - `uv run pip-audit`: passed; local `janusz` skipped because it is not on PyPI
 - `uv build`: passed
-- `make wheel-smoke`: passed
+- `make wheel-smoke`: passed, including manifest export and registry build/search
 - `make check`: passed
 - latest `make check` after deterministic MCP discovery: passed, 65 tests
 - `make release-check`: passed
@@ -64,13 +64,12 @@ scans passed locally.
 ## Packaging status
 
 The wheel builds and installs into a clean virtual environment. Smoke testing
-exercises `janusz --version`, document-to-JSON conversion, and skill package
-generation.
+exercises `janusz --help`, `janusz --version`, document-to-JSON conversion, skill
+package generation, tool manifest export, registry build, and registry search.
 
 ## Known limitations
 
 - Mutation score is below the long-term 80% target.
-- Clean-wheel smoke does not yet exercise tool manifest and registry flows.
 - Optional AI/RAG/GUI/prompt/orchestration modules remain experimental.
 - `pip-audit` cannot audit the local unpublished `janusz` package record because
   it is not available on PyPI.

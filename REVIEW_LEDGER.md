@@ -80,3 +80,22 @@
 - Remaining issues:
   - P2 mutation score/test-depth debt;
   - P2 expanded clean-wheel smoke coverage.
+
+## Loop 3: Expanded Clean-Wheel Smoke Coverage
+
+- Date: 2026-05-27
+- Review findings:
+  - P2: clean-wheel smoke covered help/version, JSON conversion, and skill
+    packaging, but not tool manifest or registry integration.
+- Commands run:
+  - `make wheel-smoke`: passed after adding manifest and registry smoke steps.
+  - `make release-check`: passed after the expanded wheel smoke target.
+  - `uv run pre-commit run --all-files`: passed.
+- Results:
+  - the installed wheel now exports `manifest.json`;
+  - the installed wheel builds `registry.jsonl`;
+  - the installed wheel searches that registry for the generated smoke skill.
+- Fixes applied:
+  - extended `Makefile` `wheel-smoke` target.
+- Remaining issues:
+  - P2 mutation score/test-depth debt.
