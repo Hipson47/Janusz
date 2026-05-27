@@ -162,6 +162,62 @@ def test_mcp_resource_reads_and_package_discovery(temp_dir):
     assert unknown["error"]["code"] == -32603
 
 
+def test_mcp_package_discovery_hides_sensitive_json_paths(temp_dir):
+    """Package resources must not disclose sensitive JSON files or paths."""
+    safe_package = temp_dir / "safe-package.json"
+    safe_package.write_text("{}", encoding="utf-8")
+
+    aws_credentials = temp_dir / ".aws" / "credentials.json"
+    aws_credentials.parent.mkdir()
+    aws_credentials.write_text('{"token": "secret"}', encoding="utf-8")
+    env_json = temp_dir / ".env.json"
+    env_json.write_text('{"secret": "value"}', encoding="utf-8")
+    ssh_key_json = temp_dir / ".ssh" / "id_rsa.json"
+    ssh_key_json.parent.mkdir()
+    ssh_key_json.write_text('{"private_key": "secret"}', encoding="utf-8")
+    token_json = temp_dir / "api-token.json"
+    token_json.write_text('{"token": "secret"}', encoding="utf-8")
+
+    server = JanuszMCPServer(root=temp_dir, memory_path=temp_dir / "memory.json")
+    response = server.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "resources/read",
+            "params": {"uri": "janusz://packages"},
+        }
+    )
+
+    text = response["result"]["contents"][0]["text"]
+    packages = json.loads(text)["packages"]
+    paths = {package["path"] for package in packages}
+
+    assert paths == {"safe-package.json"}
+    assert ".aws" not in text
+    assert ".env" not in text
+    assert ".ssh" not in text
+    assert "token" not in text
+    assert str(temp_dir) not in text
+
+
+def test_mcp_package_discovery_skips_symlink_escape(temp_dir):
+    """Package discovery should not report symlinks resolving outside the root."""
+    outside = temp_dir.parent / "outside-package.json"
+    outside.write_text("{}", encoding="utf-8")
+    link = temp_dir / "linked.json"
+    try:
+        link.symlink_to(outside)
+    except OSError:
+        return
+
+    safe_package = temp_dir / "safe-package.json"
+    safe_package.write_text("{}", encoding="utf-8")
+
+    packages = find_json_packages(temp_dir)
+
+    assert packages == [{"path": "safe-package.json", "name": "safe-package.json"}]
+
+
 def test_mcp_rejects_path_traversal_without_leaking_root(temp_dir):
     """Tool calls should not access files outside the configured workspace."""
     outside = temp_dir.parent / "outside.json"

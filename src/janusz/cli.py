@@ -703,9 +703,8 @@ Supported input formats for json: PDF, MD, TXT, DOCX, HTML, YAML, JSON
     elif args.command == "schema":
         from .schemas.schema_manager import SchemaManager
 
-        schema_manager = SchemaManager()
-
         if args.schema_command == "list":
+            schema_manager = SchemaManager()
             schemas = schema_manager.list_schemas(
                 category=getattr(args, "category", None), tags=getattr(args, "tag", None)
             )
@@ -719,9 +718,10 @@ Supported input formats for json: PDF, MD, TXT, DOCX, HTML, YAML, JSON
                     print(f"    Category: {schema.category}")
                     print(f"    Usage: {schema.usage_count} times")
                     print(f"    Tags: {', '.join(schema.tags)}")
-                    print()
+                print()
 
         elif args.schema_command == "create":
+            schema_manager = SchemaManager()
             # Convert file to document structure first
             converter = UniversalToYAMLConverter(args.file)
             doc_structure = converter.parse_text_structure(converter.extract_text_from_file())
@@ -733,15 +733,25 @@ Supported input formats for json: PDF, MD, TXT, DOCX, HTML, YAML, JSON
             print(f"✅ Created schema: {schema.name} ({schema.id})")
 
         elif args.schema_command == "generate-ai":
-            # Check if AI is available
             try:
                 from janusz.ai.ai_content_analyzer import AIContentAnalyzer
 
+                ai_analyzer = AIContentAnalyzer()
+                schema_manager = SchemaManager(ai_analyzer=ai_analyzer)
                 schema = schema_manager.generate_ai_schema(args.prompt, args.category)
                 print(f"🤖 Generated AI schema: {schema.name} ({schema.id})")
+            except (ImportError, RuntimeError, ValueError) as e:
+                logger.error(f"AI schema generation unavailable: {e}")
+                print(f"AI schema generation unavailable: {e}", file=sys.stderr)
+                print(
+                    "Configure JANUSZ_OPENROUTER_API_KEY and install Janusz with the "
+                    "AI extra, for example: janusz[ai].",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
             except Exception as e:
                 logger.error(f"AI schema generation failed: {e}")
-                logger.error("Make sure JANUSZ_OPENROUTER_API_KEY is set")
+                print(f"AI schema generation failed: {e}", file=sys.stderr)
                 sys.exit(1)
 
     elif args.command == "orchestrate":

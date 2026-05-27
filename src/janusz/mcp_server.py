@@ -42,10 +42,43 @@ SENSITIVE_FILE_NAMES = {
     "known_hosts",
 }
 SENSITIVE_SUFFIXES = (".key", ".pem", ".p12", ".pfx", ".crt", ".cer")
+SENSITIVE_NAME_MARKERS = ("credential", "secret", "token", "private_key", "private-key")
+DISCOVERY_IGNORED_PART_NAMES = {".venv", "__pycache__", "node_modules"}
 
 
 class PathSandboxError(ValueError):
     """Raised when an MCP path is outside the configured workspace or unsafe."""
+
+
+def reject_sensitive_workspace_path(root: Path, path: Path) -> None:
+    """Reject sensitive files and directories below a resolved workspace root."""
+    relative = path.relative_to(root)
+    lower_parts = tuple(part.lower() for part in relative.parts)
+    joined_parts = "/".join(lower_parts)
+    if any(part in SENSITIVE_PART_NAMES for part in lower_parts):
+        raise PathSandboxError("Sensitive paths are not available through MCP")
+    if any(part in joined_parts for part in SENSITIVE_PART_NAMES if "/" in part):
+        raise PathSandboxError("Sensitive paths are not available through MCP")
+
+    name = path.name.lower()
+    if (
+        name.startswith(".env")
+        or name in SENSITIVE_FILE_NAMES
+        or name.endswith(SENSITIVE_SUFFIXES)
+        or any(marker in name for marker in SENSITIVE_NAME_MARKERS)
+    ):
+        raise PathSandboxError("Sensitive files are not available through MCP")
+
+
+def is_safe_workspace_path(root: Path, path: Path) -> bool:
+    """Return whether a discovered path is contained in root and non-sensitive."""
+    try:
+        resolved = path.resolve(strict=False)
+        resolved.relative_to(root)
+        reject_sensitive_workspace_path(root, resolved)
+    except (OSError, ValueError, PathSandboxError):
+        return False
+    return True
 
 
 class JanuszMCPServer:
@@ -106,17 +139,7 @@ class JanuszMCPServer:
 
     def _reject_sensitive_path(self, path: Path) -> None:
         """Reject sensitive files and directories by default."""
-        relative = path.relative_to(self.root)
-        lower_parts = tuple(part.lower() for part in relative.parts)
-        joined_parts = "/".join(lower_parts)
-        if any(part in SENSITIVE_PART_NAMES for part in lower_parts):
-            raise PathSandboxError("Sensitive paths are not available through MCP")
-        if any(part in joined_parts for part in SENSITIVE_PART_NAMES if "/" in part):
-            raise PathSandboxError("Sensitive paths are not available through MCP")
-
-        name = path.name.lower()
-        if name in SENSITIVE_FILE_NAMES or name.endswith(SENSITIVE_SUFFIXES):
-            raise PathSandboxError("Sensitive files are not available through MCP")
+        reject_sensitive_workspace_path(self.root, path)
 
     def display_path(self, path: Path) -> str:
         """Return a workspace-relative path for user-facing output."""
@@ -443,9 +466,12 @@ def find_json_packages(root: Path, limit: int = 100) -> list[dict[str, str]]:
     root = root.resolve()
     packages: list[dict[str, str]] = []
     for path in root.rglob("*.json"):
-        if any(part in {".git", ".venv", "__pycache__", "node_modules"} for part in path.parts):
+        if any(part in DISCOVERY_IGNORED_PART_NAMES for part in path.parts):
             continue
-        packages.append({"path": str(path.resolve().relative_to(root)), "name": path.name})
+        resolved = path.resolve(strict=False)
+        if not is_safe_workspace_path(root, resolved):
+            continue
+        packages.append({"path": str(resolved.relative_to(root)), "name": resolved.name})
         if len(packages) >= limit:
             break
     return packages

@@ -11,6 +11,10 @@
 - Hardened MCP filesystem handling with workspace roots, path normalization,
   traversal and symlink denial, sensitive-file denial, size limits, and sanitized
   errors.
+- Hardened MCP JSON package discovery so `janusz://packages` does not disclose
+  sensitive JSON paths or symlink escapes outside the workspace root.
+- Fixed `janusz schema generate-ai` analyzer wiring and added offline tests for
+  successful fake generation and missing provider configuration.
 - Removed hardcoded local developer paths from the orchestrator manifest and
   memory catalog.
 - Repaired the RAG example and documented RAG, GUI, AI, prompt, schema, and AI

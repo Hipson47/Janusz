@@ -35,7 +35,10 @@ the current working directory by default and can be configured with `--root` or
 
 The MCP layer resolves and normalizes paths, rejects traversal and symlink escapes,
 denies common sensitive paths, enforces a default 10 MiB input size limit, and
-sanitizes user-facing errors to avoid leaking host-specific paths.
+sanitizes user-facing errors to avoid leaking host-specific paths. Resource
+listings, including `janusz://packages`, use the same sensitive-path policy and
+must not reveal `.env`, `.aws`, `.ssh`, `.git`, token, credential, or private-key
+JSON paths.
 
 MCP hosts should still run Janusz with the narrowest useful workspace root and a
 least-privilege operating-system user.

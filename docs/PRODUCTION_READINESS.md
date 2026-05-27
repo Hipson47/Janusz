@@ -67,8 +67,15 @@ The MCP layer:
 - rejects path traversal, absolute paths outside the root, and symlink escapes;
 - denies sensitive paths such as `.env`, `.ssh`, `.git`, private keys, token files,
   and common cloud credential files;
+- applies the same sensitive-path policy to resource listings such as
+  `janusz://packages`;
 - enforces a default 10 MiB input size limit;
 - returns sanitized user-facing errors that do not expose host-specific absolute paths.
+
+`janusz schema generate-ai` remains experimental. It is wired through a lazily
+constructed AI analyzer and fails with actionable configuration or optional
+dependency errors. Unit tests cover the command with a fake analyzer and do not
+call external AI services.
 
 ## Release Gate
 

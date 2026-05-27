@@ -157,6 +157,10 @@ minimum quality score.
 - resources: Janusz memory, skill catalog, JSON packages
 - prompts: create skill, review skill, convert docs to agent skill
 
+MCP tool paths and package resource listings are confined to the configured
+workspace root and hide sensitive files such as `.env`, `.aws`, `.ssh`, `.git`,
+token, credential, and private-key JSON paths.
+
 `janusz package plugin` bundles selected skills into a plugin folder with
 `.codex-plugin/plugin.json`, copied skill directories, and an optional Janusz tool
 manifest.
@@ -180,6 +184,10 @@ Janusz 1.0.0 separates the hardened integration surface from incubating modules:
 Experimental modules are import-safe and should fail with actionable messages
 when optional dependencies or provider configuration are missing. They are not
 part of the hardened 1.0 compatibility contract.
+
+`janusz schema generate-ai` is experimental. It requires
+`JANUSZ_OPENROUTER_API_KEY` and the AI extra, for example `janusz[ai]`, and unit
+tests use fake analyzers instead of network calls.
 
 The release gate is:
 

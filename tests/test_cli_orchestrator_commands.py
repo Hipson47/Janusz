@@ -256,3 +256,65 @@ def test_cli_registry_and_package_plugin(temp_dir):
     assert package_code == 0
     assert json.loads(search_stdout)[0]["name"] == "repo-helper"
     assert (plugin_path / ".codex-plugin" / "plugin.json").exists()
+
+
+def test_cli_schema_generate_ai_uses_lazy_analyzer(monkeypatch, temp_dir):
+    """schema generate-ai should wire an analyzer without making a network call."""
+
+    class FakeClient:
+        def chat_completion(self, messages, max_tokens=1000):
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": json.dumps(
+                                {
+                                    "name": "API Schema",
+                                    "description": "Use for API documentation.",
+                                    "category": "technical",
+                                    "tags": ["api"],
+                                    "components": [
+                                        {
+                                            "type": "section",
+                                            "content": "Endpoint details",
+                                            "metadata": {},
+                                            "required": True,
+                                            "order": 0,
+                                        }
+                                    ],
+                                }
+                            )
+                        }
+                    }
+                ]
+            }
+
+    class FakeAnalyzer:
+        model_used = "fake-model"
+
+        def __init__(self):
+            self.client = FakeClient()
+
+    monkeypatch.chdir(temp_dir)
+    monkeypatch.setattr("janusz.ai.ai_content_analyzer.AIContentAnalyzer", FakeAnalyzer)
+
+    exit_code, stdout, stderr = run_cli(
+        ["schema", "generate-ai", "--prompt", "Create API docs schema"]
+    )
+
+    assert exit_code == 0
+    assert "Generated AI schema" in stdout
+    assert "AI analyzer not available" not in stderr
+    assert next((temp_dir / "schemas").glob("ai_schema_*.json")).exists()
+
+
+def test_cli_schema_generate_ai_missing_key_is_actionable(monkeypatch, temp_dir):
+    """Missing AI configuration should fail before any network-dependent behavior."""
+    monkeypatch.chdir(temp_dir)
+    monkeypatch.delenv("JANUSZ_OPENROUTER_API_KEY", raising=False)
+
+    exit_code, _, stderr = run_cli(["schema", "generate-ai", "--prompt", "Create API docs schema"])
+
+    assert exit_code == 1
+    assert "JANUSZ_OPENROUTER_API_KEY" in stderr
+    assert "AI analyzer not available" not in stderr
