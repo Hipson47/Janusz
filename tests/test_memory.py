@@ -42,3 +42,14 @@ def test_export_tool_context_is_compact_and_ordered(temp_dir):
     assert context["tool_contracts"]
     assert priorities == sorted(priorities, reverse=True)
     assert context["skill_packs"][0]["name"] == "hipson-workflow"
+
+
+def test_default_memory_uses_portable_source_paths():
+    """Default memory should not embed a developer-specific absolute home path."""
+    data = build_default_memory()
+    encoded = json.dumps(data)
+    developer_marker = "hipson" + "47"
+
+    assert "/home/" not in encoded
+    assert developer_marker not in encoded
+    assert "${HOME}" in encoded

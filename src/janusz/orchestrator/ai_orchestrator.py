@@ -8,7 +8,7 @@ including schema selection, AI model routing, and context-aware decision making.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..ai.ai_content_analyzer import AIContentAnalyzer
 from ..models import (
@@ -33,9 +33,11 @@ class AIOrchestrator:
     - Adaptive processing based on user preferences
     """
 
-    def __init__(self,
-                 schema_manager: Optional[SchemaManager] = None,
-                 ai_analyzer: Optional[AIContentAnalyzer] = None):
+    def __init__(
+        self,
+        schema_manager: SchemaManager | None = None,
+        ai_analyzer: AIContentAnalyzer | None = None,
+    ):
         """
         Initialize AI Orchestrator.
 
@@ -45,12 +47,14 @@ class AIOrchestrator:
         """
         self.schema_manager = schema_manager or SchemaManager()
         self.ai_analyzer = ai_analyzer
-        self.user_context_history: List[Dict[str, Any]] = []
+        self.user_context_history: list[dict[str, Any]] = []
 
-    def process_document_request(self,
-                               user_input: str,
-                               document: Optional[DocumentStructure] = None,
-                               context: Optional[OrchestratorContext] = None) -> OrchestratorResponse:
+    def process_document_request(
+        self,
+        user_input: str,
+        document: DocumentStructure | None = None,
+        context: OrchestratorContext | None = None,
+    ) -> OrchestratorResponse:
         """
         Process a document processing request with intelligent orchestration.
 
@@ -76,9 +80,9 @@ class AIOrchestrator:
 
         return response
 
-    def recommend_schemas_for_document(self,
-                                     document: DocumentStructure,
-                                     user_requirements: Optional[str] = None) -> List[ModularSchema]:
+    def recommend_schemas_for_document(
+        self, document: DocumentStructure, user_requirements: str | None = None
+    ) -> list[ModularSchema]:
         """
         Recommend appropriate schemas for a document.
 
@@ -101,10 +105,12 @@ class AIOrchestrator:
 
         return matching_schemas[:5]  # Return top 5
 
-    def optimize_processing_workflow(self,
-                                  document: DocumentStructure,
-                                  selected_schema: ModularSchema,
-                                  user_preferences: Dict[str, Any]) -> Dict[str, Any]:
+    def optimize_processing_workflow(
+        self,
+        document: DocumentStructure,
+        selected_schema: ModularSchema,
+        user_preferences: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Optimize the document processing workflow based on schema and preferences.
 
@@ -121,7 +127,7 @@ class AIOrchestrator:
             "ai_processing": self._should_use_ai(document, selected_schema, user_preferences),
             "quality_level": user_preferences.get("quality_level", "standard"),
             "output_formats": user_preferences.get("output_formats", ["YAML"]),
-            "processing_steps": self._determine_processing_steps(selected_schema, user_preferences)
+            "processing_steps": self._determine_processing_steps(selected_schema, user_preferences),
         }
 
         # AI-based optimization if available
@@ -131,14 +137,14 @@ class AIOrchestrator:
 
         return workflow_config
 
-    def _analyze_user_intent(self, user_input: str) -> Dict[str, Any]:
+    def _analyze_user_intent(self, user_input: str) -> dict[str, Any]:
         """Analyze user intent from natural language input."""
         intent_analysis = {
             "primary_action": "unknown",
             "document_type": None,
             "complexity": "medium",
             "urgency": "normal",
-            "quality_focus": False
+            "quality_focus": False,
         }
 
         input_lower = user_input.lower()
@@ -170,15 +176,19 @@ class AIOrchestrator:
             intent_analysis["urgency"] = "high"
 
         # Quality focus
-        intent_analysis["quality_focus"] = any(word in input_lower for word in
-                                              ["quality", "high-quality", "professional", "polish"])
+        intent_analysis["quality_focus"] = any(
+            word in input_lower for word in ["quality", "high-quality", "professional", "polish"]
+        )
 
         return intent_analysis
 
-    def _build_context(self, user_input: str,
-                      document: Optional[DocumentStructure],
-                      context: Optional[OrchestratorContext],
-                      intent_analysis: Dict[str, Any]) -> OrchestratorContext:
+    def _build_context(
+        self,
+        user_input: str,
+        document: DocumentStructure | None,
+        context: OrchestratorContext | None,
+        intent_analysis: dict[str, Any],
+    ) -> OrchestratorContext:
         """Build comprehensive orchestrator context."""
 
         # Start with provided context or create new
@@ -187,13 +197,15 @@ class AIOrchestrator:
         # Update with intent analysis
         orch_context.user_intent = user_input
         orch_context.complexity_level = intent_analysis.get("complexity", "medium")
-        orch_context.quality_requirements = ("high" if intent_analysis.get("quality_focus")
-                                          else orch_context.quality_requirements)
+        orch_context.quality_requirements = (
+            "high" if intent_analysis.get("quality_focus") else orch_context.quality_requirements
+        )
 
         # Infer from document if available
         if document:
-            orch_context.document_type = (orch_context.document_type or
-                                        self._infer_document_type(document))
+            orch_context.document_type = orch_context.document_type or self._infer_document_type(
+                document
+            )
             orch_context.domain = self._infer_document_domain(document)
 
         # Update available schemas
@@ -206,9 +218,9 @@ class AIOrchestrator:
 
         return orch_context
 
-    def _generate_orchestrator_response(self,
-                                      context: OrchestratorContext,
-                                      document: Optional[DocumentStructure]) -> OrchestratorResponse:
+    def _generate_orchestrator_response(
+        self, context: OrchestratorContext, document: DocumentStructure | None
+    ) -> OrchestratorResponse:
         """Generate intelligent orchestrator response."""
 
         recommended_schema_ids = []
@@ -222,7 +234,9 @@ class AIOrchestrator:
 
             if matching_schemas:
                 top_schema = matching_schemas[0]
-                reasoning_parts.append(f"Found matching schema '{top_schema.name}' with {top_schema.confidence_score:.1%} confidence")
+                reasoning_parts.append(
+                    f"Found matching schema '{top_schema.name}' with {top_schema.confidence_score:.1%} confidence"
+                )
                 confidence_score = top_schema.confidence_score
 
         # AI-enhanced reasoning if available
@@ -232,7 +246,9 @@ class AIOrchestrator:
             confidence_score = max(confidence_score, 0.7)  # AI boosts confidence
 
         # Build reasoning
-        reasoning = " ".join(reasoning_parts) if reasoning_parts else "Standard processing recommended"
+        reasoning = (
+            " ".join(reasoning_parts) if reasoning_parts else "Standard processing recommended"
+        )
 
         # Generate alternatives
         alternatives = self._generate_alternatives(context, recommended_schema_ids)
@@ -249,11 +265,12 @@ class AIOrchestrator:
             confidence_score=confidence_score,
             alternative_options=alternatives,
             processing_plan=processing_plan,
-            estimated_time=estimated_time
+            estimated_time=estimated_time,
         )
 
-    def _generate_ai_reasoning(self, context: OrchestratorContext,
-                             document: Optional[DocumentStructure]) -> str:
+    def _generate_ai_reasoning(
+        self, context: OrchestratorContext, document: DocumentStructure | None
+    ) -> str:
         """Generate AI-enhanced reasoning for orchestration decisions."""
         if not self.ai_analyzer:
             return ""
@@ -262,19 +279,19 @@ class AIOrchestrator:
         Analyze this document processing request and provide reasoning for schema selection:
 
         User Intent: {context.user_intent}
-        Document Type: {context.document_type or 'Unknown'}
+        Document Type: {context.document_type or "Unknown"}
         Complexity: {context.complexity_level}
         Quality Requirements: {context.quality_requirements}
 
-        Available schemas: {', '.join(context.available_schemas[:5])}
+        Available schemas: {", ".join(context.available_schemas[:5])}
 
         Provide concise reasoning (2-3 sentences) for the best processing approach.
         """
 
         try:
-            response = self.ai_analyzer.client.chat_completion([
-                {"role": "user", "content": prompt}
-            ], max_tokens=200)
+            response = self.ai_analyzer.client.chat_completion(
+                [{"role": "user", "content": prompt}], max_tokens=200
+            )
 
             return response["choices"][0]["message"]["content"].strip()
 
@@ -287,19 +304,25 @@ class AIOrchestrator:
         title_lower = document.metadata.title.lower()
         content_lower = document.content.raw_text[:1000].lower()
 
-        if any(keyword in title_lower + content_lower for keyword in
-               ["api", "endpoint", "rest", "graphql", "swagger"]):
+        if any(
+            keyword in title_lower + content_lower
+            for keyword in ["api", "endpoint", "rest", "graphql", "swagger"]
+        ):
             return "api_documentation"
-        elif any(keyword in title_lower + content_lower for keyword in
-                 ["security", "authentication", "authorization", "vulnerability"]):
+        elif any(
+            keyword in title_lower + content_lower
+            for keyword in ["security", "authentication", "authorization", "vulnerability"]
+        ):
             return "security_guide"
-        elif any(keyword in title_lower + content_lower for keyword in
-                 ["tutorial", "guide", "how to", "getting started"]):
+        elif any(
+            keyword in title_lower + content_lower
+            for keyword in ["tutorial", "guide", "how to", "getting started"]
+        ):
             return "tutorial"
         else:
             return "technical_document"
 
-    def _infer_document_domain(self, document: DocumentStructure) -> Optional[str]:
+    def _infer_document_domain(self, document: DocumentStructure) -> str | None:
         """Infer document domain/specialization."""
         content_lower = document.content.raw_text[:2000].lower()
 
@@ -308,7 +331,7 @@ class AIOrchestrator:
             "data": ["database", "sql", "nosql", "data", "analytics"],
             "ai": ["ai", "machine learning", "neural", "gpt", "llm"],
             "devops": ["docker", "kubernetes", "ci/cd", "deployment"],
-            "security": ["security", "encryption", "authentication", "oauth"]
+            "security": ["security", "encryption", "authentication", "oauth"],
         }
 
         for domain, keywords in domains.items():
@@ -317,8 +340,9 @@ class AIOrchestrator:
 
         return None
 
-    def _should_use_ai(self, document: DocumentStructure,
-                      schema: ModularSchema, preferences: Dict[str, Any]) -> bool:
+    def _should_use_ai(
+        self, document: DocumentStructure, schema: ModularSchema, preferences: dict[str, Any]
+    ) -> bool:
         """Determine if AI processing should be used."""
         # Check user preference
         if preferences.get("use_ai") is False:
@@ -339,8 +363,9 @@ class AIOrchestrator:
 
         return False
 
-    def _determine_processing_steps(self, schema: ModularSchema,
-                                  preferences: Dict[str, Any]) -> List[str]:
+    def _determine_processing_steps(
+        self, schema: ModularSchema, preferences: dict[str, Any]
+    ) -> list[str]:
         """Determine the processing steps for a schema."""
         steps = ["load_document", "parse_structure"]
 
@@ -351,9 +376,9 @@ class AIOrchestrator:
 
         return steps
 
-    def _refine_schema_recommendations_ai(self, schemas: List[ModularSchema],
-                                        document: DocumentStructure,
-                                        requirements: str) -> List[ModularSchema]:
+    def _refine_schema_recommendations_ai(
+        self, schemas: list[ModularSchema], document: DocumentStructure, requirements: str
+    ) -> list[ModularSchema]:
         """Use AI to refine schema recommendations based on user requirements."""
         if not self.ai_analyzer:
             return schemas
@@ -372,12 +397,14 @@ class AIOrchestrator:
         """
 
         try:
-            response = self.ai_analyzer.client.chat_completion([
-                {"role": "user", "content": prompt}
-            ], max_tokens=100)
+            response = self.ai_analyzer.client.chat_completion(
+                [{"role": "user", "content": prompt}], max_tokens=100
+            )
 
-            recommended_names = response["choices"][0]["message"]["content"].strip().split('\n')
-            recommended_names = [name.strip('- ').strip() for name in recommended_names if name.strip()]
+            recommended_names = response["choices"][0]["message"]["content"].strip().split("\n")
+            recommended_names = [
+                name.strip("- ").strip() for name in recommended_names if name.strip()
+            ]
 
             # Filter schemas by recommended names
             name_to_schema = {s.name: s for s in schemas}
@@ -393,8 +420,9 @@ class AIOrchestrator:
             logger.warning(f"AI schema refinement failed: {e}")
             return schemas[:3]
 
-    def _generate_alternatives(self, context: OrchestratorContext,
-                             recommended_ids: List[str]) -> List[Dict[str, Any]]:
+    def _generate_alternatives(
+        self, context: OrchestratorContext, recommended_ids: list[str]
+    ) -> list[dict[str, Any]]:
         """Generate alternative processing options."""
         alternatives = []
 
@@ -403,31 +431,36 @@ class AIOrchestrator:
         alternative_schemas = [s for s in all_schemas if s.id not in recommended_ids][:2]
 
         for schema in alternative_schemas:
-            alternatives.append({
-                "type": "alternative_schema",
-                "schema_id": schema.id,
-                "reason": f"Alternative approach: {schema.description}"
-            })
+            alternatives.append(
+                {
+                    "type": "alternative_schema",
+                    "schema_id": schema.id,
+                    "reason": f"Alternative approach: {schema.description}",
+                }
+            )
 
         # Alternative processing options
         if context.quality_requirements != "high":
-            alternatives.append({
-                "type": "processing_option",
-                "option": "skip_ai",
-                "reason": "Faster processing without AI analysis"
-            })
+            alternatives.append(
+                {
+                    "type": "processing_option",
+                    "option": "skip_ai",
+                    "reason": "Faster processing without AI analysis",
+                }
+            )
 
         return alternatives
 
-    def _create_processing_plan(self, context: OrchestratorContext,
-                              schema_ids: List[str]) -> Dict[str, Any]:
+    def _create_processing_plan(
+        self, context: OrchestratorContext, schema_ids: list[str]
+    ) -> dict[str, Any]:
         """Create a detailed processing plan."""
         plan = {
             "steps": ["validate_input", "load_document"],
             "schemas_to_apply": schema_ids,
             "ai_processing": context.quality_requirements == "high",
             "output_formats": ["YAML"],  # Default
-            "validation_required": True
+            "validation_required": True,
         }
 
         if schema_ids:
@@ -438,8 +471,7 @@ class AIOrchestrator:
 
         return plan
 
-    def _estimate_processing_time(self, context: OrchestratorContext,
-                                num_schemas: int) -> int:
+    def _estimate_processing_time(self, context: OrchestratorContext, num_schemas: int) -> int:
         """Estimate processing time in seconds."""
         base_time = 30  # Base processing time
         schema_time = num_schemas * 15  # Time per schema
@@ -447,8 +479,9 @@ class AIOrchestrator:
 
         return base_time + schema_time + ai_time
 
-    def _optimize_workflow_ai(self, document: DocumentStructure,
-                            workflow_config: Dict[str, Any]) -> Dict[str, Any]:
+    def _optimize_workflow_ai(
+        self, document: DocumentStructure, workflow_config: dict[str, Any]
+    ) -> dict[str, Any]:
         """Use AI to optimize workflow configuration."""
         if not self.ai_analyzer:
             return {}
@@ -465,9 +498,9 @@ class AIOrchestrator:
         """
 
         try:
-            response = self.ai_analyzer.client.chat_completion([
-                {"role": "user", "content": prompt}
-            ], max_tokens=150)
+            response = self.ai_analyzer.client.chat_completion(
+                [{"role": "user", "content": prompt}], max_tokens=150
+            )
 
             content = response["choices"][0]["message"]["content"]
             optimizations = json.loads(content)
@@ -484,7 +517,7 @@ class AIOrchestrator:
             "user_input": user_input,
             "recommended_schemas": response.recommended_schemas,
             "confidence": response.confidence_score,
-            "processing_plan": response.processing_plan
+            "processing_plan": response.processing_plan,
         }
 
         self.user_context_history.append(context_entry)

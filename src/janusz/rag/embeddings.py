@@ -7,9 +7,10 @@ with automatic fallback and chunking support.
 """
 
 import logging
+import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EmbeddingConfig:
     """Configuration for embedding models."""
+
     model_name: str = "text-embedding-ada-002"
     dimension: int = 1536
     max_tokens: int = 8191
@@ -28,12 +30,12 @@ class EmbeddingProvider(ABC):
     """Abstract base class for embedding providers."""
 
     @abstractmethod
-    def embed_text(self, text: str) -> List[float]:
+    def embed_text(self, text: str) -> list[float]:
         """Convert text to embedding vector."""
         pass
 
     @abstractmethod
-    def embed_batch(self, texts: List[str]) -> List[List[float]]:
+    def embed_batch(self, texts: list[str]) -> list[list[float]]:
         """Convert multiple texts to embedding vectors."""
         pass
 
@@ -53,7 +55,7 @@ class EmbeddingProvider(ABC):
 class OpenRouterEmbeddings(EmbeddingProvider):
     """OpenRouter-based embeddings using various models."""
 
-    def __init__(self, model: str = "text-embedding-ada-002", api_key: Optional[str] = None):
+    def __init__(self, model: str = "text-embedding-ada-002", api_key: str | None = None):
         """
         Initialize OpenRouter embeddings.
 
@@ -71,24 +73,25 @@ class OpenRouterEmbeddings(EmbeddingProvider):
 
         try:
             import httpx
+
             self.client = httpx.Client(
                 base_url="https://openrouter.ai/api/v1",
                 headers={
                     "Authorization": f"Bearer {self.api_key}",
                     "Content-Type": "application/json",
-                    "HTTP-Referer": "https://github.com/your-username/janusz",
-                    "X-Title": "Janusz AI Document Processor"
+                    "HTTP-Referer": "https://github.com/Hipson47/Janusz",
+                    "X-Title": "Janusz AI Document Processor",
                 },
-                timeout=30.0
+                timeout=30.0,
             )
         except ImportError as err:
             raise ImportError("httpx required for OpenRouter embeddings") from err
 
-    def embed_text(self, text: str) -> List[float]:
+    def embed_text(self, text: str) -> list[float]:
         """Convert single text to embedding."""
         return self.embed_batch([text])[0]
 
-    def embed_batch(self, texts: List[str]) -> List[List[float]]:
+    def embed_batch(self, texts: list[str]) -> list[list[float]]:
         """Convert multiple texts to embeddings."""
         # Simple implementation - could be optimized with batching
         embeddings = []
@@ -100,13 +103,12 @@ class OpenRouterEmbeddings(EmbeddingProvider):
                 continue
 
             # Truncate if too long
-            truncated_text = text[:self.max_tokens]
+            truncated_text = text[: self.max_tokens]
 
             try:
-                response = self.client.post("/embeddings", json={
-                    "model": self.model,
-                    "input": truncated_text
-                })
+                response = self.client.post(
+                    "/embeddings", json={"model": self.model, "input": truncated_text}
+                )
 
                 response.raise_for_status()
                 data = response.json()
@@ -165,11 +167,11 @@ class SentenceTransformerEmbeddings(EmbeddingProvider):
         self._dimension = self.model.get_sentence_embedding_dimension()
         self._max_tokens = 512  # Conservative limit for local models
 
-    def embed_text(self, text: str) -> List[float]:
+    def embed_text(self, text: str) -> list[float]:
         """Convert text to embedding using sentence transformer."""
         return self.embed_batch([text])[0]
 
-    def embed_batch(self, texts: List[str]) -> List[List[float]]:
+    def embed_batch(self, texts: list[str]) -> list[list[float]]:
         """Convert multiple texts to embeddings."""
         try:
             embeddings = self.model.encode(texts, convert_to_list=True)
@@ -204,7 +206,7 @@ class TextChunker:
         self.chunk_size = chunk_size
         self.overlap = overlap
 
-    def chunk_text(self, text: str) -> List[Dict[str, Any]]:
+    def chunk_text(self, text: str) -> list[dict[str, Any]]:
         """
         Split text into overlapping chunks.
 
@@ -215,12 +217,7 @@ class TextChunker:
             List of chunk dictionaries with text and metadata
         """
         if len(text) <= self.chunk_size:
-            return [{
-                "text": text,
-                "start": 0,
-                "end": len(text),
-                "chunk_id": 0
-            }]
+            return [{"text": text, "start": 0, "end": len(text), "chunk_id": 0}]
 
         chunks = []
         start = 0
@@ -239,12 +236,7 @@ class TextChunker:
                     end = sentence_end
 
             chunk_text = text[start:end]
-            chunks.append({
-                "text": chunk_text,
-                "start": start,
-                "end": end,
-                "chunk_id": chunk_id
-            })
+            chunks.append({"text": chunk_text, "start": start, "end": end, "chunk_id": chunk_id})
 
             # Move start position with overlap
             start = end - self.overlap
@@ -252,9 +244,9 @@ class TextChunker:
 
         return chunks
 
-    def _find_sentence_end(self, text: str, start: int, end: int) -> Optional[int]:
+    def _find_sentence_end(self, text: str, start: int, end: int) -> int | None:
         """Find sentence ending within the specified range."""
-        sentence_markers = ['. ', '! ', '? ', '\n\n']
+        sentence_markers = [". ", "! ", "? ", "\n\n"]
 
         for marker in sentence_markers:
             pos = text.rfind(marker, start, end)
@@ -267,7 +259,7 @@ class TextChunker:
 class EmbeddingManager:
     """Manager for embedding operations with automatic fallback."""
 
-    def __init__(self, config: Optional[EmbeddingConfig] = None):
+    def __init__(self, config: EmbeddingConfig | None = None):
         """
         Initialize embedding manager.
 
@@ -285,11 +277,11 @@ class EmbeddingManager:
             self._embedding_provider = self._create_embedding_provider()
         return self._embedding_provider
 
-    def embed_text(self, text: str) -> List[float]:
+    def embed_text(self, text: str) -> list[float]:
         """Embed single text."""
         return self.embedding_provider.embed_text(text)
 
-    def embed_document(self, content: str, chunk: bool = True) -> Dict[str, Any]:
+    def embed_document(self, content: str, chunk: bool = True) -> dict[str, Any]:
         """
         Embed document content, optionally with chunking.
 
@@ -308,10 +300,7 @@ class EmbeddingManager:
             chunk_embeddings = []
             for chunk in chunks:
                 embedding = self.embed_text(chunk["text"])
-                chunk_embeddings.append({
-                    **chunk,
-                    "embedding": embedding
-                })
+                chunk_embeddings.append({**chunk, "embedding": embedding})
 
             # Create overall document embedding (average of chunks)
             all_embeddings = [ce["embedding"] for ce in chunk_embeddings]
@@ -320,21 +309,23 @@ class EmbeddingManager:
             return {
                 "document_embedding": doc_embedding,
                 "chunks": chunk_embeddings,
-                "chunked": True
+                "chunked": True,
             }
         else:
             # Embed as single piece
             embedding = self.embed_text(content)
             return {
                 "document_embedding": embedding,
-                "chunks": [{
-                    "text": content,
-                    "start": 0,
-                    "end": len(content),
-                    "chunk_id": 0,
-                    "embedding": embedding
-                }],
-                "chunked": False
+                "chunks": [
+                    {
+                        "text": content,
+                        "start": 0,
+                        "end": len(content),
+                        "chunk_id": 0,
+                        "embedding": embedding,
+                    }
+                ],
+                "chunked": False,
             }
 
     def _create_embedding_provider(self) -> EmbeddingProvider:
@@ -351,31 +342,34 @@ class EmbeddingManager:
         except ImportError:
             logger.warning("No embedding providers available")
 
-        # Last resort - dummy provider
-        return DummyEmbeddings()
+        raise RuntimeError(
+            "No embedding provider available. Install janusz[rag] and configure "
+            "JANUSZ_OPENROUTER_API_KEY or sentence-transformers to use RAG."
+        )
 
-    def _average_embeddings(self, embeddings: List[List[float]]) -> List[float]:
+    def _average_embeddings(self, embeddings: list[list[float]]) -> list[float]:
         """Average multiple embeddings."""
         if not embeddings:
             return [0.0] * self.embedding_provider.dimension
 
         import numpy as np
+
         embeddings_array = np.array(embeddings)
         averaged = np.mean(embeddings_array, axis=0)
         return averaged.tolist()
 
 
 class DummyEmbeddings(EmbeddingProvider):
-    """Dummy embedding provider for testing when no real providers are available."""
+    """Test-only embedding provider. Do not use for production RAG behavior."""
 
     def __init__(self, dimension: int = 384):
         self._dimension = dimension
 
-    def embed_text(self, text: str) -> List[float]:
+    def embed_text(self, text: str) -> list[float]:
         """Return zero vector for dummy embeddings."""
         return [0.0] * self.dimension
 
-    def embed_batch(self, texts: List[str]) -> List[List[float]]:
+    def embed_batch(self, texts: list[str]) -> list[list[float]]:
         """Return zero vectors for batch."""
         return [[0.0] * self.dimension for _ in texts]
 
@@ -386,7 +380,3 @@ class DummyEmbeddings(EmbeddingProvider):
     @property
     def max_tokens(self) -> int:
         return 10000  # Unlimited for dummy
-
-
-# Import here to avoid circular imports
-import os  # noqa: E402

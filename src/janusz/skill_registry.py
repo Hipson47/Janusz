@@ -3,9 +3,10 @@
 
 import json
 import sqlite3
+from collections.abc import Iterable, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any
 
 from .skill_quality import skill_summary_for_registry
 
@@ -13,10 +14,10 @@ DEFAULT_REGISTRY_JSONL = Path("registry/skills.jsonl")
 DEFAULT_REGISTRY_SQLITE = Path("registry/skills.sqlite")
 
 
-def discover_skill_dirs(roots: Sequence[str]) -> List[Path]:
+def discover_skill_dirs(roots: Sequence[str]) -> list[Path]:
     """Discover skill directories under one or more roots."""
     seen = set()
-    skills: List[Path] = []
+    skills: list[Path] = []
 
     for root_value in roots:
         root = Path(root_value).expanduser()
@@ -32,7 +33,9 @@ def discover_skill_dirs(roots: Sequence[str]) -> List[Path]:
 
         for skill_file in candidates:
             skill_dir = skill_file.parent
-            if any(part in {".git", ".venv", "__pycache__", "node_modules"} for part in skill_dir.parts):
+            if any(
+                part in {".git", ".venv", "__pycache__", "node_modules"} for part in skill_dir.parts
+            ):
                 continue
             resolved = str(skill_dir.resolve())
             if resolved in seen:
@@ -46,10 +49,10 @@ def discover_skill_dirs(roots: Sequence[str]) -> List[Path]:
 def build_registry(
     roots: Sequence[str],
     output_jsonl: Path = DEFAULT_REGISTRY_JSONL,
-    sqlite_path: Optional[Path] = DEFAULT_REGISTRY_SQLITE,
-) -> List[Dict[str, Any]]:
+    sqlite_path: Path | None = DEFAULT_REGISTRY_SQLITE,
+) -> list[dict[str, Any]]:
     """Build a local skill registry from skill directories."""
-    entries: List[Dict[str, Any]] = []
+    entries: list[dict[str, Any]] = []
     indexed_at = utc_now()
 
     for skill_dir in discover_skill_dirs(roots):
@@ -80,7 +83,7 @@ def build_registry(
     return entries
 
 
-def write_jsonl(entries: Sequence[Dict[str, Any]], output_path: Path) -> None:
+def write_jsonl(entries: Sequence[dict[str, Any]], output_path: Path) -> None:
     """Write registry entries to JSONL."""
     with open(output_path, "w", encoding="utf-8") as file:
         for entry in entries:
@@ -88,11 +91,11 @@ def write_jsonl(entries: Sequence[Dict[str, Any]], output_path: Path) -> None:
             file.write("\n")
 
 
-def load_jsonl(path: Path) -> List[Dict[str, Any]]:
+def load_jsonl(path: Path) -> list[dict[str, Any]]:
     """Load registry entries from JSONL."""
     if not path.exists():
         return []
-    entries: List[Dict[str, Any]] = []
+    entries: list[dict[str, Any]] = []
     with open(path, encoding="utf-8") as file:
         for line in file:
             if line.strip():
@@ -102,7 +105,7 @@ def load_jsonl(path: Path) -> List[Dict[str, Any]]:
     return entries
 
 
-def write_sqlite(entries: Sequence[Dict[str, Any]], sqlite_path: Path) -> None:
+def write_sqlite(entries: Sequence[dict[str, Any]], sqlite_path: Path) -> None:
     """Write registry entries to SQLite."""
     sqlite_path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(sqlite_path)
@@ -156,10 +159,10 @@ def write_sqlite(entries: Sequence[Dict[str, Any]], sqlite_path: Path) -> None:
 def search_registry(
     query: str = "",
     registry_path: Path = DEFAULT_REGISTRY_JSONL,
-    category: Optional[str] = None,
+    category: str | None = None,
     min_score: int = 0,
     limit: int = 20,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Search a JSONL registry by query, trigger, category, and score."""
     query_terms = [term.lower() for term in query.split() if term.strip()]
     results = []
@@ -178,7 +181,7 @@ def search_registry(
     return results[:limit]
 
 
-def build_search_text(entry: Dict[str, Any]) -> str:
+def build_search_text(entry: dict[str, Any]) -> str:
     """Build lowercase search text for one registry entry."""
     parts = [
         entry.get("name", ""),

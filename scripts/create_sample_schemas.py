@@ -7,7 +7,6 @@ as templates for different types of technical documentation.
 """
 
 import json
-import os
 from pathlib import Path
 
 # Sample schemas
@@ -24,42 +23,42 @@ SAMPLE_SCHEMAS = [
                 "content": "API Overview and Introduction",
                 "metadata": {"level": 1, "required": True},
                 "required": True,
-                "order": 0
+                "order": 0,
             },
             {
                 "type": "section",
                 "content": "Authentication and Authorization",
                 "metadata": {"level": 1, "security_focus": True},
                 "required": True,
-                "order": 1
+                "order": 1,
             },
             {
                 "type": "section",
                 "content": "API Endpoints Reference",
                 "metadata": {"level": 1, "technical": True},
                 "required": True,
-                "order": 2
+                "order": 2,
             },
             {
                 "type": "section",
                 "content": "Request/Response Examples",
                 "metadata": {"level": 2, "examples": True},
                 "required": False,
-                "order": 3
+                "order": 3,
             },
             {
                 "type": "list",
                 "content": "Common Error Codes and Handling",
                 "metadata": {"error_handling": True},
                 "required": True,
-                "order": 4
-            }
+                "order": 4,
+            },
         ],
         "dependencies": [],
         "ai_generated": False,
         "confidence_score": 0.9,
         "created_at": "2025-12-02T20:00:00",
-        "usage_count": 5
+        "usage_count": 5,
     },
     {
         "id": "security_best_practices_schema",
@@ -73,42 +72,42 @@ SAMPLE_SCHEMAS = [
                 "content": "Security Overview and Threat Model",
                 "metadata": {"level": 1, "threat_modeling": True},
                 "required": True,
-                "order": 0
+                "order": 0,
             },
             {
                 "type": "list",
                 "content": "Authentication Best Practices",
                 "metadata": {"authentication": True},
                 "required": True,
-                "order": 1
+                "order": 1,
             },
             {
                 "type": "list",
                 "content": "Input Validation and Sanitization",
                 "metadata": {"input_validation": True},
                 "required": True,
-                "order": 2
+                "order": 2,
             },
             {
                 "type": "section",
                 "content": "Data Protection and Encryption",
                 "metadata": {"level": 2, "encryption": True},
                 "required": True,
-                "order": 3
+                "order": 3,
             },
             {
                 "type": "list",
                 "content": "Monitoring and Logging Recommendations",
                 "metadata": {"monitoring": True},
                 "required": False,
-                "order": 4
-            }
+                "order": 4,
+            },
         ],
         "dependencies": [],
         "ai_generated": False,
         "confidence_score": 0.95,
         "created_at": "2025-12-02T20:00:00",
-        "usage_count": 8
+        "usage_count": 8,
     },
     {
         "id": "tutorial_guide_schema",
@@ -122,49 +121,49 @@ SAMPLE_SCHEMAS = [
                 "content": "Introduction and Learning Objectives",
                 "metadata": {"level": 1, "objectives": True},
                 "required": True,
-                "order": 0
+                "order": 0,
             },
             {
                 "type": "list",
                 "content": "Prerequisites and Requirements",
                 "metadata": {"prerequisites": True},
                 "required": True,
-                "order": 1
+                "order": 1,
             },
             {
                 "type": "section",
                 "content": "Step-by-Step Instructions",
                 "metadata": {"level": 1, "step_by_step": True},
                 "required": True,
-                "order": 2
+                "order": 2,
             },
             {
                 "type": "code",
                 "content": "Code Examples and Samples",
                 "metadata": {"examples": True, "code_samples": True},
                 "required": False,
-                "order": 3
+                "order": 3,
             },
             {
                 "type": "section",
                 "content": "Troubleshooting and Common Issues",
                 "metadata": {"level": 2, "troubleshooting": True},
                 "required": False,
-                "order": 4
+                "order": 4,
             },
             {
                 "type": "list",
                 "content": "Next Steps and Further Reading",
                 "metadata": {"next_steps": True},
                 "required": True,
-                "order": 5
-            }
+                "order": 5,
+            },
         ],
         "dependencies": [],
         "ai_generated": False,
         "confidence_score": 0.85,
         "created_at": "2025-12-02T20:00:00",
-        "usage_count": 12
+        "usage_count": 12,
     },
     {
         "id": "deployment_guide_schema",
@@ -178,51 +177,52 @@ SAMPLE_SCHEMAS = [
                 "content": "Deployment Architecture Overview",
                 "metadata": {"level": 1, "architecture": True},
                 "required": True,
-                "order": 0
+                "order": 0,
             },
             {
                 "type": "list",
                 "content": "Prerequisites and Environment Setup",
                 "metadata": {"prerequisites": True, "environment": True},
                 "required": True,
-                "order": 1
+                "order": 1,
             },
             {
                 "type": "section",
                 "content": "Build and Packaging Process",
                 "metadata": {"level": 2, "build": True},
                 "required": True,
-                "order": 2
+                "order": 2,
             },
             {
                 "type": "section",
                 "content": "Deployment Steps and Procedures",
                 "metadata": {"level": 1, "deployment": True},
                 "required": True,
-                "order": 3
+                "order": 3,
             },
             {
                 "type": "section",
                 "content": "Monitoring and Maintenance",
                 "metadata": {"level": 2, "monitoring": True},
                 "required": False,
-                "order": 4
+                "order": 4,
             },
             {
                 "type": "list",
                 "content": "Rollback Procedures and Troubleshooting",
                 "metadata": {"rollback": True, "troubleshooting": True},
                 "required": True,
-                "order": 5
-            }
+                "order": 5,
+            },
         ],
         "dependencies": [],
         "ai_generated": False,
         "confidence_score": 0.88,
         "created_at": "2025-12-02T20:00:00",
-        "usage_count": 6
-    }
+        "usage_count": 6,
+    },
 ]
+
 
 def create_sample_schemas():
     """Create sample schemas in the schemas directory."""
@@ -235,7 +235,7 @@ def create_sample_schemas():
         schema_file = schemas_dir / f"{schema['id']}.json"
 
         try:
-            with open(schema_file, 'w', encoding='utf-8') as f:
+            with open(schema_file, "w", encoding="utf-8") as f:
                 json.dump(schema, f, indent=2, ensure_ascii=False)
 
             print(f"✅ Created schema: {schema['name']}")
@@ -244,6 +244,7 @@ def create_sample_schemas():
             print(f"❌ Failed to create schema {schema['id']}: {e}")
 
     print(f"\n🎉 Created {len(SAMPLE_SCHEMAS)} sample schemas in {schemas_dir}/")
+
 
 def main():
     """Main function."""
@@ -263,6 +264,7 @@ def main():
     print("  janusz schema list")
     print("  janusz orchestrate 'Convert this API doc' --file document.md")
     print("  janusz orchestrate 'Create security guide' --use-ai")
+
 
 if __name__ == "__main__":
     main()

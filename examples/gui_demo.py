@@ -6,12 +6,12 @@ This script demonstrates how to use the Janusz GUI programmatically.
 It creates sample documents and shows how the GUI would process them.
 """
 
-import os
 import sys
 from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
 
 def create_sample_documents():
     """Create sample documents for GUI demonstration."""
@@ -150,6 +150,7 @@ Security should be implemented at every layer of your FastAPI application.
     print(f"✅ Created sample documents in {sample_dir}")
     return sample_dir
 
+
 def demo_gui_features():
     """Demonstrate GUI features programmatically."""
 
@@ -194,6 +195,7 @@ def demo_gui_features():
     print("  Install on Ubuntu: sudo apt-get install python3-tk")
 
     return sample_dir
+
 
 if __name__ == "__main__":
     demo_gui_features()

@@ -18,6 +18,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Text Processing :: General",
     "Topic :: Utilities",
 ]
@@ -36,17 +37,18 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "bandit>=1.9.2",
+    "build>=1.3.0",
+    "coverage[toml]>=7.0.0",
     "httpx>=0.25.0",
+    "mutmut>=3.2.0",
+    "mypy>=1.0.0",
     "pip>=26.1.1",
+    "pip-audit>=2.10.0",
+    "pre-commit>=4.0.0",
     "pytest>=9.0.3",
     "pytest-cov>=4.0.0",
-    "ruff>=0.1.0",
-    "black>=26.3.1",
-    "mypy>=1.0.0",
-    "pip-audit>=2.10.0",
-    "pre-commit>=3.0.0",
-    "bandit>=1.7.0",
-    "codecov>=2.1.0",
+    "ruff>=0.14.0",
     "filelock>=3.20.3",
     "idna>=3.15",
     "pygments>=2.20.0",
@@ -103,10 +105,11 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+addopts = ["--capture=no"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py38"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
@@ -119,17 +122,13 @@ select = [
     "UP", # pyupgrade
 ]
 ignore = [
-    "E501", # line too long, handled by black
+    "E501", # line too long, handled by ruff format where practical
     "B008", # do not perform function calls in argument defaults
     "C901", # too complex
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-
-[tool.black]
-line-length = 100
-target-version = ['py38']
 
 [tool.mypy]
 python_version = "3.10"
@@ -215,9 +214,48 @@ ignore_errors = true
 exclude_dirs = ["tests", "examples"]
 skips = ["B101", "B601"]  # Skip assert checks and shell usage in subprocess
 
+[tool.coverage.run]
+source = ["src/janusz"]
+omit = [
+    "src/janusz/ai/*",
+    "src/janusz/gui/*",
+    "src/janusz/orchestrator/*",
+    "src/janusz/prompts/*",
+    "src/janusz/rag/*",
+    "src/janusz/schemas/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
+
+[tool.mutmut]
+paths_to_mutate = [
+    "src/janusz/json_packager.py",
+    "src/janusz/skill_packager.py",
+    "src/janusz/skill_quality.py",
+    "src/janusz/skill_registry.py",
+    "src/janusz/memory.py",
+    "src/janusz/mcp_server.py",
+]
+tests_dir = ["tests"]
+runner = "python -m pytest tests/test_json_packager.py tests/test_skill_packager.py tests/test_skill_quality.py tests/test_skill_registry.py tests/test_memory.py tests/test_mcp_server.py"
+
 [dependency-groups]
 dev = [
+    "bandit>=1.9.2",
+    "build>=1.3.0",
+    "coverage[toml]>=7.0.0",
     "httpx>=0.25.0",
+    "mutmut>=3.2.0",
+    "mypy>=1.0.0",
     "pip>=26.1.1",
-    "pip-audit>=2.7.3",
+    "pip-audit>=2.10.0",
+    "pre-commit>=4.0.0",
+    "pytest>=9.0.3",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.14.0",
 ]

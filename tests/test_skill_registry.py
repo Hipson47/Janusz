@@ -15,7 +15,9 @@ def test_build_registry_writes_jsonl_and_sqlite(temp_dir):
     jsonl_path = temp_dir / "registry" / "skills.jsonl"
     sqlite_path = temp_dir / "registry" / "skills.sqlite"
 
-    entries = build_registry([str(skill_dir.parent)], output_jsonl=jsonl_path, sqlite_path=sqlite_path)
+    entries = build_registry(
+        [str(skill_dir.parent)], output_jsonl=jsonl_path, sqlite_path=sqlite_path
+    )
 
     assert len(entries) == 1
     assert jsonl_path.exists()

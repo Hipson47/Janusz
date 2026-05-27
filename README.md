@@ -37,7 +37,7 @@ uv sync
 For development tools:
 
 ```bash
-uv sync --extra dev
+uv sync --group dev --locked
 ```
 
 For AI-powered commands:
@@ -169,20 +169,23 @@ tool contract and recommended call flow.
 
 ## Production 1.0 Surface
 
-Janusz 1.0.0 treats the core CLI, document conversion, JSON packaging, skill
-packaging, skill linting/scoring, repository ingest, registry, plugin packaging,
-MCP server, memory, and orchestrator manifest as the production integration
-surface.
+Janusz 1.0.0 separates the hardened integration surface from incubating modules:
 
-Schema management, local GUI, RAG experiments, and prompt tooling remain
-available as optional workflows. They are intentionally kept outside the strict
-1.0 type gate until they are hardened as their own supported surfaces.
+| Stability | Features |
+| --- | --- |
+| Stable | Core CLI, document conversion, JSON packaging, skill packaging, skill lint/score, repository ingest, registry JSONL/SQLite, plugin packaging, memory, orchestrator manifest |
+| Beta | MCP stdio server with workspace sandboxing and safe path handling |
+| Experimental | AI analysis, schema generation, GUI, RAG, prompt tools, AI orchestration |
+
+Experimental modules are import-safe and should fail with actionable messages
+when optional dependencies or provider configuration are missing. They are not
+part of the hardened 1.0 compatibility contract.
 
 The release gate is:
 
 ```bash
 make check
-uv build
+make release-check
 ```
 
 See [docs/PRODUCTION_READINESS.md](docs/PRODUCTION_READINESS.md) for the 1.0
@@ -218,6 +221,9 @@ make skill
 make test
 make lint
 make check
+make release-check
+make wheel-smoke
+make mutate-core
 ```
 
 Use `FILE=...` for file-specific runs:
@@ -251,19 +257,32 @@ src/janusz/
 ## Development
 
 ```bash
-uv run pytest -q
-uv run ruff check src/ tests/
-uv run mypy src/janusz/
+uv sync --group dev --locked
+uv run python -m pytest tests --capture=no
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy src/janusz
 make check
 ```
 
 `make check` runs linting, strict type checking for the supported 1.0 surface,
 and the automated test suite.
 
+`make release-check` is the production gate. It verifies the lockfile, lint,
+formatting, type checking, syntax compilation, 70% coverage, Bandit, `pip-audit`,
+package build, wheel install smoke tests, and version metadata.
+
+`make mutate-core` runs mutation testing for production-critical core modules.
+It is documented as a manual release hardening gate because it is slower than the
+normal pull-request path.
+
 ## Environment Variables
 
 - `JANUSZ_OPENROUTER_API_KEY`: optional key for AI analysis, schema generation,
   prompt optimization, and answer generation.
+- `JANUSZ_WORKSPACE_ROOT`: optional MCP workspace root. MCP file operations are
+  resolved inside this root and deny traversal, symlink escapes, sensitive files,
+  and oversized files by default.
 
 ## Notes
 

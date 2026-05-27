@@ -40,7 +40,7 @@
       "priority": 100,
       "status": "available",
       "scope": "user",
-      "source_path": "/home/hipson47/.codex-app/skills/hipson-workflow/SKILL.md",
+      "source_path": "${HOME}/.codex-app/skills/hipson-workflow/SKILL.md",
       "description": "Structured Codex development workflow with Architect, Executor, and Reviewer roles for scans, task packets, review reports, verification, and handoffs.",
       "use_when": "Coordinating multi-step repository work or splitting work across agents.",
       "triggers": [
@@ -58,7 +58,7 @@
       "priority": 95,
       "status": "available",
       "scope": "user",
-      "source_path": "/home/hipson47/.agents/skills/hipson-repo-intake/SKILL.md",
+      "source_path": "${HOME}/.agents/skills/hipson-repo-intake/SKILL.md",
       "description": "First-pass repository onboarding and context mapping for unfamiliar repos.",
       "use_when": "Starting work in a new repository or building an architecture map.",
       "triggers": [
@@ -75,7 +75,7 @@
       "priority": 90,
       "status": "available",
       "scope": "user",
-      "source_path": "/home/hipson47/.agents/skills/hipson-executor-packet/SKILL.md",
+      "source_path": "${HOME}/.agents/skills/hipson-executor-packet/SKILL.md",
       "description": "Implementation planning, executor packets, acceptance criteria, and verification plans.",
       "use_when": "Preparing bounded implementation work for an executor agent.",
       "triggers": [
@@ -91,7 +91,7 @@
       "priority": 90,
       "status": "available",
       "scope": "user",
-      "source_path": "/home/hipson47/.agents/skills/hipson-review-packet/SKILL.md",
+      "source_path": "${HOME}/.agents/skills/hipson-review-packet/SKILL.md",
       "description": "Evidence-based review, audit, PR, security, and architecture findings.",
       "use_when": "Reviewing diffs, audits, security risks, architecture risks, or PR readiness.",
       "triggers": [
@@ -109,7 +109,7 @@
       "priority": 85,
       "status": "available",
       "scope": "user",
-      "source_path": "/home/hipson47/.agents/skills/hipson-memory-handoff/SKILL.md",
+      "source_path": "${HOME}/.agents/skills/hipson-memory-handoff/SKILL.md",
       "description": "Progress summaries, continuation notes, durable memory handoff, and long-session state.",
       "use_when": "Preserving state before a long pause, handoff, or context transition.",
       "triggers": [
@@ -126,7 +126,7 @@
       "priority": 80,
       "status": "available",
       "scope": "user",
-      "source_path": "/home/hipson47/.agents/skills/hipson-tooling/SKILL.md",
+      "source_path": "${HOME}/.agents/skills/hipson-tooling/SKILL.md",
       "description": "Hipson CLI discovery and generic local workflow tooling rules.",
       "use_when": "The task mentions Hipson tooling, context packets, workflow packets, or local routing.",
       "triggers": [
@@ -144,7 +144,7 @@
       "priority": 75,
       "status": "available",
       "scope": "user",
-      "source_path": "/home/hipson47/.agents/skills/hipson-taxonomy/SKILL.md",
+      "source_path": "${HOME}/.agents/skills/hipson-taxonomy/SKILL.md",
       "description": "Taxonomy hygiene for names, routing, categories, skill boundaries, and de-duplication.",
       "use_when": "Organizing skills, naming packets, reducing overlap, or cleaning routing categories.",
       "triggers": [
@@ -162,7 +162,7 @@
       "priority": 95,
       "status": "available",
       "scope": "system",
-      "source_path": "/home/hipson47/.codex-app/skills/.system/skill-creator/SKILL.md",
+      "source_path": "${HOME}/.codex-app/skills/.system/skill-creator/SKILL.md",
       "description": "Create or update effective skills with focused SKILL.md instructions and references.",
       "use_when": "Turning repeated workflows, domain docs, or tool procedures into reusable skills.",
       "triggers": [
@@ -179,7 +179,7 @@
       "priority": 85,
       "status": "available",
       "scope": "system",
-      "source_path": "/home/hipson47/.codex-app/skills/.system/skill-installer/SKILL.md",
+      "source_path": "${HOME}/.codex-app/skills/.system/skill-installer/SKILL.md",
       "description": "Install Codex skills from the curated OpenAI catalog or a GitHub repository path.",
       "use_when": "Listing, installing, or refreshing curated, experimental, or external skill packs.",
       "triggers": [
@@ -196,7 +196,7 @@
       "priority": 70,
       "status": "available",
       "scope": "system",
-      "source_path": "/home/hipson47/.codex-app/skills/.system/plugin-creator/SKILL.md",
+      "source_path": "${HOME}/.codex-app/skills/.system/plugin-creator/SKILL.md",
       "description": "Scaffold Codex plugin directories and manifests for distributing reusable capabilities.",
       "use_when": "Packaging multiple skills, apps, or MCP mappings into an installable plugin.",
       "triggers": [
@@ -213,7 +213,7 @@
       "priority": 80,
       "status": "available",
       "scope": "system",
-      "source_path": "/home/hipson47/.codex-app/skills/.system/openai-docs/SKILL.md",
+      "source_path": "${HOME}/.codex-app/skills/.system/openai-docs/SKILL.md",
       "description": "Current OpenAI product and API documentation with official-source citations.",
       "use_when": "Answering OpenAI API, Codex, model, migration, or prompt-upgrade questions.",
       "triggers": [
@@ -231,7 +231,7 @@
       "priority": 75,
       "status": "available",
       "scope": "user",
-      "source_path": "/home/hipson47/.agents/skills/supabase/SKILL.md",
+      "source_path": "${HOME}/.agents/skills/supabase/SKILL.md",
       "description": "Supabase database, auth, storage, realtime, edge functions, vectors, and SSR guidance.",
       "use_when": "Working on Supabase-backed applications or debugging Supabase integration issues.",
       "triggers": [
@@ -250,7 +250,7 @@
       "priority": 70,
       "status": "available",
       "scope": "user",
-      "source_path": "/home/hipson47/.agents/skills/supabase-postgres-best-practices/SKILL.md",
+      "source_path": "${HOME}/.agents/skills/supabase-postgres-best-practices/SKILL.md",
       "description": "Postgres performance, schema, query, and database configuration best practices.",
       "use_when": "Reviewing or optimizing Postgres schemas, queries, migrations, or performance.",
       "triggers": [
@@ -268,7 +268,7 @@
       "priority": 55,
       "status": "available",
       "scope": "system",
-      "source_path": "/home/hipson47/.codex-app/skills/.system/imagegen/SKILL.md",
+      "source_path": "${HOME}/.codex-app/skills/.system/imagegen/SKILL.md",
       "description": "Generate or edit raster image assets when bitmap visuals are required.",
       "use_when": "A workflow needs generated images, mockups, textures, sprites, or visual variants.",
       "triggers": [

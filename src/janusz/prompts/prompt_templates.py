@@ -10,7 +10,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..models import PromptTemplate
 
@@ -27,7 +27,7 @@ class PromptLibrary:
     def __init__(self, library_path: str = "prompts"):
         self.library_path = Path(library_path)
         self.library_path.mkdir(exist_ok=True)
-        self.templates: Dict[str, PromptTemplate] = {}
+        self.templates: dict[str, PromptTemplate] = {}
         self._load_library()
 
         # Initialize with default templates if library is empty
@@ -38,7 +38,7 @@ class PromptLibrary:
         """Load templates from disk."""
         for template_file in self.library_path.glob("*.json"):
             try:
-                with open(template_file, encoding='utf-8') as f:
+                with open(template_file, encoding="utf-8") as f:
                     data = json.load(f)
                     template = PromptTemplate(**data)
                     self.templates[template.id] = template
@@ -51,7 +51,7 @@ class PromptLibrary:
         """Save a single template to disk."""
         template_file = self.library_path / f"{template.id}.json"
         try:
-            with open(template_file, 'w', encoding='utf-8') as f:
+            with open(template_file, "w", encoding="utf-8") as f:
                 json.dump(template.model_dump(), f, indent=2, ensure_ascii=False)
         except Exception as e:
             logger.error(f"Failed to save template {template.id}: {e}")
@@ -82,7 +82,6 @@ Provide a structured summary with clear sections and actionable information.""",
                 tags=["technical", "documentation", "code", "best-practices"],
                 author="Janusz System",
             ),
-
             PromptTemplate(
                 id="qa_comprehensive",
                 name="Comprehensive Q&A",
@@ -107,7 +106,6 @@ Ensure the answer is accurate, well-structured, and directly addresses the quest
                 tags=["comprehensive", "structured", "evidence-based"],
                 author="Janusz System",
             ),
-
             PromptTemplate(
                 id="analysis_code_review",
                 name="Code Review Analysis",
@@ -136,7 +134,6 @@ Ensure the answer is accurate, well-structured, and directly addresses the quest
                 tags=["code-review", "security", "quality", "best-practices"],
                 author="Janusz System",
             ),
-
             PromptTemplate(
                 id="generation_api_docs",
                 name="API Documentation Generation",
@@ -195,7 +192,6 @@ Ensure the documentation is clear, comprehensive, and developer-friendly.""",
                 tags=["api", "documentation", "rest", "developer-tools"],
                 author="Janusz System",
             ),
-
             PromptTemplate(
                 id="optimization_prompt_clarity",
                 name="Prompt Clarity Optimization",
@@ -228,7 +224,6 @@ Ensure the documentation is clear, comprehensive, and developer-friendly.""",
                 tags=["clarity", "prompt-engineering", "communication"],
                 author="Janusz System",
             ),
-
             PromptTemplate(
                 id="writing_technical_blog",
                 name="Technical Blog Post",
@@ -298,11 +293,13 @@ Create an engaging, SEO-friendly title that captures the main topic
 
         logger.info(f"Initialized library with {len(default_templates)} default templates")
 
-    def get_template(self, template_id: str) -> Optional[PromptTemplate]:
+    def get_template(self, template_id: str) -> PromptTemplate | None:
         """Get a template by ID."""
         return self.templates.get(template_id)
 
-    def list_templates(self, category: Optional[str] = None, tags: Optional[List[str]] = None) -> List[PromptTemplate]:
+    def list_templates(
+        self, category: str | None = None, tags: list[str] | None = None
+    ) -> list[PromptTemplate]:
         """List templates, optionally filtered by category and tags."""
         templates = list(self.templates.values())
 
@@ -314,7 +311,7 @@ Create an engaging, SEO-friendly title that captures the main topic
 
         return sorted(templates, key=lambda t: t.name)
 
-    def search_templates(self, query: str, limit: int = 10) -> List[PromptTemplate]:
+    def search_templates(self, query: str, limit: int = 10) -> list[PromptTemplate]:
         """Search templates by name, description, or tags."""
         query_lower = query.lower()
         matches = []
@@ -361,7 +358,7 @@ Create an engaging, SEO-friendly title that captures the main topic
         logger.info(f"Added template: {template.name} ({template.id})")
         return True
 
-    def update_template(self, template_id: str, updates: Dict[str, Any]) -> bool:
+    def update_template(self, template_id: str, updates: dict[str, Any]) -> bool:
         """Update an existing template."""
         if template_id not in self.templates:
             logger.warning(f"Template {template_id} not found")
@@ -405,12 +402,12 @@ Create an engaging, SEO-friendly title that captures the main topic
             "metadata": {
                 "export_date": datetime.now().isoformat(),
                 "template_count": len(self.templates),
-                "version": "1.0"
+                "version": "1.0",
             },
-            "templates": [template.model_dump() for template in self.templates.values()]
+            "templates": [template.model_dump() for template in self.templates.values()],
         }
 
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             json.dump(export_data, f, indent=2, ensure_ascii=False)
 
         logger.info(f"Exported {len(self.templates)} templates to {output_path}")
@@ -422,7 +419,7 @@ Create an engaging, SEO-friendly title that captures the main topic
         if not input_file.exists():
             raise FileNotFoundError(f"Import file not found: {input_path}")
 
-        with open(input_file, encoding='utf-8') as f:
+        with open(input_file, encoding="utf-8") as f:
             import_data = json.load(f)
 
         imported_count = 0
@@ -432,7 +429,9 @@ Create an engaging, SEO-friendly title that captures the main topic
                 template = PromptTemplate(**template_data)
 
                 if template.id in self.templates and not overwrite:
-                    logger.warning(f"Template {template.id} already exists, skipping (use overwrite=True)")
+                    logger.warning(
+                        f"Template {template.id} already exists, skipping (use overwrite=True)"
+                    )
                     continue
 
                 self.templates[template.id] = template
@@ -445,7 +444,7 @@ Create an engaging, SEO-friendly title that captures the main topic
         logger.info(f"Imported {imported_count} templates from {input_path}")
         return imported_count
 
-    def get_template_stats(self) -> Dict[str, Any]:
+    def get_template_stats(self) -> dict[str, Any]:
         """Get statistics about the template library."""
         categories = {}
         tags = {}
@@ -462,13 +461,15 @@ Create an engaging, SEO-friendly title that captures the main topic
             "total_templates": len(self.templates),
             "categories": categories,
             "tags": dict(sorted(tags.items(), key=lambda x: x[1], reverse=True)),
-            "most_used": sorted(self.templates.values(),
-                              key=lambda t: t.usage_count, reverse=True)[:5],
-            "highest_rated": sorted(self.templates.values(),
-                                  key=lambda t: t.average_score, reverse=True)[:5],
+            "most_used": sorted(self.templates.values(), key=lambda t: t.usage_count, reverse=True)[
+                :5
+            ],
+            "highest_rated": sorted(
+                self.templates.values(), key=lambda t: t.average_score, reverse=True
+            )[:5],
         }
 
-    def record_usage(self, template_id: str, score: Optional[float] = None):
+    def record_usage(self, template_id: str, score: float | None = None):
         """Record usage of a template and optionally update its score."""
         if template_id in self.templates:
             template = self.templates[template_id]

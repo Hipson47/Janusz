@@ -32,3 +32,14 @@ def test_tool_manifest_uses_current_formats():
 
     assert "json" in manifest["output_formats"]
     assert "codex_skill_folder" in manifest["output_formats"]
+
+
+def test_tool_manifest_does_not_leak_local_developer_paths():
+    """Generated manifests should be portable across checkout directories."""
+    manifest = build_tool_manifest()
+    encoded = json.dumps(manifest)
+    developer_marker = "hipson" + "47"
+
+    assert "/home/" not in encoded
+    assert developer_marker not in encoded
+    assert "working_directory_hint" in manifest

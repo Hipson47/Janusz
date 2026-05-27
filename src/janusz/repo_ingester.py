@@ -6,7 +6,7 @@ import re
 import shutil
 import subprocess  # nosec B404
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .json_packager import write_json_package
 from .skill_packager import escape_yaml_string, slugify
@@ -48,7 +48,7 @@ class RepoIngestor:
         self,
         repo_path: str,
         output_dir: str = "skills",
-        skill_name: Optional[str] = None,
+        skill_name: str | None = None,
         overwrite: bool = False,
     ):
         self.repo_path = Path(repo_path).expanduser().resolve()
@@ -79,7 +79,7 @@ class RepoIngestor:
         )
         return skill_dir
 
-    def build_inventory(self) -> Dict[str, Any]:
+    def build_inventory(self) -> dict[str, Any]:
         """Build a structured repository inventory."""
         return {
             "metadata": {
@@ -103,7 +103,7 @@ class RepoIngestor:
 def ingest_repo(
     repo_path: str,
     output_dir: str = "skills",
-    skill_name: Optional[str] = None,
+    skill_name: str | None = None,
     overwrite: bool = False,
 ) -> Path:
     """Create a repository operation skill package."""
@@ -115,26 +115,28 @@ def ingest_repo(
     ).build()
 
 
-def top_level_inventory(repo_path: Path) -> List[Dict[str, Any]]:
+def top_level_inventory(repo_path: Path) -> list[dict[str, Any]]:
     """Return compact top-level project structure."""
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
     for child in sorted(repo_path.iterdir()):
         if child.name in IGNORE_DIRS:
             continue
         if child.is_dir():
-            items.append({"type": "dir", "path": child.name, "children": count_visible_children(child)})
+            items.append(
+                {"type": "dir", "path": child.name, "children": count_visible_children(child)}
+            )
         else:
             items.append({"type": "file", "path": child.name, "size": child.stat().st_size})
     return items[:80]
 
 
-def source_roots(repo_path: Path) -> List[str]:
+def source_roots(repo_path: Path) -> list[str]:
     """Find likely source roots."""
     candidates = ["src", "app", "lib", "packages", "services", "janusz"]
     return [candidate for candidate in candidates if (repo_path / candidate).exists()]
 
 
-def detect_languages(repo_path: Path) -> List[Dict[str, Any]]:
+def detect_languages(repo_path: Path) -> list[dict[str, Any]]:
     """Detect languages by file extension counts."""
     mapping = {
         ".py": "python",
@@ -149,7 +151,7 @@ def detect_languages(repo_path: Path) -> List[Dict[str, Any]]:
         ".rb": "ruby",
         ".sh": "shell",
     }
-    counts: Dict[str, int] = {}
+    counts: dict[str, int] = {}
     for path in iter_repo_files(repo_path):
         language = mapping.get(path.suffix.lower())
         if language:
@@ -160,13 +162,15 @@ def detect_languages(repo_path: Path) -> List[Dict[str, Any]]:
     ]
 
 
-def discover_commands(repo_path: Path) -> List[Dict[str, str]]:
+def discover_commands(repo_path: Path) -> list[dict[str, str]]:
     """Discover common development commands."""
-    commands: List[Dict[str, str]] = []
+    commands: list[dict[str, str]] = []
     makefile = repo_path / "Makefile"
     if makefile.exists():
         for target in parse_make_targets(makefile):
-            commands.append({"name": f"make {target}", "command": f"make {target}", "source": "Makefile"})
+            commands.append(
+                {"name": f"make {target}", "command": f"make {target}", "source": "Makefile"}
+            )
 
     pyproject = repo_path / "pyproject.toml"
     if pyproject.exists():
@@ -185,12 +189,13 @@ def discover_commands(repo_path: Path) -> List[Dict[str, str]]:
     return dedupe_commands(commands)
 
 
-def discover_tests(repo_path: Path) -> Dict[str, Any]:
+def discover_tests(repo_path: Path) -> dict[str, Any]:
     """Discover test files and likely test commands."""
     test_files = [
         str(path.relative_to(repo_path))
         for path in iter_repo_files(repo_path)
-        if path.name.startswith("test_") or path.name.endswith((".test.ts", ".test.js", ".spec.ts", ".spec.js"))
+        if path.name.startswith("test_")
+        or path.name.endswith((".test.ts", ".test.js", ".spec.ts", ".spec.js"))
     ]
     commands = []
     if (repo_path / "pyproject.toml").exists() or (repo_path / "pytest.ini").exists():
@@ -203,25 +208,35 @@ def discover_tests(repo_path: Path) -> Dict[str, Any]:
     return {"files": test_files[:200], "commands": sorted(set(commands))}
 
 
-def discover_deployment(repo_path: Path) -> Dict[str, Any]:
+def discover_deployment(repo_path: Path) -> dict[str, Any]:
     """Discover deployment and CI configuration."""
     files = existing_files(repo_path, DEPLOYMENT_FILES)
-    ci_files: List[str] = []
+    ci_files: list[str] = []
     github_workflows = repo_path / ".github" / "workflows"
     if github_workflows.exists():
-        ci_files.extend(str(path.relative_to(repo_path)) for path in sorted(github_workflows.glob("*")))
+        ci_files.extend(
+            str(path.relative_to(repo_path)) for path in sorted(github_workflows.glob("*"))
+        )
     return {"files": files, "ci": ci_files}
 
 
-def discover_pitfalls(repo_path: Path) -> List[str]:
+def discover_pitfalls(repo_path: Path) -> list[str]:
     """Infer operational pitfalls from missing or risky repo signals."""
-    pitfalls: List[str] = []
+    pitfalls: list[str] = []
     if not existing_files(repo_path, README_NAMES):
-        pitfalls.append("No README was detected; agents may need extra context before making changes.")
-    if not (repo_path / "tests").exists() and not any(path.name.startswith("test_") for path in iter_repo_files(repo_path)):
-        pitfalls.append("No obvious tests were detected; verification may need manual smoke checks.")
+        pitfalls.append(
+            "No README was detected; agents may need extra context before making changes."
+        )
+    if not (repo_path / "tests").exists() and not any(
+        path.name.startswith("test_") for path in iter_repo_files(repo_path)
+    ):
+        pitfalls.append(
+            "No obvious tests were detected; verification may need manual smoke checks."
+        )
     if not discover_deployment(repo_path)["ci"]:
-        pitfalls.append("No CI workflow was detected; local verification commands are especially important.")
+        pitfalls.append(
+            "No CI workflow was detected; local verification commands are especially important."
+        )
 
     dirty = git_status(repo_path)
     if dirty:
@@ -230,7 +245,7 @@ def discover_pitfalls(repo_path: Path) -> List[str]:
     return pitfalls
 
 
-def render_repo_skill(slug: str, repo_name: str, inventory: Dict[str, Any]) -> str:
+def render_repo_skill(slug: str, repo_name: str, inventory: dict[str, Any]) -> str:
     """Render SKILL.md for a repository operations skill."""
     commands = inventory["commands"][:8]
     tests = inventory["tests"]["commands"][:6]
@@ -241,7 +256,7 @@ def render_repo_skill(slug: str, repo_name: str, inventory: Dict[str, Any]) -> s
         f"name: {slug}",
         (
             'description: "Use this skill when working in the '
-            f'{escape_yaml_string(repo_name)} repository. It gives agents the architecture map, '
+            f"{escape_yaml_string(repo_name)} repository. It gives agents the architecture map, "
             'development commands, test strategy, deployment signals, and pitfalls."'
         ),
         "metadata:",
@@ -296,7 +311,7 @@ def render_repo_skill(slug: str, repo_name: str, inventory: Dict[str, Any]) -> s
     return "\n".join(lines)
 
 
-def render_inventory_markdown(inventory: Dict[str, Any]) -> str:
+def render_inventory_markdown(inventory: dict[str, Any]) -> str:
     """Render a human-readable repository inventory reference."""
     lines = [
         f"# {inventory['metadata']['name']} Inventory",
@@ -332,9 +347,9 @@ def render_inventory_markdown(inventory: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def parse_make_targets(path: Path) -> List[str]:
+def parse_make_targets(path: Path) -> list[str]:
     """Parse public Makefile targets."""
-    targets: List[str] = []
+    targets: list[str] = []
     for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
         match = re.match(r"^([a-zA-Z0-9_.-]+):(?:\s|$)", line)
         if not match:
@@ -346,7 +361,7 @@ def parse_make_targets(path: Path) -> List[str]:
     return targets[:30]
 
 
-def parse_package_scripts(path: Path) -> List[Dict[str, str]]:
+def parse_package_scripts(path: Path) -> list[dict[str, str]]:
     """Parse npm scripts from package.json."""
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -361,7 +376,7 @@ def parse_package_scripts(path: Path) -> List[Dict[str, str]]:
     ]
 
 
-def dedupe_commands(commands: List[Dict[str, str]]) -> List[Dict[str, str]]:
+def dedupe_commands(commands: list[dict[str, str]]) -> list[dict[str, str]]:
     """Remove duplicate command strings while preserving order."""
     seen = set()
     unique = []
@@ -374,7 +389,7 @@ def dedupe_commands(commands: List[Dict[str, str]]) -> List[Dict[str, str]]:
     return unique
 
 
-def existing_files(repo_path: Path, names: List[str]) -> List[str]:
+def existing_files(repo_path: Path, names: list[str]) -> list[str]:
     """Return existing relative files."""
     return [name for name in names if (repo_path / name).exists()]
 
@@ -384,9 +399,9 @@ def count_visible_children(path: Path) -> int:
     return sum(1 for child in path.iterdir() if child.name not in IGNORE_DIRS)
 
 
-def iter_repo_files(repo_path: Path) -> List[Path]:
+def iter_repo_files(repo_path: Path) -> list[Path]:
     """Return files below a repository, skipping common generated directories."""
-    files: List[Path] = []
+    files: list[Path] = []
     for path in repo_path.rglob("*"):
         if not path.is_file():
             continue
@@ -418,6 +433,6 @@ def git_status(repo_path: Path) -> str:
     return result.stdout.strip()
 
 
-def format_languages(languages: List[Dict[str, Any]]) -> str:
+def format_languages(languages: list[dict[str, Any]]) -> str:
     """Format language counts for SKILL.md."""
     return ", ".join(f"{item['language']} ({item['files']})" for item in languages[:5])

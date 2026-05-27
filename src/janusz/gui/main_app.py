@@ -13,7 +13,6 @@ import queue
 import sys
 import threading
 from pathlib import Path
-from typing import Dict, List
 
 # Check for tkinter availability
 try:
@@ -61,7 +60,7 @@ class JanuszGUI:
         self.root.resizable(True, True)
 
         # Initialize variables
-        self.selected_files: List[str] = []
+        self.selected_files: list[str] = []
         self.output_format = tk.StringVar(value="YAML")
         self.use_ai = tk.BooleanVar(value=False)
         self.ai_model = tk.StringVar(value="anthropic/claude-3-haiku")
@@ -79,8 +78,8 @@ class JanuszGUI:
 
         # Knowledge base directories
         self.knowledge_base_dirs = [
-            "new",           # Current working directory
-            "baza wiedzy 28.11"  # Knowledge base
+            "new",  # Current working directory
+            "baza wiedzy 28.11",  # Knowledge base
         ]
 
         self.setup_ui()
@@ -99,8 +98,9 @@ class JanuszGUI:
         main_frame.rowconfigure(2, weight=1)
 
         # Title
-        title_label = ttk.Label(main_frame, text="🧠 Janusz AI Document Processor",
-                               font=("Arial", 16, "bold"))
+        title_label = ttk.Label(
+            main_frame, text="🧠 Janusz AI Document Processor", font=("Arial", 16, "bold")
+        )
         title_label.grid(row=0, column=0, columnspan=3, pady=(0, 20))
 
         # File selection section
@@ -128,20 +128,31 @@ class JanuszGUI:
         # Directory selection
         ttk.Label(file_frame, text="Katalog:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
         self.dir_var = tk.StringVar(value=self.knowledge_base_dirs[0])
-        dir_combo = ttk.Combobox(file_frame, textvariable=self.dir_var,
-                                values=self.knowledge_base_dirs, state="readonly", width=30)
+        dir_combo = ttk.Combobox(
+            file_frame,
+            textvariable=self.dir_var,
+            values=self.knowledge_base_dirs,
+            state="readonly",
+            width=30,
+        )
         dir_combo.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=(0, 5))
-        dir_combo.bind('<<ComboboxSelected>>', self.on_directory_change)
+        dir_combo.bind("<<ComboboxSelected>>", self.on_directory_change)
 
         # Refresh button
-        ttk.Button(file_frame, text="🔄 Odśwież", command=self.load_available_files).grid(row=0, column=2)
+        ttk.Button(file_frame, text="🔄 Odśwież", command=self.load_available_files).grid(
+            row=0, column=2
+        )
 
         # File list with checkboxes
-        ttk.Label(file_frame, text="Dostępne pliki:").grid(row=1, column=0, sticky=tk.W, pady=(10, 0))
+        ttk.Label(file_frame, text="Dostępne pliki:").grid(
+            row=1, column=0, sticky=tk.W, pady=(10, 0)
+        )
 
         # Scrollable frame for files
         file_list_frame = ttk.Frame(file_frame)
-        file_list_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(5, 0))
+        file_list_frame.grid(
+            row=2, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(5, 0)
+        )
 
         # Canvas and scrollbar for file list
         self.canvas = tk.Canvas(file_list_frame, height=200)
@@ -149,8 +160,7 @@ class JanuszGUI:
         self.scrollable_frame = ttk.Frame(self.canvas)
 
         self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+            "<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         )
 
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
@@ -160,7 +170,7 @@ class JanuszGUI:
         scrollbar.pack(side="right", fill="y")
 
         # Store checkbox variables
-        self.file_checkboxes: Dict[str, tk.BooleanVar] = {}
+        self.file_checkboxes: dict[str, tk.BooleanVar] = {}
 
     def setup_output_options(self, parent):
         """Setup output format options."""
@@ -169,8 +179,9 @@ class JanuszGUI:
 
         formats = ["YAML", "JSON", "Skill"]
         for i, fmt in enumerate(formats):
-            ttk.Radiobutton(output_frame, text=fmt, variable=self.output_format,
-                           value=fmt).grid(row=i//2, column=i%2, sticky=tk.W, padx=(0, 20))
+            ttk.Radiobutton(output_frame, text=fmt, variable=self.output_format, value=fmt).grid(
+                row=i // 2, column=i % 2, sticky=tk.W, padx=(0, 20)
+            )
 
     def setup_ai_features(self, parent):
         """Setup AI features interface."""
@@ -178,28 +189,39 @@ class JanuszGUI:
         ai_frame.grid(row=2, column=1, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
 
         # AI toggle
-        ttk.Checkbutton(ai_frame, text="Włącz analizę AI", variable=self.use_ai,
-                        command=self.toggle_ai_options).grid(row=0, column=0, columnspan=2, sticky=tk.W)
+        ttk.Checkbutton(
+            ai_frame, text="Włącz analizę AI", variable=self.use_ai, command=self.toggle_ai_options
+        ).grid(row=0, column=0, columnspan=2, sticky=tk.W)
 
         # AI model selection (disabled by default)
         ttk.Label(ai_frame, text="Model AI:").grid(row=1, column=0, sticky=tk.W, pady=(10, 0))
-        self.ai_model_combo = ttk.Combobox(ai_frame, textvariable=self.ai_model,
-                                         values=["anthropic/claude-3-haiku", "openai/gpt-4", "meta-llama/llama-2-70b"],
-                                         state="disabled", width=25)
+        self.ai_model_combo = ttk.Combobox(
+            ai_frame,
+            textvariable=self.ai_model,
+            values=["anthropic/claude-3-haiku", "openai/gpt-4", "meta-llama/llama-2-70b"],
+            state="disabled",
+            width=25,
+        )
         self.ai_model_combo.grid(row=1, column=1, sticky=(tk.W, tk.E), pady=(10, 0))
 
         # AI features buttons
         ai_buttons_frame = ttk.Frame(ai_frame)
         ai_buttons_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(20, 0))
 
-        ttk.Button(ai_buttons_frame, text="🎯 Optymalizuj prompty",
-                  command=self.optimize_prompts).grid(row=0, column=0, padx=(0, 5))
-        ttk.Button(ai_buttons_frame, text="📋 Generuj schematy",
-                  command=self.generate_schemas, state="disabled").grid(row=0, column=1, padx=(5, 0))
+        ttk.Button(
+            ai_buttons_frame, text="🎯 Optymalizuj prompty", command=self.optimize_prompts
+        ).grid(row=0, column=0, padx=(0, 5))
+        ttk.Button(
+            ai_buttons_frame,
+            text="📋 Generuj schematy",
+            command=self.generate_schemas,
+            state="disabled",
+        ).grid(row=0, column=1, padx=(5, 0))
 
         # RAG button - available when RAG system is ready
-        rag_button = ttk.Button(ai_buttons_frame, text="🔍 RAG Przeszukiwanie",
-                              command=self.rag_search)
+        rag_button = ttk.Button(
+            ai_buttons_frame, text="🔍 RAG Przeszukiwanie", command=self.rag_search
+        )
         rag_button.grid(row=1, column=0, columnspan=2, pady=(5, 0))
         # Enable RAG button if RAG is available
         if self.rag_available:
@@ -207,24 +229,31 @@ class JanuszGUI:
         else:
             rag_button.config(state="disabled")
 
-        self.ai_buttons = [child for child in ai_buttons_frame.winfo_children() if isinstance(child, ttk.Button)]
+        self.ai_buttons = [
+            child for child in ai_buttons_frame.winfo_children() if isinstance(child, ttk.Button)
+        ]
 
     def setup_control_buttons(self, parent):
         """Setup control buttons."""
         button_frame = ttk.Frame(parent)
         button_frame.grid(row=3, column=0, columnspan=2, pady=(0, 10))
 
-        self.convert_button = ttk.Button(button_frame, text="🚀 Konwertuj wybrane pliki",
-                                       command=self.start_conversion)
+        self.convert_button = ttk.Button(
+            button_frame, text="🚀 Konwertuj wybrane pliki", command=self.start_conversion
+        )
         self.convert_button.grid(row=0, column=0, padx=(0, 10))
 
-        ttk.Button(button_frame, text="🧠 Indeksuj do RAG",
-                  command=self.index_to_rag).grid(row=0, column=1, padx=(0, 10))
+        ttk.Button(button_frame, text="🧠 Indeksuj do RAG", command=self.index_to_rag).grid(
+            row=0, column=1, padx=(0, 10)
+        )
 
-        ttk.Button(button_frame, text="📂 Wybierz katalog wyjściowy",
-                  command=self.select_output_directory).grid(row=0, column=2, padx=(0, 10))
+        ttk.Button(
+            button_frame, text="📂 Wybierz katalog wyjściowy", command=self.select_output_directory
+        ).grid(row=0, column=2, padx=(0, 10))
 
-        ttk.Button(button_frame, text="⚙️ Ustawienia", command=self.show_settings).grid(row=0, column=3)
+        ttk.Button(button_frame, text="⚙️ Ustawienia", command=self.show_settings).grid(
+            row=0, column=3
+        )
 
     def setup_progress_section(self, parent):
         """Setup progress tracking and logging."""
@@ -277,7 +306,9 @@ class JanuszGUI:
                 self.log_message("WARNING", f"Błąd podczas przeszukiwania: {e}")
 
         if not available_files:
-            ttk.Label(self.scrollable_frame, text="Brak plików do przetworzenia").grid(row=0, column=0)
+            ttk.Label(self.scrollable_frame, text="Brak plików do przetworzenia").grid(
+                row=0, column=0
+            )
             return
 
         # Create checkboxes for each file
@@ -285,15 +316,18 @@ class JanuszGUI:
             var = tk.BooleanVar()
             self.file_checkboxes[file_path] = var
 
-            cb = ttk.Checkbutton(self.scrollable_frame, text=os.path.basename(file_path),
-                               variable=var)
+            cb = ttk.Checkbutton(
+                self.scrollable_frame, text=os.path.basename(file_path), variable=var
+            )
             cb.grid(row=i, column=0, sticky=tk.W, padx=(0, 10))
 
             # File info label
             try:
                 size = os.path.getsize(file_path)
-                size_str = f"{size} bytes" if size < 1024 else f"{size//1024} KB"
-                ttk.Label(self.scrollable_frame, text=size_str, foreground="gray").grid(row=i, column=1, sticky=tk.W)
+                size_str = f"{size} bytes" if size < 1024 else f"{size // 1024} KB"
+                ttk.Label(self.scrollable_frame, text=size_str, foreground="gray").grid(
+                    row=i, column=1, sticky=tk.W
+                )
             except OSError as e:
                 logger.debug("Could not read file size for %s: %s", file_path, e)
 
@@ -326,7 +360,7 @@ class JanuszGUI:
                 result = messagebox.askyesno(
                     "Brak klucza API",
                     "AI jest włączone, ale nie znaleziono JANUSZ_OPENROUTER_API_KEY.\n"
-                    "Czy chcesz kontynuować bez AI (tylko tradycyjna analiza)?"
+                    "Czy chcesz kontynuować bez AI (tylko tradycyjna analiza)?",
                 )
                 if not result:
                     return
@@ -344,7 +378,7 @@ class JanuszGUI:
         # Start progress monitoring
         self.root.after(100, self.check_processing_status)
 
-    def process_files(self, file_paths: List[str]):
+    def process_files(self, file_paths: list[str]):
         """Process selected files in background thread."""
         try:
             total_files = len(file_paths)
@@ -356,14 +390,14 @@ class JanuszGUI:
                 if not self.is_processing:  # Allow cancellation
                     break
 
-                self.processing_queue.put(("status", f"Przetwarzanie: {os.path.basename(file_path)}"))
+                self.processing_queue.put(
+                    ("status", f"Przetwarzanie: {os.path.basename(file_path)}")
+                )
 
                 try:
                     # Create converter with AI settings
                     converter = UniversalToYAMLConverter(
-                        file_path,
-                        use_ai=self.use_ai.get(),
-                        ai_model=self.ai_model.get()
+                        file_path, use_ai=self.use_ai.get(), ai_model=self.ai_model.get()
                     )
 
                     # Convert to YAML first
@@ -378,12 +412,18 @@ class JanuszGUI:
                         elif self.output_format.get() == "Skill":
                             self.convert_yaml_to_skill(yaml_path)
 
-                        self.processing_queue.put(("log", f"✅ {os.path.basename(file_path)} - sukces"))
+                        self.processing_queue.put(
+                            ("log", f"✅ {os.path.basename(file_path)} - sukces")
+                        )
                     else:
-                        self.processing_queue.put(("log", f"❌ {os.path.basename(file_path)} - błąd"))
+                        self.processing_queue.put(
+                            ("log", f"❌ {os.path.basename(file_path)} - błąd")
+                        )
 
                 except Exception as e:
-                    self.processing_queue.put(("log", f"❌ {os.path.basename(file_path)} - {str(e)}"))
+                    self.processing_queue.put(
+                        ("log", f"❌ {os.path.basename(file_path)} - {str(e)}")
+                    )
 
                 processed += 1
                 progress = (processed / total_files) * 100
@@ -403,11 +443,11 @@ class JanuszGUI:
 
             import yaml
 
-            with open(yaml_path, encoding='utf-8') as f:
+            with open(yaml_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
 
             json_path = yaml_path.with_suffix(".json")
-            with open(json_path, 'w', encoding='utf-8') as f:
+            with open(json_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
 
         except Exception as e:
@@ -453,8 +493,10 @@ class JanuszGUI:
     def optimize_prompts(self):
         """AI-powered prompt optimization interface."""
         if not self.ai_available:
-            messagebox.showerror("AI niedostępne",
-                               "Optymalizacja promptów wymaga włączonej analizy AI w ustawieniach.")
+            messagebox.showerror(
+                "AI niedostępne",
+                "Optymalizacja promptów wymaga włączonej analizy AI w ustawieniach.",
+            )
             return
 
         # Create prompt optimization dialog
@@ -473,8 +515,9 @@ class JanuszGUI:
         main_frame.columnconfigure(1, weight=1)
 
         # Title
-        title_label = ttk.Label(main_frame, text="🧠 Optymalizacja Promptów AI",
-                               font=("Arial", 14, "bold"))
+        title_label = ttk.Label(
+            main_frame, text="🧠 Optymalizacja Promptów AI", font=("Arial", 14, "bold")
+        )
         title_label.grid(row=0, column=0, columnspan=2, pady=(0, 15))
 
         # Input section
@@ -491,30 +534,39 @@ class JanuszGUI:
 
     def _create_prompt_input_section(self, parent):
         """Create the prompt input section."""
-        input_frame = ttk.LabelFrame(parent, text="📝 Wprowadź prompt do optymalizacji", padding="10")
+        input_frame = ttk.LabelFrame(
+            parent, text="📝 Wprowadź prompt do optymalizacji", padding="10"
+        )
         input_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10))
         input_frame.columnconfigure(0, weight=1)
 
         # Prompt text area
         self.prompt_input_text = scrolledtext.ScrolledText(
-            input_frame, wrap=tk.WORD, height=8,
-            font=("Consolas", 10)
+            input_frame, wrap=tk.WORD, height=8, font=("Consolas", 10)
         )
         self.prompt_input_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        self.prompt_input_text.insert(tk.END, "Wpisz tutaj prompt do optymalizacji...\n\nNa przykład:\nNapisz podsumowanie tego dokumentu technicznego, skupiając się na kluczowych funkcjach i wymaganiach systemowych.")
+        self.prompt_input_text.insert(
+            tk.END,
+            "Wpisz tutaj prompt do optymalizacji...\n\nNa przykład:\nNapisz podsumowanie tego dokumentu technicznego, skupiając się na kluczowych funkcjach i wymaganiach systemowych.",
+        )
 
         # Control buttons
         button_frame = ttk.Frame(input_frame)
         button_frame.grid(row=1, column=0, pady=(10, 0))
 
-        ttk.Button(button_frame, text="🗑️ Wyczyść",
-                  command=lambda: self.prompt_input_text.delete(1.0, tk.END)).grid(row=0, column=0, padx=(0, 5))
+        ttk.Button(
+            button_frame,
+            text="🗑️ Wyczyść",
+            command=lambda: self.prompt_input_text.delete(1.0, tk.END),
+        ).grid(row=0, column=0, padx=(0, 5))
 
-        ttk.Button(button_frame, text="📋 Wklej z biblioteki",
-                  command=self._load_prompt_from_library).grid(row=0, column=1, padx=(5, 5))
+        ttk.Button(
+            button_frame, text="📋 Wklej z biblioteki", command=self._load_prompt_from_library
+        ).grid(row=0, column=1, padx=(5, 5))
 
-        self.optimize_button = ttk.Button(button_frame, text="🚀 Optymalizuj",
-                                        command=self._run_prompt_optimization)
+        self.optimize_button = ttk.Button(
+            button_frame, text="🚀 Optymalizuj", command=self._run_prompt_optimization
+        )
         self.optimize_button.grid(row=0, column=2, padx=(5, 0))
 
     def _create_prompt_settings_section(self, parent):
@@ -523,19 +575,36 @@ class JanuszGUI:
         settings_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10))
 
         # Optimization goal
-        ttk.Label(settings_frame, text="Cel optymalizacji:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
+        ttk.Label(settings_frame, text="Cel optymalizacji:").grid(
+            row=0, column=0, sticky=tk.W, padx=(0, 5)
+        )
         self.optimization_goal = tk.StringVar(value="clarity")
-        goal_combo = ttk.Combobox(settings_frame, textvariable=self.optimization_goal,
-                                 values=["clarity", "efficiency", "specificity", "creativity", "conciseness", "comprehensiveness"],
-                                 state="readonly", width=20)
+        goal_combo = ttk.Combobox(
+            settings_frame,
+            textvariable=self.optimization_goal,
+            values=[
+                "clarity",
+                "efficiency",
+                "specificity",
+                "creativity",
+                "conciseness",
+                "comprehensiveness",
+            ],
+            state="readonly",
+            width=20,
+        )
         goal_combo.grid(row=0, column=1, padx=(0, 15))
 
         # AI Model
         ttk.Label(settings_frame, text="Model AI:").grid(row=0, column=2, sticky=tk.W, padx=(0, 5))
         self.prompt_model = tk.StringVar(value="anthropic/claude-3-haiku")
-        model_combo = ttk.Combobox(settings_frame, textvariable=self.prompt_model,
-                                  values=["anthropic/claude-3-haiku", "openai/gpt-4", "meta-llama/llama-2-70b"],
-                                  state="readonly", width=20)
+        model_combo = ttk.Combobox(
+            settings_frame,
+            textvariable=self.prompt_model,
+            values=["anthropic/claude-3-haiku", "openai/gpt-4", "meta-llama/llama-2-70b"],
+            state="readonly",
+            width=20,
+        )
         model_combo.grid(row=0, column=3)
 
     def _create_prompt_results_section(self, parent, window):
@@ -547,9 +616,7 @@ class JanuszGUI:
 
         # Results text area
         self.prompt_results_text = scrolledtext.ScrolledText(
-            results_frame, wrap=tk.WORD, height=12,
-            font=("Consolas", 10),
-            state="disabled"
+            results_frame, wrap=tk.WORD, height=12, font=("Consolas", 10), state="disabled"
         )
         self.prompt_results_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
@@ -557,20 +624,29 @@ class JanuszGUI:
         results_button_frame = ttk.Frame(results_frame)
         results_button_frame.grid(row=1, column=0, pady=(10, 0))
 
-        ttk.Button(results_button_frame, text="📄 Kopiuj do schowka",
-                  command=self._copy_optimized_prompt).grid(row=0, column=0, padx=(0, 5))
+        ttk.Button(
+            results_button_frame, text="📄 Kopiuj do schowka", command=self._copy_optimized_prompt
+        ).grid(row=0, column=0, padx=(0, 5))
 
-        ttk.Button(results_button_frame, text="💾 Zapisz do biblioteki",
-                  command=self._save_prompt_to_library).grid(row=0, column=1, padx=(5, 5))
+        ttk.Button(
+            results_button_frame,
+            text="💾 Zapisz do biblioteki",
+            command=self._save_prompt_to_library,
+        ).grid(row=0, column=1, padx=(5, 5))
 
-        ttk.Button(results_button_frame, text="📊 Porównaj wersje",
-                  command=self._compare_prompt_versions).grid(row=0, column=2, padx=(5, 0))
+        ttk.Button(
+            results_button_frame, text="📊 Porównaj wersje", command=self._compare_prompt_versions
+        ).grid(row=0, column=2, padx=(5, 0))
 
     def _run_prompt_optimization(self):
         """Run prompt optimization."""
         prompt_text = self.prompt_input_text.get(1.0, tk.END).strip()
 
-        if not prompt_text or prompt_text == "Wpisz tutaj prompt do optymalizacji...\n\nNa przykład:\nNapisz podsumowanie tego dokumentu technicznego, skupiając się na kluczowych funkcjach i wymaganiach systemowych.":
+        if (
+            not prompt_text
+            or prompt_text
+            == "Wpisz tutaj prompt do optymalizacji...\n\nNa przykład:\nNapisz podsumowanie tego dokumentu technicznego, skupiając się na kluczowych funkcjach i wymaganiach systemowych."
+        ):
             messagebox.showwarning("Brak promptu", "Wpisz prompt do optymalizacji.")
             return
 
@@ -585,10 +661,11 @@ class JanuszGUI:
 
         # Run optimization in background thread
         import threading
+
         threading.Thread(
             target=self._perform_prompt_optimization,
             args=(prompt_text, self.optimization_goal.get(), self.prompt_model.get()),
-            daemon=True
+            daemon=True,
         ).start()
 
     def _perform_prompt_optimization(self, prompt_text, goal, model):
@@ -601,13 +678,11 @@ class JanuszGUI:
             optimizer = PromptOptimizer(model=model)
 
             # Create optimization request
-            request = PromptOptimizationRequest(
-                text=prompt_text,
-                optimization_goal=goal
-            )
+            request = PromptOptimizationRequest(text=prompt_text, optimization_goal=goal)
 
             # Run optimization
             import asyncio
+
             result = asyncio.run(optimizer.optimize_prompt(request))
 
             # Update UI with results
@@ -627,7 +702,9 @@ class JanuszGUI:
         self.prompt_results_text.insert(tk.END, "✅ Optymalizacja zakończona!\n\n", "success")
 
         # Improvement score
-        self.prompt_results_text.insert(tk.END, f"📈 Wynik poprawy: {result.improvement_score:.1%}\n\n", "title")
+        self.prompt_results_text.insert(
+            tk.END, f"📈 Wynik poprawy: {result.improvement_score:.1%}\n\n", "title"
+        )
 
         # Optimized prompt
         self.prompt_results_text.insert(tk.END, "🎯 Zoptymalizowany prompt:\n", "title")
@@ -668,11 +745,15 @@ class JanuszGUI:
         """Load a prompt from the library."""
         try:
             from ..prompts import PromptLibrary
+
             library = PromptLibrary()
             templates = library.list_templates()
 
             if not templates:
-                messagebox.showinfo("Biblioteka pusta", "Brak szablonów w bibliotece. Najpierw zaimportuj jakieś szablony.")
+                messagebox.showinfo(
+                    "Biblioteka pusta",
+                    "Brak szablonów w bibliotece. Najpierw zaimportuj jakieś szablony.",
+                )
                 return
 
             # Create selection dialog
@@ -703,26 +784,31 @@ class JanuszGUI:
 
     def _copy_optimized_prompt(self):
         """Copy the optimized prompt to clipboard."""
-        if hasattr(self, 'last_optimization_result'):
+        if hasattr(self, "last_optimization_result"):
             try:
                 import pyperclip
+
                 pyperclip.copy(self.last_optimization_result.optimized_prompt)
-                messagebox.showinfo("Skopiowane", "Zoptymalizowany prompt został skopiowany do schowka.")
+                messagebox.showinfo(
+                    "Skopiowane", "Zoptymalizowany prompt został skopiowany do schowka."
+                )
             except ImportError:
                 # Fallback: show in message box
-                messagebox.showinfo("Zoptymalizowany prompt",
-                                  self.last_optimization_result.optimized_prompt)
+                messagebox.showinfo(
+                    "Zoptymalizowany prompt", self.last_optimization_result.optimized_prompt
+                )
         else:
             messagebox.showwarning("Brak wyników", "Najpierw uruchom optymalizację.")
 
     def _save_prompt_to_library(self):
         """Save the optimized prompt to the library."""
-        if not hasattr(self, 'last_optimization_result'):
+        if not hasattr(self, "last_optimization_result"):
             messagebox.showwarning("Brak wyników", "Najpierw uruchom optymalizację.")
             return
 
         try:
             from ..prompts import PromptLibrary
+
             library = PromptLibrary()
 
             # Create template from result
@@ -737,12 +823,14 @@ class JanuszGUI:
                 template=self.last_optimization_result.optimized_prompt,
                 category="optimization",
                 tags=["optimized", "ai-generated", self.optimization_goal.get()],
-                author="Janusz Optimizer"
+                author="Janusz Optimizer",
             )
 
             success = library.add_template(template)
             if success:
-                messagebox.showinfo("Zapisane", f"Prompt został zapisany w bibliotece jako '{template.name}'.")
+                messagebox.showinfo(
+                    "Zapisane", f"Prompt został zapisany w bibliotece jako '{template.name}'."
+                )
             else:
                 messagebox.showerror("Błąd", "Nie udało się zapisać promptu w bibliotece.")
 
@@ -752,7 +840,7 @@ class JanuszGUI:
 
     def _compare_prompt_versions(self):
         """Compare original and optimized prompt versions."""
-        if not hasattr(self, 'last_optimization_result'):
+        if not hasattr(self, "last_optimization_result"):
             messagebox.showwarning("Brak wyników", "Najpierw uruchom optymalizację.")
             return
 
@@ -769,9 +857,13 @@ class JanuszGUI:
         original_frame = ttk.Frame(paned)
         paned.add(original_frame, weight=1)
 
-        ttk.Label(original_frame, text="📝 Oryginalny prompt", font=("Arial", 12, "bold")).pack(pady=5)
+        ttk.Label(original_frame, text="📝 Oryginalny prompt", font=("Arial", 12, "bold")).pack(
+            pady=5
+        )
 
-        original_text = scrolledtext.ScrolledText(original_frame, wrap=tk.WORD, height=20, font=("Consolas", 10))
+        original_text = scrolledtext.ScrolledText(
+            original_frame, wrap=tk.WORD, height=20, font=("Consolas", 10)
+        )
         original_text.pack(fill=tk.BOTH, expand=True)
         original_text.insert(tk.END, self.last_optimization_result.original_prompt)
         original_text.config(state="disabled")
@@ -780,9 +872,13 @@ class JanuszGUI:
         optimized_frame = ttk.Frame(paned)
         paned.add(optimized_frame, weight=1)
 
-        ttk.Label(optimized_frame, text="🎯 Zoptymalizowany prompt", font=("Arial", 12, "bold")).pack(pady=5)
+        ttk.Label(
+            optimized_frame, text="🎯 Zoptymalizowany prompt", font=("Arial", 12, "bold")
+        ).pack(pady=5)
 
-        optimized_text = scrolledtext.ScrolledText(optimized_frame, wrap=tk.WORD, height=20, font=("Consolas", 10))
+        optimized_text = scrolledtext.ScrolledText(
+            optimized_frame, wrap=tk.WORD, height=20, font=("Consolas", 10)
+        )
         optimized_text.pack(fill=tk.BOTH, expand=True)
         optimized_text.insert(tk.END, self.last_optimization_result.optimized_prompt)
         optimized_text.config(state="disabled")
@@ -792,20 +888,24 @@ class JanuszGUI:
         stats_frame.pack(fill=tk.X, padx=10, pady=5)
 
         improvement = self.last_optimization_result.improvement_score
-        ttk.Label(stats_frame,
-                 text=f"📈 Poprawa: {improvement:.1%} | Oryginalny: {len(self.last_optimization_result.original_prompt)} znaków | Zoptymalizowany: {len(self.last_optimization_result.optimized_prompt)} znaków",
-                 font=("Arial", 10)).pack()
+        ttk.Label(
+            stats_frame,
+            text=f"📈 Poprawa: {improvement:.1%} | Oryginalny: {len(self.last_optimization_result.original_prompt)} znaków | Zoptymalizowany: {len(self.last_optimization_result.optimized_prompt)} znaków",
+            font=("Arial", 10),
+        ).pack()
 
     def generate_schemas(self):
         """Generate modular schemas (placeholder for future implementation)."""
-        messagebox.showinfo("Funkcja w przygotowaniu",
-                          "Generowanie schematów będzie dostępne w następnej wersji.")
+        messagebox.showinfo(
+            "Funkcja w przygotowaniu", "Generowanie schematów będzie dostępne w następnej wersji."
+        )
 
     def rag_search(self):
         """Advanced RAG-powered search interface."""
         if not self.rag_available or not self.rag_system:
-            messagebox.showerror("RAG niedostępny",
-                               "System RAG nie jest dostępny. Sprawdź konfigurację.")
+            messagebox.showerror(
+                "RAG niedostępny", "System RAG nie jest dostępny. Sprawdź konfigurację."
+            )
             return
 
         # Create advanced RAG search dialog
@@ -815,7 +915,7 @@ class JanuszGUI:
         rag_window.resizable(True, True)
 
         # Initialize search history
-        if not hasattr(self, 'rag_search_history'):
+        if not hasattr(self, "rag_search_history"):
             self.rag_search_history = []
 
         # Main container
@@ -828,8 +928,9 @@ class JanuszGUI:
         main_frame.columnconfigure(1, weight=1)
 
         # Title
-        title_label = ttk.Label(main_frame, text="🤖 Inteligentne przeszukiwanie wiedzy",
-                               font=("Arial", 14, "bold"))
+        title_label = ttk.Label(
+            main_frame, text="🤖 Inteligentne przeszukiwanie wiedzy", font=("Arial", 14, "bold")
+        )
         title_label.grid(row=0, column=0, columnspan=3, pady=(0, 15))
 
         # Question input section
@@ -863,26 +964,30 @@ class JanuszGUI:
 
         # History dropdown
         if self.rag_search_history:
-            history_combo = ttk.Combobox(question_frame, values=self.rag_search_history[-10:],
-                                       state="readonly", width=20)
+            history_combo = ttk.Combobox(
+                question_frame, values=self.rag_search_history[-10:], state="readonly", width=20
+            )
             history_combo.grid(row=0, column=2, padx=(5, 0))
-            history_combo.bind('<<ComboboxSelected>>',
-                             lambda e: self.question_var.set(history_combo.get()))
+            history_combo.bind(
+                "<<ComboboxSelected>>", lambda e: self.question_var.set(history_combo.get())
+            )
 
         # Control buttons
         button_frame = ttk.Frame(question_frame)
         button_frame.grid(row=1, column=0, columnspan=3, pady=(10, 0))
 
-        search_button = ttk.Button(button_frame, text="🔍 Szukaj",
-                                 command=lambda: self._perform_advanced_rag_search(window))
+        search_button = ttk.Button(
+            button_frame,
+            text="🔍 Szukaj",
+            command=lambda: self._perform_advanced_rag_search(window),
+        )
         search_button.grid(row=0, column=0, padx=(0, 5))
 
-        clear_button = ttk.Button(button_frame, text="🗑️ Wyczyść",
-                                command=self._clear_rag_results)
+        clear_button = ttk.Button(button_frame, text="🗑️ Wyczyść", command=self._clear_rag_results)
         clear_button.grid(row=0, column=1, padx=(0, 5))
 
         # Bind Enter key to search
-        question_entry.bind('<Return>', lambda e: self._perform_advanced_rag_search(window))
+        question_entry.bind("<Return>", lambda e: self._perform_advanced_rag_search(window))
 
     def _create_settings_section(self, parent):
         """Create the settings section."""
@@ -890,20 +995,26 @@ class JanuszGUI:
         settings_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
 
         # Max results setting
-        ttk.Label(settings_frame, text="Maks. wyników:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
+        ttk.Label(settings_frame, text="Maks. wyników:").grid(
+            row=0, column=0, sticky=tk.W, padx=(0, 5)
+        )
         self.max_results_var = tk.IntVar(value=5)
-        max_results_spin = tk.Spinbox(settings_frame, from_=1, to=20, textvariable=self.max_results_var, width=5)
+        max_results_spin = tk.Spinbox(
+            settings_frame, from_=1, to=20, textvariable=self.max_results_var, width=5
+        )
         max_results_spin.grid(row=0, column=1, padx=(0, 15))
 
         # AI generation toggle
         self.use_ai_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(settings_frame, text="Generuj odpowiedź AI", variable=self.use_ai_var).grid(
-            row=0, column=2, sticky=tk.W, padx=(0, 15))
+            row=0, column=2, sticky=tk.W, padx=(0, 15)
+        )
 
         # Show sources toggle
         self.show_sources_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(settings_frame, text="Pokaż źródła", variable=self.show_sources_var).grid(
-            row=0, column=3, sticky=tk.W)
+            row=0, column=3, sticky=tk.W
+        )
 
     def _create_results_section(self, parent, window):
         """Create the results section."""
@@ -914,13 +1025,17 @@ class JanuszGUI:
 
         # Results text area with better formatting
         self.rag_results_text = scrolledtext.ScrolledText(
-            results_frame, wrap=tk.WORD, height=15,
-            font=("Consolas", 10)  # Monospace for better formatting
+            results_frame,
+            wrap=tk.WORD,
+            height=15,
+            font=("Consolas", 10),  # Monospace for better formatting
         )
         self.rag_results_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
         # Configure text tags for different content types
-        self.rag_results_text.tag_configure("title", font=("Consolas", 12, "bold"), foreground="blue")
+        self.rag_results_text.tag_configure(
+            "title", font=("Consolas", 12, "bold"), foreground="blue"
+        )
         self.rag_results_text.tag_configure("answer", font=("Consolas", 10), foreground="black")
         self.rag_results_text.tag_configure("source", font=("Consolas", 9), foreground="green")
         self.rag_results_text.tag_configure("metadata", font=("Consolas", 8), foreground="gray")
@@ -938,13 +1053,13 @@ class JanuszGUI:
             ("indexed_docs", "Zindeksowane dokumenty:"),
             ("query_count", "Wykonane zapytania:"),
             ("avg_confidence", "Średnia ufność:"),
-            ("last_query_time", "Czas ostatniego zapytania:")
+            ("last_query_time", "Czas ostatniego zapytania:"),
         ]
 
         for i, (key, label) in enumerate(stats_items):
-            ttk.Label(stats_frame, text=label).grid(row=0, column=i*2, sticky=tk.W, padx=(0, 5))
+            ttk.Label(stats_frame, text=label).grid(row=0, column=i * 2, sticky=tk.W, padx=(0, 5))
             self.stats_labels[key] = ttk.Label(stats_frame, text="-")
-            self.stats_labels[key].grid(row=0, column=i*2+1, sticky=tk.W, padx=(0, 15))
+            self.stats_labels[key].grid(row=0, column=i * 2 + 1, sticky=tk.W, padx=(0, 15))
 
         # Update initial stats
         self._update_rag_stats()
@@ -967,7 +1082,9 @@ class JanuszGUI:
         self.rag_results_text.delete(1.0, tk.END)
 
         # Show searching message
-        self.rag_results_text.insert(tk.END, f"🔍 Przeszukuję wiedzę na temat: '{question}'\n\n", "title")
+        self.rag_results_text.insert(
+            tk.END, f"🔍 Przeszukuję wiedzę na temat: '{question}'\n\n", "title"
+        )
         self.rag_results_text.insert(tk.END, "⏳ Analizuję dostępne dokumenty...\n\n")
         window.update()
 
@@ -976,7 +1093,7 @@ class JanuszGUI:
             response = self.rag_system.query(
                 question=question,
                 max_results=self.max_results_var.get(),
-                generate_answer=self.use_ai_var.get()
+                generate_answer=self.use_ai_var.get(),
             )
 
             # Update stats
@@ -997,7 +1114,9 @@ class JanuszGUI:
             self.rag_results_text.insert(tk.END, "📊 Statystyki zapytania:\n", "title")
             self.rag_results_text.insert(tk.END, f"• Ufność: {response.confidence_score:.1f}\n")
             if response.processing_time:
-                self.rag_results_text.insert(tk.END, f"• Czas przetwarzania: {response.processing_time:.2f}s\n")
+                self.rag_results_text.insert(
+                    tk.END, f"• Czas przetwarzania: {response.processing_time:.2f}s\n"
+                )
             self.rag_results_text.insert(tk.END, f"• Liczba źródeł: {len(response.sources)}\n\n")
 
             # Sources (if enabled)
@@ -1006,11 +1125,19 @@ class JanuszGUI:
 
                 for i, source in enumerate(response.sources, 1):
                     self.rag_results_text.insert(tk.END, f"{i}. ", "source")
-                    self.rag_results_text.insert(tk.END, f"{source.metadata.get('title', 'Nieznany dokument')} ", "source")
-                    self.rag_results_text.insert(tk.END, f"(trafność: {source.score:.2f})\n", "metadata")
+                    self.rag_results_text.insert(
+                        tk.END, f"{source.metadata.get('title', 'Nieznany dokument')} ", "source"
+                    )
+                    self.rag_results_text.insert(
+                        tk.END, f"(trafność: {source.score:.2f})\n", "metadata"
+                    )
 
                     # Show content preview
-                    content_preview = source.content[:300] + "..." if len(source.content) > 300 else source.content
+                    content_preview = (
+                        source.content[:300] + "..."
+                        if len(source.content) > 300
+                        else source.content
+                    )
                     self.rag_results_text.insert(tk.END, f"   {content_preview}\n\n", "answer")
 
                     # Show highlights if available
@@ -1028,13 +1155,15 @@ class JanuszGUI:
 
     def _clear_rag_results(self):
         """Clear RAG search results."""
-        if hasattr(self, 'rag_results_text'):
+        if hasattr(self, "rag_results_text"):
             self.rag_results_text.delete(1.0, tk.END)
-            self.rag_results_text.insert(tk.END, "Wyniki zostały wyczyszczone. Wpisz nowe pytanie i kliknij 'Szukaj'.\n")
+            self.rag_results_text.insert(
+                tk.END, "Wyniki zostały wyczyszczone. Wpisz nowe pytanie i kliknij 'Szukaj'.\n"
+            )
 
     def _update_rag_stats(self):
         """Update RAG statistics display."""
-        if not hasattr(self, 'stats_labels') or not self.rag_available or not self.rag_system:
+        if not hasattr(self, "stats_labels") or not self.rag_available or not self.rag_system:
             return
 
         try:
@@ -1053,7 +1182,10 @@ class JanuszGUI:
             logger.error(f"Failed to update RAG stats: {e}")
 
         # Initial status
-        self.rag_results_text.insert(tk.END, f"System RAG gotowy. Zindeksowane dokumenty: {self.rag_system.get_statistics()['indexed_documents']}\n")
+        self.rag_results_text.insert(
+            tk.END,
+            f"System RAG gotowy. Zindeksowane dokumenty: {self.rag_system.get_statistics()['indexed_documents']}\n",
+        )
         self.rag_results_text.insert(tk.END, "Wpisz pytanie i kliknij 'Szukaj'...\n")
 
     def _perform_rag_search(self, question: str, window: tk.Toplevel):
@@ -1076,14 +1208,20 @@ class JanuszGUI:
             self.rag_results_text.insert(tk.END, f"{response.answer}\n\n")
 
             self.rag_results_text.insert(tk.END, "📊 Statystyki:\n")
-            self.rag_results_text.insert(tk.END, f"• Poziom ufności: {response.confidence_score:.1%}\n")
-            self.rag_results_text.insert(tk.END, f"• Czas przetwarzania: {response.processing_time:.2f}s\n")
+            self.rag_results_text.insert(
+                tk.END, f"• Poziom ufności: {response.confidence_score:.1%}\n"
+            )
+            self.rag_results_text.insert(
+                tk.END, f"• Czas przetwarzania: {response.processing_time:.2f}s\n"
+            )
             self.rag_results_text.insert(tk.END, f"• Liczba źródeł: {len(response.sources)}\n\n")
 
             if response.sources:
                 self.rag_results_text.insert(tk.END, "📚 Źródła:\n", "bold")
                 for i, source in enumerate(response.sources, 1):
-                    self.rag_results_text.insert(tk.END, f"{i}. {source.metadata.get('title', 'Nieznany dokument')} ")
+                    self.rag_results_text.insert(
+                        tk.END, f"{i}. {source.metadata.get('title', 'Nieznany dokument')} "
+                    )
                     self.rag_results_text.insert(tk.END, f"(trafność: {source.score:.2f})\n")
                     self.rag_results_text.insert(tk.END, f"   {source.content[:200]}...\n\n")
 
@@ -1098,12 +1236,15 @@ class JanuszGUI:
         selected_files = [path for path, var in self.file_checkboxes.items() if var.get()]
 
         if not selected_files:
-            messagebox.showwarning("Brak plików", "Wybierz przynajmniej jeden plik do indeksowania.")
+            messagebox.showwarning(
+                "Brak plików", "Wybierz przynajmniej jeden plik do indeksowania."
+            )
             return
 
         if not self.rag_available or not self.rag_system:
-            messagebox.showerror("RAG niedostępny",
-                               "System RAG nie jest dostępny. Sprawdź konfigurację.")
+            messagebox.showerror(
+                "RAG niedostępny", "System RAG nie jest dostępny. Sprawdź konfigurację."
+            )
             return
 
         # Disable UI during indexing
@@ -1117,22 +1258,32 @@ class JanuszGUI:
                 try:
                     # Convert file to document structure first
                     converter = UniversalToYAMLConverter(file_path)
-                    doc_structure = converter.parse_text_structure(converter.extract_text_from_file())
+                    doc_structure = converter.parse_text_structure(
+                        converter.extract_text_from_file()
+                    )
 
                     # Index to RAG
                     doc_id = self.rag_system.add_document(doc_structure)
                     indexed_count += 1
 
-                    self.log_message("INFO", f"✅ Zindeksowano: {os.path.basename(file_path)} (ID: {doc_id})")
+                    self.log_message(
+                        "INFO", f"✅ Zindeksowano: {os.path.basename(file_path)} (ID: {doc_id})"
+                    )
 
                 except Exception as e:
-                    self.log_message("ERROR", f"❌ Błąd indeksowania {os.path.basename(file_path)}: {str(e)}")
+                    self.log_message(
+                        "ERROR", f"❌ Błąd indeksowania {os.path.basename(file_path)}: {str(e)}"
+                    )
 
-            messagebox.showinfo("Indeksowanie zakończone",
-                              f"Pomyślnie zindeksowano {indexed_count} z {len(selected_files)} plików.")
+            messagebox.showinfo(
+                "Indeksowanie zakończone",
+                f"Pomyślnie zindeksowano {indexed_count} z {len(selected_files)} plików.",
+            )
 
         except Exception as e:
-            messagebox.showerror("Błąd indeksowania", f"Wystąpił błąd podczas indeksowania: {str(e)}")
+            messagebox.showerror(
+                "Błąd indeksowania", f"Wystąpił błąd podczas indeksowania: {str(e)}"
+            )
 
         finally:
             # Re-enable UI
@@ -1153,7 +1304,9 @@ class JanuszGUI:
         settings_window.geometry("400x300")
 
         # API Key setting
-        ttk.Label(settings_window, text="OpenRouter API Key:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+        ttk.Label(settings_window, text="OpenRouter API Key:").grid(
+            row=0, column=0, sticky=tk.W, padx=10, pady=5
+        )
         api_key_var = tk.StringVar(value=os.getenv("JANUSZ_OPENROUTER_API_KEY", ""))
         api_key_entry = ttk.Entry(settings_window, textvariable=api_key_var, width=40, show="*")
         api_key_entry.grid(row=0, column=1, padx=10, pady=5)
@@ -1165,7 +1318,9 @@ class JanuszGUI:
                 messagebox.showinfo("Ustawienia", "Klucz API zapisany dla tej sesji.")
             settings_window.destroy()
 
-        ttk.Button(settings_window, text="Zapisz", command=save_settings).grid(row=1, column=0, columnspan=2, pady=20)
+        ttk.Button(settings_window, text="Zapisz", command=save_settings).grid(
+            row=1, column=0, columnspan=2, pady=20
+        )
 
     def log_message(self, level: str, message: str):
         """Add message to log with appropriate formatting."""

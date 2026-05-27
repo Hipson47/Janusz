@@ -6,7 +6,7 @@ import json as json_module
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from .converter import UniversalToYAMLConverter
 from .converter import process_directory as convert_directory
@@ -25,7 +25,6 @@ from .memory import DEFAULT_MEMORY_PATH, JanuszMemory
 from .orchestrator_tool import build_tool_manifest, write_tool_manifest
 from .plugin_packager import package_plugin
 from .repo_ingester import ingest_repo
-from .schemas.schema_manager import SchemaManager
 from .skill_packager import create_skill_package, create_skill_packages_from_directory
 from .skill_quality import dumps_result, format_lint_result, lint_skill, score_skill
 from .skill_registry import (
@@ -67,7 +66,7 @@ def convert_file_to_yaml(
 
 def convert_file_to_json(
     file_path: str,
-    output_path: Optional[str] = None,
+    output_path: str | None = None,
     use_ai: bool = False,
     ai_model: str = "anthropic/claude-3-haiku",
 ) -> bool:
@@ -199,9 +198,7 @@ Supported input formats for json: PDF, MD, TXT, DOCX, HTML, YAML, JSON
         dest="skill_command", help="Skill quality operations"
     )
 
-    skill_lint_parser = skill_subparsers.add_parser(
-        "lint", help="Lint a Codex skill package"
-    )
+    skill_lint_parser = skill_subparsers.add_parser("lint", help="Lint a Codex skill package")
     skill_lint_parser.add_argument("path", help="Skill directory or SKILL.md path")
     skill_lint_parser.add_argument("--json", action="store_true", help="Print JSON result")
 
@@ -271,7 +268,9 @@ Supported input formats for json: PDF, MD, TXT, DOCX, HTML, YAML, JSON
         "--output-dir", "-o", default="skills", help="Directory for generated skills"
     )
     ingest_repo_parser.add_argument("--name", help="Skill name")
-    ingest_repo_parser.add_argument("--overwrite", action="store_true", help="Overwrite existing skill")
+    ingest_repo_parser.add_argument(
+        "--overwrite", action="store_true", help="Overwrite existing skill"
+    )
 
     # Registry command
     registry_parser = subparsers.add_parser(
@@ -332,9 +331,7 @@ Supported input formats for json: PDF, MD, TXT, DOCX, HTML, YAML, JSON
     )
 
     # MCP command
-    mcp_parser = subparsers.add_parser(
-        "mcp", help="Run Janusz as an MCP stdio server"
-    )
+    mcp_parser = subparsers.add_parser("mcp", help="Run Janusz as an MCP stdio server")
     mcp_subparsers = mcp_parser.add_subparsers(dest="mcp_command", help="MCP operations")
     mcp_serve_parser = mcp_subparsers.add_parser("serve", help="Serve MCP over stdio")
     mcp_serve_parser.add_argument("--root", default=".", help="Workspace root for resources")
@@ -612,12 +609,12 @@ Supported input formats for json: PDF, MD, TXT, DOCX, HTML, YAML, JSON
         if args.tool_command == "manifest":
             if getattr(args, "output", None):
                 output_path = Path(args.output)
-                write_tool_manifest(output_path, memory_path=memory_path)
+                write_tool_manifest(output_path, memory_path=memory_path, workspace_root=Path.cwd())
                 print(f"Tool manifest written: {output_path}")
             else:
                 print(
                     json_module.dumps(
-                        build_tool_manifest(memory_path=memory_path),
+                        build_tool_manifest(memory_path=memory_path, workspace_root=Path.cwd()),
                         indent=2,
                         ensure_ascii=False,
                     )
@@ -704,6 +701,8 @@ Supported input formats for json: PDF, MD, TXT, DOCX, HTML, YAML, JSON
             sys.exit(1)
 
     elif args.command == "schema":
+        from .schemas.schema_manager import SchemaManager
+
         schema_manager = SchemaManager()
 
         if args.schema_command == "list":

@@ -9,7 +9,7 @@ or supported source documents.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import yaml
 
@@ -31,7 +31,7 @@ class JSONPackageConverter:
     def __init__(
         self,
         input_path: str,
-        output_path: Optional[str] = None,
+        output_path: str | None = None,
         use_ai: bool = False,
         ai_model: str = "anthropic/claude-3-haiku",
     ):
@@ -68,7 +68,7 @@ class JSONPackageConverter:
             logger.error(f"Failed to create JSON package for '{self.input_path}': {exc}")
             return False
 
-    def to_package_data(self) -> Dict[str, Any]:
+    def to_package_data(self) -> dict[str, Any]:
         """Load the input and return normalized package data."""
         suffix = self.input_path.suffix.lower()
 
@@ -93,7 +93,7 @@ class JSONPackageConverter:
         return data
 
 
-def load_json_file(path: Union[str, Path]) -> Dict[str, Any]:
+def load_json_file(path: str | Path) -> dict[str, Any]:
     """Load a JSON object from disk."""
     with open(path, encoding="utf-8") as file:
         data = json.load(file)
@@ -102,7 +102,7 @@ def load_json_file(path: Union[str, Path]) -> Dict[str, Any]:
     return data
 
 
-def load_yaml_file(path: Union[str, Path]) -> Dict[str, Any]:
+def load_yaml_file(path: str | Path) -> dict[str, Any]:
     """Load a YAML object from disk."""
     with open(path, encoding="utf-8") as file:
         data = yaml.safe_load(file)
@@ -111,7 +111,7 @@ def load_yaml_file(path: Union[str, Path]) -> Dict[str, Any]:
     return data
 
 
-def load_structured_package(path: Union[str, Path]) -> Dict[str, Any]:
+def load_structured_package(path: str | Path) -> dict[str, Any]:
     """Load a YAML or JSON package."""
     source = Path(path)
     suffix = source.suffix.lower()
@@ -122,7 +122,7 @@ def load_structured_package(path: Union[str, Path]) -> Dict[str, Any]:
     return JSONPackageConverter(str(source)).to_package_data()
 
 
-def write_json_package(data: Dict[str, Any], output_path: Union[str, Path]) -> Path:
+def write_json_package(data: dict[str, Any], output_path: str | Path) -> Path:
     """Write package data as pretty, deterministic JSON."""
     destination = Path(output_path)
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -134,7 +134,7 @@ def write_json_package(data: Dict[str, Any], output_path: Union[str, Path]) -> P
 
 def convert_file(
     input_path: str,
-    output_path: Optional[str] = None,
+    output_path: str | None = None,
     use_ai: bool = False,
     ai_model: str = "anthropic/claude-3-haiku",
 ) -> bool:
@@ -162,7 +162,7 @@ def convert_directory(
     dir_path = Path(directory)
     dir_path.mkdir(exist_ok=True)
 
-    supported_files: List[Path] = []
+    supported_files: list[Path] = []
     for extension in sorted(JSONPackageConverter.SUPPORTED_EXTENSIONS - {".json"}):
         supported_files.extend(dir_path.glob(f"**/*{extension}"))
 

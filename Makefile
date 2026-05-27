@@ -1,7 +1,7 @@
 # Janusz - AI Agent Knowledge Base Pipeline
 # Automates Document -> YAML -> JSON -> Skill package workflows.
 
-.PHONY: help clean install test convert json skill all lint format typecheck check setup-venv
+.PHONY: help clean install test convert json skill all lint format format-check typecheck compile security-audit build-package wheel-smoke check release-check mutate-core setup-venv
 
 help:
 	@echo "Janusz - Document-to-JSON pipeline for AI agent knowledge bases"
@@ -17,9 +17,12 @@ help:
 	@echo "  make all         - Run full pipeline: Documents -> YAML -> JSON"
 	@echo "  make test        - Run automated tests"
 	@echo "  make lint        - Run code linting with ruff"
-	@echo "  make format      - Format code with black"
+	@echo "  make format      - Format code with ruff"
 	@echo "  make typecheck   - Run type checking with mypy"
-	@echo "  make check       - Run lint + typecheck + test"
+	@echo "  make check       - Run developer quality gate"
+	@echo "  make release-check - Run full production release gate"
+	@echo "  make wheel-smoke - Smoke test the built wheel in a clean venv"
+	@echo "  make mutate-core - Run mutation testing for core modules"
 	@echo "  make clean       - Remove caches and temporary generated files"
 	@echo ""
 	@echo "File-specific commands:"
@@ -36,7 +39,7 @@ setup-venv:
 
 install:
 	@echo "Installing Janusz in development mode..."
-	@uv sync
+	@uv sync --group dev --locked
 	@echo "Installation completed"
 
 convert:
@@ -95,26 +98,88 @@ test:
 ifdef FILE
 	@uv run python -m janusz.cli test $(FILE)
 else
-	@uv run pytest tests/ -v -s
+	@uv run python -m pytest tests/ -v --capture=no
 endif
 
 lint:
 	@echo "Running ruff linter..."
-	@uv run ruff check src/ tests/
+	@uv run ruff check .
 	@echo "Linting completed"
 
 format:
-	@echo "Formatting code with black..."
-	@uv run black src/ tests/
+	@echo "Formatting code with ruff..."
+	@uv run ruff format .
 	@echo "Code formatting completed"
+
+format-check:
+	@echo "Checking code formatting with ruff..."
+	@uv run ruff format --check .
+	@echo "Format check completed"
 
 typecheck:
 	@echo "Running mypy type checker..."
 	@uv run mypy src/janusz/
 	@echo "Type checking completed"
 
-check: lint typecheck test
+compile:
+	@echo "Compiling Python sources..."
+	@uv run python -m compileall -q src scripts examples tests
+	@echo "Compilation completed"
+
+security-audit:
+	@echo "Running dependency security audit..."
+	@for attempt in 1 2 3; do \
+		uv run pip-audit && exit 0; \
+		status=$$?; \
+		if [ $$attempt -eq 3 ]; then exit $$status; fi; \
+		echo "pip-audit failed, retrying ($$attempt/3)..."; \
+		sleep 5; \
+	done
+
+build-package:
+	@echo "Building package artifacts..."
+	@rm -rf dist build
+	@uv build
+
+wheel-smoke:
+	@echo "Smoke testing built wheel..."
+	@set -e; \
+	test -n "$$(find dist -maxdepth 1 -name '*.whl' -print -quit)" || { echo "No wheel found in dist/. Run make build-package first."; exit 1; }; \
+	rm -rf /tmp/janusz-wheel-test; \
+	python -m venv /tmp/janusz-wheel-test; \
+	/tmp/janusz-wheel-test/bin/python -m pip install --upgrade pip; \
+	/tmp/janusz-wheel-test/bin/pip install dist/*.whl; \
+	/tmp/janusz-wheel-test/bin/janusz --help >/dev/null; \
+	/tmp/janusz-wheel-test/bin/janusz --version; \
+	tmpdir=$$(mktemp -d); \
+	printf '# Smoke Document\n\nThis document verifies JSON and skill packaging.\n' > $$tmpdir/smoke.md; \
+	(cd $$tmpdir && /tmp/janusz-wheel-test/bin/janusz json --file smoke.md --output smoke.json >/dev/null); \
+	(cd $$tmpdir && /tmp/janusz-wheel-test/bin/janusz skill --file smoke.json --output-dir skills >/dev/null); \
+	test -f $$tmpdir/smoke.json; \
+		test -n "$$(find $$tmpdir/skills -name SKILL.md -print -quit)"; \
+	rm -rf $$tmpdir
+	@echo "Wheel smoke completed"
+
+mutate-core:
+	@echo "Running mutation tests for core modules..."
+	@uv run mutmut run
+
+check: lint format-check typecheck test
 	@echo "Quality checks completed"
+
+release-check:
+	@uv lock --check
+	@$(MAKE) lint
+	@$(MAKE) format-check
+	@$(MAKE) typecheck
+	@$(MAKE) compile
+	@uv run python -m pytest tests --capture=no --cov=janusz --cov-report=term-missing --cov-fail-under=70
+	@uv run bandit -q -r src/janusz
+	@$(MAKE) security-audit
+	@$(MAKE) build-package
+	@$(MAKE) wheel-smoke
+	@uv run python scripts/check_release_version.py
+	@echo "Release checks completed"
 
 clean:
 	@echo "Cleaning caches and temporary files..."
@@ -124,4 +189,5 @@ clean:
 	@find . -name ".pytest_cache" -type d -exec rm -rf {} + 2>/dev/null || true
 	@find . -name ".mypy_cache" -type d -exec rm -rf {} + 2>/dev/null || true
 	@find . -name ".ruff_cache" -type d -exec rm -rf {} + 2>/dev/null || true
+	@rm -rf .coverage .mutmut-cache htmlcov coverage.xml
 	@echo "Cleanup completed"

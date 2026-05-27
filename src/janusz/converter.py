@@ -9,7 +9,7 @@ and converts them to structured YAML format for use with AI agents and orchestra
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pdfplumber
 import yaml
@@ -56,7 +56,7 @@ class UniversalToYAMLConverter:
         self.yaml_path = self.file_path.with_suffix(".yaml")
         self.use_ai = use_ai and AI_AVAILABLE
         self.ai_model = ai_model
-        self.ai_analyzer: Optional[Any] = None
+        self.ai_analyzer: Any | None = None
 
         if self.extension not in self.SUPPORTED_EXTENSIONS:
             raise ValueError(
@@ -69,8 +69,11 @@ class UniversalToYAMLConverter:
                 self.ai_analyzer = AIContentAnalyzer(model=ai_model)
                 logger.info(f"AI analysis enabled with model: {ai_model}")
             except Exception as e:
-                logger.warning(f"Failed to initialize AI analyzer: {e}. Falling back to standard analysis.")
+                logger.warning(
+                    f"Failed to initialize AI analyzer: {e}. Falling back to standard analysis."
+                )
                 self.use_ai = False
+
     def detect_file_type(self) -> str:
         """Detect file type based on extension."""
         ext_to_type = {
@@ -156,7 +159,7 @@ class UniversalToYAMLConverter:
 
         try:
             doc = DocxDocument(str(self.file_path))
-            text_content: List[str] = []
+            text_content: list[str] = []
 
             # Extract text from paragraphs
             for paragraph in doc.paragraphs:
@@ -228,11 +231,11 @@ class UniversalToYAMLConverter:
         best_practices, examples = extract_best_practices_and_examples(text, sections)
 
         # Create base analysis
-        analysis: Dict[str, Any] = {
+        analysis: dict[str, Any] = {
             "keywords": keywords,
             "best_practices": best_practices,
             "examples": examples,
-            "ai_extraction_used": False
+            "ai_extraction_used": False,
         }
 
         # Perform AI analysis if enabled
@@ -244,12 +247,12 @@ class UniversalToYAMLConverter:
                 temp_doc = DocumentStructure.model_validate(
                     {
                         "metadata": {
-                        "title": self.filename,
-                        "source": str(self.file_path),
-                        "source_type": self.detect_file_type(),
+                            "title": self.filename,
+                            "source": str(self.file_path),
+                            "source_type": self.detect_file_type(),
                         },
                         "content": {
-                        "sections": sections,
+                            "sections": sections,
                             "raw_text": text,
                         },
                     }
@@ -298,16 +301,16 @@ class UniversalToYAMLConverter:
 
         return doc_structure
 
-    def _parse_hierarchical_sections(self, text: str) -> List[Dict[str, Any]]:
+    def _parse_hierarchical_sections(self, text: str) -> list[dict[str, Any]]:
         """
         Parse text into hierarchical sections with proper nesting.
 
         Returns a list of section dictionaries compatible with the existing format.
         """
         lines = text.split("\n")
-        sections: List[Dict[str, Any]] = []
-        section_stack: List[Dict[str, Any]] = []  # Stack for hierarchical sections
-        current_content: List[str] = []
+        sections: list[dict[str, Any]] = []
+        section_stack: list[dict[str, Any]] = []  # Stack for hierarchical sections
+        current_content: list[str] = []
 
         for line in lines:
             line = line.strip()
@@ -317,7 +320,7 @@ class UniversalToYAMLConverter:
                 continue
 
             # Check for section headers (Markdown-style and other patterns)
-            header_match = re.match(r'^(#{1,6})\s+(.+)', line)  # Markdown headers
+            header_match = re.match(r"^(#{1,6})\s+(.+)", line)  # Markdown headers
             if header_match:
                 # Save current content to previous section
                 self._save_current_content(section_stack, current_content)
@@ -328,20 +331,20 @@ class UniversalToYAMLConverter:
                 title = header_match.group(2).strip()
 
                 # Create new section
-                new_section: Dict[str, Any] = {
+                new_section: dict[str, Any] = {
                     "id": f"section_{len(sections)}",
                     "title": title,
                     "level": level,
                     "content": [],
                     "subsections": [],
-                    "children": []
+                    "children": [],
                 }
 
                 # Handle hierarchy
                 self._add_section_to_hierarchy(sections, section_stack, new_section, level)
 
             # Check for other header patterns
-            elif re.match(r'^\d+\.\s+.+$', line):  # Numbered sections like "1. Introduction"
+            elif re.match(r"^\d+\.\s+.+$", line):  # Numbered sections like "1. Introduction"
                 self._save_current_content(section_stack, current_content)
                 current_content = []
 
@@ -354,12 +357,12 @@ class UniversalToYAMLConverter:
                     "level": level,
                     "content": [],
                     "subsections": [],
-                    "children": []
+                    "children": [],
                 }
 
                 self._add_section_to_hierarchy(sections, section_stack, new_section, level)
 
-            elif len(line) < 100 and line.isupper() and not line.endswith('.'):
+            elif len(line) < 100 and line.isupper() and not line.endswith("."):
                 # ALL CAPS titles (shorter than 100 chars)
                 self._save_current_content(section_stack, current_content)
                 current_content = []
@@ -373,7 +376,7 @@ class UniversalToYAMLConverter:
                     "level": level,
                     "content": [],
                     "subsections": [],
-                    "children": []
+                    "children": [],
                 }
 
                 self._add_section_to_hierarchy(sections, section_stack, new_section, level)
@@ -390,9 +393,9 @@ class UniversalToYAMLConverter:
 
     def _add_section_to_hierarchy(
         self,
-        sections: List[Dict[str, Any]],
-        section_stack: List[Dict[str, Any]],
-        new_section: Dict[str, Any],
+        sections: list[dict[str, Any]],
+        section_stack: list[dict[str, Any]],
+        new_section: dict[str, Any],
         level: int,
     ) -> None:
         """Add a section to the hierarchy based on its level."""
@@ -411,7 +414,7 @@ class UniversalToYAMLConverter:
         section_stack.append(new_section)
 
     def _save_current_content(
-        self, section_stack: List[Dict[str, Any]], current_content: List[str]
+        self, section_stack: list[dict[str, Any]], current_content: list[str]
     ) -> None:
         """Save current content to the appropriate section."""
         if not current_content or not section_stack:
@@ -425,14 +428,12 @@ class UniversalToYAMLConverter:
         if content_lines:
             target_section["content"].extend(content_lines)
 
-    def _flatten_sections_hierarchy(
-        self, sections: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    def _flatten_sections_hierarchy(self, sections: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Flatten hierarchical sections into a flat list for backward compatibility."""
-        flat_sections: List[Dict[str, Any]] = []
+        flat_sections: list[dict[str, Any]] = []
 
         def flatten_recursive(
-            section_list: List[Dict[str, Any]], result: List[Dict[str, Any]]
+            section_list: list[dict[str, Any]], result: list[dict[str, Any]]
         ) -> None:
             for section in section_list:
                 # Create a flat version of the section
@@ -442,7 +443,7 @@ class UniversalToYAMLConverter:
                     "level": section.get("level", 1),
                     "content": section.get("content", []),
                     "subsections": section.get("subsections", []),  # Keep existing subsections
-                    "children": section.get("children", [])  # Add new children field
+                    "children": section.get("children", []),  # Add new children field
                 }
                 result.append(flat_section)
 
@@ -453,9 +454,9 @@ class UniversalToYAMLConverter:
         flatten_recursive(sections, flat_sections)
         return flat_sections
 
-    def extract_key_concepts(self, text: str) -> Dict[str, Any]:
+    def extract_key_concepts(self, text: str) -> dict[str, Any]:
         """Extract key concepts and patterns from the text."""
-        concepts: Dict[str, Any] = {
+        concepts: dict[str, Any] = {
             "keywords": [],
             "patterns": [],
             "best_practices": [],
@@ -509,7 +510,11 @@ class UniversalToYAMLConverter:
 
             # Convert to YAML
             yaml_content = yaml.dump(
-                yaml_structure, default_flow_style=False, allow_unicode=True, sort_keys=False, indent=2
+                yaml_structure,
+                default_flow_style=False,
+                allow_unicode=True,
+                sort_keys=False,
+                indent=2,
             )
 
             # Save YAML file
@@ -531,7 +536,7 @@ def process_directory(
     dir_path = Path(directory)
     dir_path.mkdir(exist_ok=True)  # Create directory if it doesn't exist
 
-    supported_files: List[Path] = []
+    supported_files: list[Path] = []
 
     for ext in UniversalToYAMLConverter.SUPPORTED_EXTENSIONS:
         pattern = f"**/*{ext}"
@@ -545,7 +550,11 @@ def process_directory(
 
     logger.info(f"Found {len(supported_files)} supported files")
     if use_ai:
-        logger.info("AI-enhanced analysis enabled"        if AI_AVAILABLE else "AI requested but not available (missing dependencies)")
+        logger.info(
+            "AI-enhanced analysis enabled"
+            if AI_AVAILABLE
+            else "AI requested but not available (missing dependencies)"
+        )
 
     successful = 0
     failed = 0

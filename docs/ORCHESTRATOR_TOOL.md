@@ -61,6 +61,7 @@ Run:
 
 ```bash
 janusz mcp serve
+janusz mcp serve --root /path/to/workspace
 ```
 
 The MCP server exposes:
@@ -70,7 +71,9 @@ The MCP server exposes:
 - prompts: `create_skill`, `review_skill`, `convert_docs_to_agent_skill`
 
 The server uses stdio JSON-RPC and keeps normal command output out of stdout so
-an MCP host can parse responses reliably.
+an MCP host can parse responses reliably. File inputs and outputs are resolved
+inside the configured workspace root. The root defaults to the current working
+directory and can also be set with `JANUSZ_WORKSPACE_ROOT`.
 
 ## Registry And Plugins
 
@@ -96,6 +99,9 @@ and a Janusz tool manifest unless `--no-manifest` is used.
 - Review generated skills before global installation.
 - Keep secrets out of JSON packages, `references/source.json`, and memory files.
 - Prefer explicit input and output paths in orchestrated runs.
+- Configure MCP with the narrowest useful workspace root.
+- Do not depend on host-specific absolute paths in generated manifests; Janusz
+  emits relative or neutral path hints where possible.
 
 ## Skill Research Notes
 

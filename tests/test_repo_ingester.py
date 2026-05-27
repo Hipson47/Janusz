@@ -14,7 +14,9 @@ def test_ingest_repo_creates_operations_skill(temp_dir):
     (repo / "pyproject.toml").write_text("[project]\nname = 'demo'\n", encoding="utf-8")
     (repo / "Makefile").write_text("test:\n\tpytest\n", encoding="utf-8")
     (repo / "tests").mkdir()
-    (repo / "tests" / "test_demo.py").write_text("def test_demo():\n    assert True\n", encoding="utf-8")
+    (repo / "tests" / "test_demo.py").write_text(
+        "def test_demo():\n    assert True\n", encoding="utf-8"
+    )
 
     skill_dir = ingest_repo(str(repo), output_dir=str(temp_dir / "skills"))
 

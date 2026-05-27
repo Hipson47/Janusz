@@ -3,16 +3,33 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from . import __version__
 from .memory import DEFAULT_MEMORY_PATH, JanuszMemory
 
 
-def build_tool_manifest(memory_path: Optional[Path] = None) -> Dict[str, Any]:
+def display_manifest_path(path_value: str, workspace_root: Path | None) -> str:
+    """Return a neutral path for manifests without leaking developer machines."""
+    path = Path(path_value).expanduser()
+    if not path.is_absolute():
+        return path_value
+    if workspace_root is not None:
+        try:
+            return str(path.resolve(strict=False).relative_to(workspace_root.resolve(strict=False)))
+        except ValueError:
+            pass
+    return "<configured-path>"
+
+
+def build_tool_manifest(
+    memory_path: Path | None = None,
+    workspace_root: Path | None = None,
+) -> dict[str, Any]:
     """Build the tool manifest used to register Janusz with an orchestrator."""
     memory = JanuszMemory(memory_path or DEFAULT_MEMORY_PATH)
     context = memory.export_tool_context()
+    memory_display_path = display_manifest_path(str(context["memory_path"]), workspace_root)
 
     return {
         "name": "janusz",
@@ -24,7 +41,7 @@ def build_tool_manifest(memory_path: Optional[Path] = None) -> Dict[str, Any]:
             "orchestrator routing."
         ),
         "entrypoint": "janusz",
-        "working_directory_hint": "/home/hipson47/code/Janusz",
+        "working_directory_hint": "Run from the configured Janusz workspace root.",
         "input_formats": ["pdf", "md", "txt", "docx", "html", "yaml", "yml", "json"],
         "output_formats": [
             "yaml",
@@ -37,7 +54,7 @@ def build_tool_manifest(memory_path: Optional[Path] = None) -> Dict[str, Any]:
         ],
         "commands": context["tool_contracts"],
         "memory": {
-            "path": context["memory_path"],
+            "path": memory_display_path,
             "export_command": "janusz memory context",
             "skill_pack_count": len(context["skill_packs"]),
         },
@@ -59,9 +76,13 @@ def build_tool_manifest(memory_path: Optional[Path] = None) -> Dict[str, Any]:
     }
 
 
-def write_tool_manifest(output_path: Path, memory_path: Optional[Path] = None) -> Dict[str, Any]:
+def write_tool_manifest(
+    output_path: Path,
+    memory_path: Path | None = None,
+    workspace_root: Path | None = None,
+) -> dict[str, Any]:
     """Write the tool manifest as formatted JSON and return it."""
-    manifest = build_tool_manifest(memory_path=memory_path)
+    manifest = build_tool_manifest(memory_path=memory_path, workspace_root=workspace_root)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as file:
         json.dump(manifest, file, indent=2, ensure_ascii=False)

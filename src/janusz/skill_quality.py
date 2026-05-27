@@ -3,15 +3,16 @@
 
 import json
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple, Union
+from typing import Any
 
 import yaml
 
 ALLOWED_SKILL_DIRS = {"agents", "assets", "references", "scripts"}
 SKILL_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$")
-SECRET_PATTERNS: List[Tuple[str, re.Pattern[str]]] = [
+SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("private_key", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
     ("openai_key", re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b")),
     ("github_token", re.compile(r"\bgh[pousr]_[A-Za-z0-9_]{20,}\b")),
@@ -44,12 +45,12 @@ class SkillDocument:
 
     root: Path
     skill_file: Path
-    frontmatter: Dict[str, Any]
+    frontmatter: dict[str, Any]
     body: str
     raw_text: str
 
 
-def parse_skill_document(path: Union[str, Path]) -> SkillDocument:
+def parse_skill_document(path: str | Path) -> SkillDocument:
     """Parse a skill directory or SKILL.md file."""
     root, skill_file = resolve_skill_path(path)
     raw_text = skill_file.read_text(encoding="utf-8")
@@ -63,7 +64,7 @@ def parse_skill_document(path: Union[str, Path]) -> SkillDocument:
     )
 
 
-def resolve_skill_path(path: Union[str, Path]) -> Tuple[Path, Path]:
+def resolve_skill_path(path: str | Path) -> tuple[Path, Path]:
     """Resolve a directory or file path to a skill root and SKILL.md path."""
     source = Path(path)
     if source.is_file():
@@ -77,7 +78,7 @@ def resolve_skill_path(path: Union[str, Path]) -> Tuple[Path, Path]:
     return source, skill_file
 
 
-def split_frontmatter(text: str) -> Tuple[Dict[str, Any], str]:
+def split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     """Return YAML frontmatter and body from SKILL.md text."""
     if not text.startswith("---\n"):
         return {}, text
@@ -94,9 +95,9 @@ def split_frontmatter(text: str) -> Tuple[Dict[str, Any], str]:
     return data, body
 
 
-def lint_skill(path: Union[str, Path]) -> Dict[str, Any]:
+def lint_skill(path: str | Path) -> dict[str, Any]:
     """Lint one skill package and return structured issues."""
-    issues: List[Dict[str, Any]] = []
+    issues: list[dict[str, Any]] = []
 
     try:
         document = parse_skill_document(path)
@@ -136,7 +137,7 @@ def lint_skill(path: Union[str, Path]) -> Dict[str, Any]:
     }
 
 
-def score_skill(path: Union[str, Path]) -> Dict[str, Any]:
+def score_skill(path: str | Path) -> dict[str, Any]:
     """Score one skill package for agent usability."""
     result = lint_skill(path)
     return {
@@ -153,7 +154,7 @@ def score_skill(path: Union[str, Path]) -> Dict[str, Any]:
     }
 
 
-def add_metadata_issues(document: SkillDocument, issues: List[Dict[str, Any]]) -> None:
+def add_metadata_issues(document: SkillDocument, issues: list[dict[str, Any]]) -> None:
     """Check required frontmatter fields."""
     frontmatter = document.frontmatter
     name = str(frontmatter.get("name") or "").strip()
@@ -205,7 +206,7 @@ def add_metadata_issues(document: SkillDocument, issues: List[Dict[str, Any]]) -
         )
 
 
-def add_structure_issues(document: SkillDocument, issues: List[Dict[str, Any]]) -> None:
+def add_structure_issues(document: SkillDocument, issues: list[dict[str, Any]]) -> None:
     """Check folder layout and bundled resources."""
     body = document.body.strip()
     if not body:
@@ -260,7 +261,7 @@ def add_structure_issues(document: SkillDocument, issues: List[Dict[str, Any]]) 
                 )
 
 
-def add_trigger_issues(document: SkillDocument, issues: List[Dict[str, Any]]) -> None:
+def add_trigger_issues(document: SkillDocument, issues: list[dict[str, Any]]) -> None:
     """Check explicit trigger metadata."""
     triggers = extract_triggers(document.frontmatter)
     if not triggers:
@@ -275,7 +276,9 @@ def add_trigger_issues(document: SkillDocument, issues: List[Dict[str, Any]]) ->
     if len(triggers) < 2:
         add_issue(issues, "info", "triggers_sparse", "Add more trigger phrases for discovery")
     if len(triggers) > 16:
-        add_issue(issues, "warning", "triggers_too_many", "Too many triggers can make routing noisy")
+        add_issue(
+            issues, "warning", "triggers_too_many", "Too many triggers can make routing noisy"
+        )
 
     seen = set()
     for trigger in triggers:
@@ -287,7 +290,7 @@ def add_trigger_issues(document: SkillDocument, issues: List[Dict[str, Any]]) ->
             add_issue(issues, "warning", "trigger_long", f"Trigger is too long: {trigger[:60]}...")
 
 
-def add_secret_issues(document: SkillDocument, issues: List[Dict[str, Any]]) -> None:
+def add_secret_issues(document: SkillDocument, issues: list[dict[str, Any]]) -> None:
     """Scan text files for secret-like values without echoing the value."""
     for file_path in iter_text_files(document.root):
         try:
@@ -308,7 +311,7 @@ def add_secret_issues(document: SkillDocument, issues: List[Dict[str, Any]]) -> 
                     )
 
 
-def add_quality_issues(document: SkillDocument, issues: List[Dict[str, Any]]) -> None:
+def add_quality_issues(document: SkillDocument, issues: list[dict[str, Any]]) -> None:
     """Check usability signals that make a skill actionable."""
     body = document.body
     lower_body = body.lower()
@@ -338,7 +341,7 @@ def add_quality_issues(document: SkillDocument, issues: List[Dict[str, Any]]) ->
         )
 
 
-def score_from_issues(document: SkillDocument, issues: List[Dict[str, Any]]) -> Dict[str, Any]:
+def score_from_issues(document: SkillDocument, issues: list[dict[str, Any]]) -> dict[str, Any]:
     """Compute a pragmatic quality score from lint results."""
     score = 100
     score -= count_severity(issues, "error") * 22
@@ -362,10 +365,10 @@ def score_from_issues(document: SkillDocument, issues: List[Dict[str, Any]]) -> 
     }
 
 
-def extract_triggers(frontmatter: Dict[str, Any]) -> List[str]:
+def extract_triggers(frontmatter: dict[str, Any]) -> list[str]:
     """Extract trigger phrases from supported frontmatter shapes."""
     metadata_value = frontmatter.get("metadata")
-    metadata: Dict[str, Any] = metadata_value if isinstance(metadata_value, dict) else {}
+    metadata: dict[str, Any] = metadata_value if isinstance(metadata_value, dict) else {}
     raw = metadata.get("triggers") or frontmatter.get("triggers") or []
     if isinstance(raw, str):
         raw = [raw]
@@ -374,7 +377,7 @@ def extract_triggers(frontmatter: Dict[str, Any]) -> List[str]:
     return [str(item).strip() for item in raw if str(item).strip()]
 
 
-def skill_summary_for_registry(path: Union[str, Path]) -> Dict[str, Any]:
+def skill_summary_for_registry(path: str | Path) -> dict[str, Any]:
     """Return the compact registry representation of a skill."""
     document = parse_skill_document(path)
     score = score_skill(path)
@@ -422,19 +425,17 @@ def is_executable(path: Path) -> bool:
     return bool(path.stat().st_mode & 0o111)
 
 
-def add_issue(
-    issues: List[Dict[str, Any]], severity: str, code: str, message: str
-) -> None:
+def add_issue(issues: list[dict[str, Any]], severity: str, code: str, message: str) -> None:
     """Append one lint issue."""
     issues.append({"severity": severity, "code": code, "message": message})
 
 
-def has_errors(issues: List[Dict[str, Any]]) -> bool:
+def has_errors(issues: list[dict[str, Any]]) -> bool:
     """Return True when any lint issue is an error."""
     return any(issue["severity"] == "error" for issue in issues)
 
 
-def count_severity(issues: List[Dict[str, Any]], severity: str) -> int:
+def count_severity(issues: list[dict[str, Any]], severity: str) -> int:
     """Count issues by severity."""
     return sum(1 for issue in issues if issue["severity"] == severity)
 
@@ -450,7 +451,7 @@ def grade_score(score: int) -> str:
     return "poor"
 
 
-def build_score_summary(score: int, agent_usable: bool, issues: List[Dict[str, Any]]) -> str:
+def build_score_summary(score: int, agent_usable: bool, issues: list[dict[str, Any]]) -> str:
     """Build a one-line score summary."""
     if agent_usable:
         return f"Agent-usable skill package ({score}/100)"
@@ -459,7 +460,7 @@ def build_score_summary(score: int, agent_usable: bool, issues: List[Dict[str, A
     return f"Usable with reservations; improve warnings and routing metadata ({score}/100)"
 
 
-def format_lint_result(result: Dict[str, Any]) -> str:
+def format_lint_result(result: dict[str, Any]) -> str:
     """Render a human-readable lint result."""
     lines = [
         f"Skill: {result.get('name') or result['path']}",
@@ -478,6 +479,6 @@ def format_lint_result(result: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def dumps_result(data: Dict[str, Any]) -> str:
+def dumps_result(data: dict[str, Any]) -> str:
     """Render structured data as deterministic JSON."""
     return json.dumps(data, indent=2, ensure_ascii=False, sort_keys=True)

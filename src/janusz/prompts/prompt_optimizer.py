@@ -8,7 +8,7 @@ to improve prompt quality, clarity, and effectiveness.
 
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..ai.ai_content_analyzer import AIContentAnalyzer
 from ..models import (
@@ -31,7 +31,7 @@ class PromptOptimizer:
     - Instruction refinement
     """
 
-    def __init__(self, model: str = "anthropic/claude-3-haiku", api_key: Optional[str] = None):
+    def __init__(self, model: str = "anthropic/claude-3-haiku", api_key: str | None = None):
         self.ai_analyzer = AIContentAnalyzer(model=model, api_key=api_key)
         self.optimization_strategies = {
             "clarity": self._optimize_for_clarity,
@@ -42,7 +42,7 @@ class PromptOptimizer:
             "comprehensiveness": self._optimize_for_comprehensiveness,
         }
 
-    def _chat_content(self, messages: List[Dict[str, str]], **kwargs: Any) -> str:
+    def _chat_content(self, messages: list[dict[str, str]], **kwargs: Any) -> str:
         """Run the synchronous AI client and return message content."""
         response = self.ai_analyzer.client.chat_completion(messages=messages, **kwargs)
         try:
@@ -110,7 +110,7 @@ class PromptOptimizer:
         )
 
     async def _optimize_for_clarity(
-        self, request: PromptOptimizationRequest, steps: List[str]
+        self, request: PromptOptimizationRequest, steps: list[str]
     ) -> str:
         """Optimize prompt for clarity and understandability."""
         steps.append("Analyzing prompt clarity and structure")
@@ -159,7 +159,7 @@ class PromptOptimizer:
         return request.text  # Fallback
 
     async def _optimize_for_efficiency(
-        self, request: PromptOptimizationRequest, steps: List[str]
+        self, request: PromptOptimizationRequest, steps: list[str]
     ) -> str:
         """Optimize prompt for token efficiency and conciseness."""
         steps.append("Analyzing prompt for token efficiency")
@@ -202,7 +202,7 @@ class PromptOptimizer:
         return request.text
 
     async def _optimize_for_specificity(
-        self, request: PromptOptimizationRequest, steps: List[str]
+        self, request: PromptOptimizationRequest, steps: list[str]
     ) -> str:
         """Optimize prompt for specificity and precision."""
         steps.append("Enhancing prompt specificity and precision")
@@ -246,7 +246,7 @@ class PromptOptimizer:
         return request.text
 
     async def _optimize_for_creativity(
-        self, request: PromptOptimizationRequest, steps: List[str]
+        self, request: PromptOptimizationRequest, steps: list[str]
     ) -> str:
         """Optimize prompt to encourage creative outputs."""
         steps.append("Enhancing prompt for creative thinking")
@@ -288,7 +288,7 @@ class PromptOptimizer:
         return request.text
 
     async def _optimize_for_conciseness(
-        self, request: PromptOptimizationRequest, steps: List[str]
+        self, request: PromptOptimizationRequest, steps: list[str]
     ) -> str:
         """Optimize prompt for maximum conciseness."""
         steps.append("Making prompt more concise")
@@ -330,7 +330,7 @@ class PromptOptimizer:
         return request.text
 
     async def _optimize_for_comprehensiveness(
-        self, request: PromptOptimizationRequest, steps: List[str]
+        self, request: PromptOptimizationRequest, steps: list[str]
     ) -> str:
         """Optimize prompt for comprehensive coverage."""
         steps.append("Making prompt more comprehensive")
@@ -374,8 +374,8 @@ class PromptOptimizer:
         return request.text
 
     async def _test_prompt_quality(
-        self, prompt: str, test_cases: List[Dict[str, str]], label: str
-    ) -> List[TestResult]:
+        self, prompt: str, test_cases: list[dict[str, str]], label: str
+    ) -> list[TestResult]:
         """Test prompt quality against provided test cases."""
         results = []
 
@@ -385,8 +385,8 @@ class PromptOptimizer:
             test_prompt = f"""
             {prompt}
 
-            Test Input: {test_case.get('input', '')}
-            Expected Output: {test_case.get('expected', '')}
+            Test Input: {test_case.get("input", "")}
+            Expected Output: {test_case.get("expected", "")}
             """
 
             try:
@@ -446,7 +446,7 @@ class PromptOptimizer:
         return results
 
     def _calculate_improvement_score(
-        self, before_results: List[TestResult], after_results: List[TestResult]
+        self, before_results: list[TestResult], after_results: list[TestResult]
     ) -> float:
         """Calculate improvement score between before and after optimization."""
         if not before_results or not after_results or len(before_results) != len(after_results):
@@ -530,7 +530,7 @@ class PromptOptimizer:
 
     async def _generate_improvement_suggestions(
         self, original: str, optimized: str, goal: str
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate suggestions for further improvement."""
         suggestion_prompt = f"""
         Compare the original and optimized prompts and suggest further improvements.

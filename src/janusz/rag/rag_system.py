@@ -8,7 +8,7 @@ using vector search and language model generation.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..ai.ai_content_analyzer import AIContentAnalyzer
 from ..models import DocumentStructure, RAGQuery, RAGResponse, SearchResult, VectorDocument
@@ -26,11 +26,13 @@ class RAGSystem:
     providing accurate answers based on document content.
     """
 
-    def __init__(self,
-                 vector_store: Optional[VectorStoreBase] = None,
-                 embedding_manager: Optional[EmbeddingManager] = None,
-                 ai_analyzer: Optional[AIContentAnalyzer] = None,
-                 collection_name: str = "janusz_docs"):
+    def __init__(
+        self,
+        vector_store: VectorStoreBase | None = None,
+        embedding_manager: EmbeddingManager | None = None,
+        ai_analyzer: AIContentAnalyzer | None = None,
+        collection_name: str = "janusz_docs",
+    ):
         """
         Initialize RAG system.
 
@@ -44,8 +46,7 @@ class RAGSystem:
 
         # Initialize components with defaults
         self.vector_store = vector_store or VectorStoreFactory.create_vector_store(
-            store_type="auto",
-            collection_name=collection_name
+            store_type="auto", collection_name=collection_name
         )
 
         self.embedding_manager = embedding_manager or EmbeddingManager()
@@ -78,7 +79,8 @@ class RAGSystem:
 
         # Create vector document
         vector_doc = VectorDocument(
-            id=document.metadata.title.replace(" ", "_").lower()[:50] + f"_{int(datetime.now().timestamp())}",
+            id=document.metadata.title.replace(" ", "_").lower()[:50]
+            + f"_{int(datetime.now().timestamp())}",
             content=content,
             metadata={
                 "title": document.metadata.title,
@@ -90,7 +92,7 @@ class RAGSystem:
             },
             embedding=embedding_result["document_embedding"],
             chunks=embedding_result["chunks"],
-            last_indexed=datetime.now().isoformat()
+            last_indexed=datetime.now().isoformat(),
         )
 
         # Add to vector store
@@ -100,7 +102,7 @@ class RAGSystem:
         logger.info(f"Added document '{document.metadata.title}' to RAG system")
         return doc_ids[0] if doc_ids else ""
 
-    def add_documents(self, documents: List[DocumentStructure], chunk: bool = True) -> List[str]:
+    def add_documents(self, documents: list[DocumentStructure], chunk: bool = True) -> list[str]:
         """
         Add multiple documents to the RAG system.
 
@@ -124,7 +126,8 @@ class RAGSystem:
 
             # Create vector document
             vector_doc = VectorDocument(
-                id=document.metadata.title.replace(" ", "_").lower()[:50] + f"_{int(datetime.now().timestamp())}",
+                id=document.metadata.title.replace(" ", "_").lower()[:50]
+                + f"_{int(datetime.now().timestamp())}",
                 content=content,
                 metadata={
                     "title": document.metadata.title,
@@ -136,7 +139,7 @@ class RAGSystem:
                 },
                 embedding=embedding_result["document_embedding"],
                 chunks=embedding_result["chunks"],
-                last_indexed=datetime.now().isoformat()
+                last_indexed=datetime.now().isoformat(),
             )
 
             vector_docs.append(vector_doc)
@@ -148,8 +151,13 @@ class RAGSystem:
         logger.info(f"Added {len(doc_ids)} documents to RAG system")
         return doc_ids
 
-    def query(self, question: str, context_documents: Optional[List[str]] = None,
-             max_results: int = 5, generate_answer: bool = True) -> RAGResponse:
+    def query(
+        self,
+        question: str,
+        context_documents: list[str] | None = None,
+        max_results: int = 5,
+        generate_answer: bool = True,
+    ) -> RAGResponse:
         """
         Query the RAG system with a question.
 
@@ -166,9 +174,7 @@ class RAGSystem:
 
         # Create query object
         rag_query = RAGQuery(
-            question=question,
-            context_documents=context_documents or [],
-            max_results=max_results
+            question=question, context_documents=context_documents or [], max_results=max_results
         )
 
         # Perform semantic search
@@ -187,7 +193,9 @@ class RAGSystem:
             # Just return relevant passages
             answer = self._format_search_results(search_results)
         else:
-            answer = "AI analysis not available. Here are the most relevant passages from documents:"
+            answer = (
+                "AI analysis not available. Here are the most relevant passages from documents:"
+            )
             answer += "\n\n" + self._format_search_results(search_results)
 
         processing_time = (datetime.now() - start_time).total_seconds()
@@ -198,10 +206,10 @@ class RAGSystem:
             sources=search_results,
             confidence_score=confidence_score,
             reasoning_chain=reasoning_chain,
-            processing_time=processing_time
+            processing_time=processing_time,
         )
 
-    def search_similar(self, text: str, max_results: int = 5) -> List[SearchResult]:
+    def search_similar(self, text: str, max_results: int = 5) -> list[SearchResult]:
         """
         Search for documents similar to the given text.
 
@@ -225,23 +233,25 @@ class RAGSystem:
             if vector_doc:
                 search_result = SearchResult(
                     document_id=doc_id,
-                    content=vector_doc.content[:500] + "..." if len(vector_doc.content) > 500 else vector_doc.content,
+                    content=vector_doc.content[:500] + "..."
+                    if len(vector_doc.content) > 500
+                    else vector_doc.content,
                     metadata=vector_doc.metadata,
                     score=score,
-                    highlights=self._extract_highlights(text, vector_doc.content)
+                    highlights=self._extract_highlights(text, vector_doc.content),
                 )
                 search_results.append(search_result)
 
         return search_results
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get RAG system statistics."""
         return {
             "indexed_documents": self.indexed_documents,
             "query_count": self.query_count,
             "vector_store_type": type(self.vector_store).__name__,
             "embedding_dimension": self.embedding_manager.embedding_provider.dimension,
-            "ai_available": self.ai_analyzer is not None
+            "ai_available": self.ai_analyzer is not None,
         }
 
     def clear_index(self):
@@ -250,7 +260,7 @@ class RAGSystem:
         self.indexed_documents = 0
         logger.info("Cleared RAG index")
 
-    def _semantic_search(self, query: RAGQuery) -> List[SearchResult]:
+    def _semantic_search(self, query: RAGQuery) -> list[SearchResult]:
         """Perform semantic search for the query."""
         # Generate embedding for the question
         question_embedding = self.embedding_manager.embed_text(query.question)
@@ -271,7 +281,7 @@ class RAGSystem:
                     content=relevant_content,
                     metadata=vector_doc.metadata,
                     score=score,
-                    highlights=self._extract_highlights(query.question, relevant_content)
+                    highlights=self._extract_highlights(query.question, relevant_content),
                 )
                 search_results.append(search_result)
 
@@ -298,55 +308,43 @@ class RAGSystem:
 
         return best_chunk["text"] if best_chunk else vector_doc.content
 
-    def _generate_answer(self, question: str, search_results: List[SearchResult]) -> tuple:
+    def _generate_answer(self, question: str, search_results: list[SearchResult]) -> tuple:
         """Generate an answer using AI based on search results."""
-        if not self.ai_analyzer:
-            return "", [], 0.0
+        reasoning = [
+            "Generative RAG answer synthesis is experimental and not enabled for the 1.0 core surface.",
+            "Returning retrieved passages instead of a synthetic answer.",
+        ]
+        answer = (
+            "RAG generation is not production-enabled in Janusz 1.0. "
+            "Use search-only results or configure and harden a generation provider.\n\n"
+            f"Question: {question}\n\n"
+            f"{self._format_search_results(search_results)}"
+        )
+        confidence = (
+            min(0.9, sum(result.score for result in search_results[:3]) / 3)
+            if search_results
+            else 0.0
+        )
+        return answer, reasoning, confidence
 
-        # Format context from search results
-        context_parts = []
-        for result in search_results[:3]:  # Use top 3 results
-            context_parts.append(f"Document: {result.metadata.get('title', 'Unknown')}")
-            context_parts.append(f"Content: {result.content}")
-            context_parts.append("---")
-
-        try:
-            # Use AI analyzer to generate response
-            # For now, we'll create a mock response since we need to integrate with the analyzer
-            reasoning = [
-                "Analyzed search results for relevance",
-                "Extracted key information from top documents",
-                "Generated coherent answer based on evidence"
-            ]
-
-            # Simple answer generation (would be replaced with actual AI call)
-            answer = f"Based on the available documents, here's what I found regarding '{question}':\n\n"
-            for i, result in enumerate(search_results[:2], 1):
-                answer += f"{i}. From '{result.metadata.get('title', 'Document')}' (relevance: {result.score:.2f}):\n"
-                answer += f"   {result.content[:200]}...\n\n"
-
-            confidence = min(0.9, sum(r.score for r in search_results[:3]) / 3) if search_results else 0.3
-
-            return answer, reasoning, confidence
-
-        except Exception as e:
-            logger.error(f"Answer generation failed: {e}")
-            return "Unable to generate answer due to technical issues.", ["Error occurred"], 0.0
-
-    def _format_search_results(self, results: List[SearchResult]) -> str:
+    def _format_search_results(self, results: list[SearchResult]) -> str:
         """Format search results for display."""
         if not results:
             return "No relevant documents found."
 
         formatted = []
         for i, result in enumerate(results, 1):
-            formatted.append(f"{i}. {result.metadata.get('title', 'Document')} (score: {result.score:.2f})")
-            formatted.append(f"   {result.content[:300]}{'...' if len(result.content) > 300 else ''}")
+            formatted.append(
+                f"{i}. {result.metadata.get('title', 'Document')} (score: {result.score:.2f})"
+            )
+            formatted.append(
+                f"   {result.content[:300]}{'...' if len(result.content) > 300 else ''}"
+            )
             formatted.append("")
 
         return "\n".join(formatted)
 
-    def _extract_highlights(self, query: str, content: str) -> List[str]:
+    def _extract_highlights(self, query: str, content: str) -> list[str]:
         """Extract highlighted snippets from content based on query."""
         highlights = []
         query_words = query.lower().split()
@@ -364,7 +362,7 @@ class RAGSystem:
 
         return highlights[:3]  # Limit to 3 highlights
 
-    def _extract_content_from_sections(self, sections: List[Dict[str, Any]]) -> str:
+    def _extract_content_from_sections(self, sections: list[dict[str, Any]]) -> str:
         """Extract text content from document sections."""
         content_parts = []
 
@@ -380,12 +378,12 @@ class RAGSystem:
 
         return "\n\n".join(content_parts)
 
-    def _cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
+    def _cosine_similarity(self, vec1: list[float], vec2: list[float]) -> float:
         """Calculate cosine similarity between two vectors."""
         import math
 
         # Calculate dot product
-        dot_product = sum(a * b for a, b in zip(vec1, vec2))
+        dot_product = sum(a * b for a, b in zip(vec1, vec2, strict=True))
 
         # Calculate magnitudes
         magnitude1 = math.sqrt(sum(a * a for a in vec1))

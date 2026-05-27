@@ -10,10 +10,12 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
-from ..ai.ai_content_analyzer import AIContentAnalyzer
 from ..models import DocumentStructure, ModularSchema
+
+if TYPE_CHECKING:
+    from ..ai.ai_content_analyzer import AIContentAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +31,7 @@ class SchemaManager:
     - AI-powered schema generation
     """
 
-    def __init__(self, schema_dir: str = "schemas", ai_analyzer: Optional[AIContentAnalyzer] = None):
+    def __init__(self, schema_dir: str = "schemas", ai_analyzer: "AIContentAnalyzer | None" = None):
         """
         Initialize Schema Manager.
 
@@ -40,7 +42,7 @@ class SchemaManager:
         self.schema_dir = Path(schema_dir)
         self.schema_dir.mkdir(exist_ok=True)
         self.ai_analyzer = ai_analyzer
-        self._schemas_cache: Dict[str, ModularSchema] = {}
+        self._schemas_cache: dict[str, ModularSchema] = {}
         self._load_schemas()
 
     def _load_schemas(self):
@@ -49,7 +51,7 @@ class SchemaManager:
 
         for schema_file in self.schema_dir.glob("*.json"):
             try:
-                with open(schema_file, encoding='utf-8') as f:
+                with open(schema_file, encoding="utf-8") as f:
                     schema_data = json.load(f)
                     schema = ModularSchema(**schema_data)
                     self._schemas_cache[schema.id] = schema
@@ -58,11 +60,13 @@ class SchemaManager:
 
         logger.info(f"Loaded {len(self._schemas_cache)} schemas")
 
-    def get_schema(self, schema_id: str) -> Optional[ModularSchema]:
+    def get_schema(self, schema_id: str) -> ModularSchema | None:
         """Get a schema by ID."""
         return self._schemas_cache.get(schema_id)
 
-    def list_schemas(self, category: Optional[str] = None, tags: Optional[List[str]] = None) -> List[ModularSchema]:
+    def list_schemas(
+        self, category: str | None = None, tags: list[str] | None = None
+    ) -> list[ModularSchema]:
         """List available schemas with optional filtering."""
         schemas = list(self._schemas_cache.values())
 
@@ -79,7 +83,7 @@ class SchemaManager:
         schema_file = self.schema_dir / f"{schema.id}.json"
 
         try:
-            with open(schema_file, 'w', encoding='utf-8') as f:
+            with open(schema_file, "w", encoding="utf-8") as f:
                 json.dump(schema.model_dump(), f, indent=2, ensure_ascii=False)
 
             self._schemas_cache[schema.id] = schema
@@ -89,9 +93,9 @@ class SchemaManager:
             logger.error(f"Failed to save schema {schema.id}: {e}")
             raise
 
-    def create_schema_from_document(self, document: DocumentStructure,
-                                  name: str, description: str,
-                                  category: str = "technical") -> ModularSchema:
+    def create_schema_from_document(
+        self, document: DocumentStructure, name: str, description: str, category: str = "technical"
+    ) -> ModularSchema:
         """
         Create a modular schema from an existing document.
 
@@ -121,7 +125,7 @@ class SchemaManager:
             components=components,
             ai_generated=False,
             confidence_score=0.8,
-            usage_count=0
+            usage_count=0,
         )
 
         self.save_schema(schema)
@@ -168,9 +172,9 @@ class SchemaManager:
         """
 
         try:
-            response = self.ai_analyzer.client.chat_completion([
-                {"role": "user", "content": ai_prompt}
-            ], max_tokens=1000)
+            response = self.ai_analyzer.client.chat_completion(
+                [{"role": "user", "content": ai_prompt}], max_tokens=1000
+            )
 
             content = response["choices"][0]["message"]["content"]
 
@@ -191,8 +195,9 @@ class SchemaManager:
             logger.error(f"Failed to generate AI schema: {e}")
             raise
 
-    def find_matching_schemas(self, document: DocumentStructure,
-                            limit: int = 5) -> List[ModularSchema]:
+    def find_matching_schemas(
+        self, document: DocumentStructure, limit: int = 5
+    ) -> list[ModularSchema]:
         """
         Find schemas that match a given document.
 
@@ -217,8 +222,9 @@ class SchemaManager:
         candidates.sort(key=lambda x: x[1], reverse=True)
         return [schema for schema, score in candidates[:limit]]
 
-    def apply_schema_to_document(self, document: DocumentStructure,
-                               schema_id: str) -> DocumentStructure:
+    def apply_schema_to_document(
+        self, document: DocumentStructure, schema_id: str
+    ) -> DocumentStructure:
         """
         Apply a modular schema to a document structure.
 
@@ -243,7 +249,9 @@ class SchemaManager:
         logger.info(f"Applied schema '{schema.name}' to document")
         return document
 
-    def _extract_components_from_document(self, document: DocumentStructure) -> List[Dict[str, Any]]:
+    def _extract_components_from_document(
+        self, document: DocumentStructure
+    ) -> list[dict[str, Any]]:
         """Extract schema components from a document."""
         components = []
 
@@ -254,10 +262,10 @@ class SchemaManager:
                 "content": f"Section with title pattern: {section.title[:50]}...",
                 "metadata": {
                     "level": section.level,
-                    "has_subsections": len(section.subsections) > 0
+                    "has_subsections": len(section.subsections) > 0,
                 },
                 "required": i < 3,  # First 3 sections are likely required
-                "order": i
+                "order": i,
             }
             components.append(component)
 
@@ -268,13 +276,13 @@ class SchemaManager:
                 "content": "Best practices checklist",
                 "metadata": {"item_count": len(document.analysis.best_practices)},
                 "required": False,
-                "order": len(components)
+                "order": len(components),
             }
             components.append(component)
 
         return components
 
-    def _generate_tags_from_document(self, document: DocumentStructure) -> List[str]:
+    def _generate_tags_from_document(self, document: DocumentStructure) -> list[str]:
         """Generate relevant tags from document content."""
         tags = []
 
@@ -306,9 +314,9 @@ class SchemaManager:
         else:
             return "technical"  # Default
 
-    def _calculate_schema_match_score(self, schema: ModularSchema,
-                                    document_tags: List[str],
-                                    document_category: str) -> float:
+    def _calculate_schema_match_score(
+        self, schema: ModularSchema, document_tags: list[str], document_category: str
+    ) -> float:
         """Calculate how well a schema matches a document."""
         score = 0.0
 
@@ -341,7 +349,7 @@ class SchemaManager:
         else:
             raise ValueError(f"Schema {schema_id} not found")
 
-    def get_schema_stats(self) -> Dict[str, Any]:
+    def get_schema_stats(self) -> dict[str, Any]:
         """Get statistics about available schemas."""
         if not self._schemas_cache:
             return {"total_schemas": 0}
@@ -360,5 +368,5 @@ class SchemaManager:
             "categories": categories,
             "total_usage": total_usage,
             "ai_generated": ai_generated,
-            "avg_usage": total_usage / len(self._schemas_cache)
+            "avg_usage": total_usage / len(self._schemas_cache),
         }

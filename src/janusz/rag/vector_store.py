@@ -10,7 +10,7 @@ import logging
 import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any
 
 from ..models import VectorDocument
 
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class VectorStoreError(Exception):
     """Exception raised when vector store operations fail."""
+
     pass
 
 
@@ -26,12 +27,12 @@ class VectorStoreBase(ABC):
     """Abstract base class for vector stores."""
 
     @abstractmethod
-    def add_documents(self, documents: List[VectorDocument]) -> List[str]:
+    def add_documents(self, documents: list[VectorDocument]) -> list[str]:
         """Add documents to the vector store. Returns document IDs."""
         pass
 
     @abstractmethod
-    def search(self, query_embedding: List[float], top_k: int = 5) -> List[Tuple[str, float]]:
+    def search(self, query_embedding: list[float], top_k: int = 5) -> list[tuple[str, float]]:
         """Search for similar documents. Returns (doc_id, score) pairs."""
         pass
 
@@ -41,12 +42,12 @@ class VectorStoreBase(ABC):
         pass
 
     @abstractmethod
-    def get_document(self, doc_id: str) -> Optional[VectorDocument]:
+    def get_document(self, doc_id: str) -> VectorDocument | None:
         """Retrieve a document by ID."""
         pass
 
     @abstractmethod
-    def list_documents(self, limit: int = 100) -> List[str]:
+    def list_documents(self, limit: int = 100) -> list[str]:
         """List all document IDs in the store."""
         pass
 
@@ -59,7 +60,7 @@ class VectorStoreBase(ABC):
 class FAISSVectorStore(VectorStoreBase):
     """FAISS-based vector store for local, fast semantic search."""
 
-    def __init__(self, dimension: int = 1536, index_file: Optional[str] = None):
+    def __init__(self, dimension: int = 1536, index_file: str | None = None):
         """
         Initialize FAISS vector store.
 
@@ -70,19 +71,21 @@ class FAISSVectorStore(VectorStoreBase):
         try:
             import faiss
         except ImportError as err:
-            raise VectorStoreError("FAISS not available. Install with: pip install faiss-cpu") from err
+            raise VectorStoreError(
+                "FAISS not available. Install with: pip install faiss-cpu"
+            ) from err
 
         self.dimension = dimension
         self._faiss = faiss  # Store faiss reference
         self.index = faiss.IndexFlatIP(dimension)  # Inner product for cosine similarity
-        self.doc_store: Dict[str, VectorDocument] = {}
+        self.doc_store: dict[str, VectorDocument] = {}
         self.index_file = Path(index_file) if index_file else None
 
         # Load existing index if available
         if self.index_file and self.index_file.exists():
             self._load_index()
 
-    def add_documents(self, documents: List[VectorDocument]) -> List[str]:
+    def add_documents(self, documents: list[VectorDocument]) -> list[str]:
         """Add documents with embeddings to FAISS index."""
         if not documents:
             return []
@@ -105,6 +108,7 @@ class FAISSVectorStore(VectorStoreBase):
 
         if embeddings:
             import numpy as np
+
             embeddings_array = np.array(embeddings, dtype=np.float32)
             self.index.add(embeddings_array)
             logger.info(f"Added {len(embeddings)} documents to FAISS index")
@@ -115,19 +119,20 @@ class FAISSVectorStore(VectorStoreBase):
 
         return doc_ids
 
-    def search(self, query_embedding: List[float], top_k: int = 5) -> List[Tuple[str, float]]:
+    def search(self, query_embedding: list[float], top_k: int = 5) -> list[tuple[str, float]]:
         """Search for similar documents using FAISS."""
         if self.index.ntotal == 0:
             return []
 
         import numpy as np
+
         query_array = np.array([query_embedding], dtype=np.float32)
 
         try:
             scores, indices = self.index.search(query_array, min(top_k, self.index.ntotal))
 
             results = []
-            for score, idx in zip(scores[0], indices[0]):
+            for score, idx in zip(scores[0], indices[0], strict=True):
                 if idx < len(self.doc_store):  # Safety check
                     doc_ids = list(self.doc_store.keys())
                     doc_id = doc_ids[idx]
@@ -149,11 +154,11 @@ class FAISSVectorStore(VectorStoreBase):
         self._rebuild_index()
         return True
 
-    def get_document(self, doc_id: str) -> Optional[VectorDocument]:
+    def get_document(self, doc_id: str) -> VectorDocument | None:
         """Get document by ID."""
         return self.doc_store.get(doc_id)
 
-    def list_documents(self, limit: int = 100) -> List[str]:
+    def list_documents(self, limit: int = 100) -> list[str]:
         """List document IDs."""
         return list(self.doc_store.keys())[:limit]
 
@@ -171,6 +176,7 @@ class FAISSVectorStore(VectorStoreBase):
             return
 
         import numpy as np
+
         embeddings = [doc.embedding for doc in self.doc_store.values() if doc.embedding]
 
         if embeddings:
@@ -202,7 +208,7 @@ class FAISSVectorStore(VectorStoreBase):
 class ChromaDBVectorStore(VectorStoreBase):
     """ChromaDB-based vector store for persistent semantic search."""
 
-    def __init__(self, collection_name: str = "janusz_docs", persist_directory: Optional[str] = None):
+    def __init__(self, collection_name: str = "janusz_docs", persist_directory: str | None = None):
         """
         Initialize ChromaDB vector store.
 
@@ -214,7 +220,9 @@ class ChromaDBVectorStore(VectorStoreBase):
             import chromadb
             from chromadb.config import Settings
         except ImportError as err:
-            raise VectorStoreError("ChromaDB not available. Install with: pip install chromadb") from err
+            raise VectorStoreError(
+                "ChromaDB not available. Install with: pip install chromadb"
+            ) from err
 
         self.collection_name = collection_name
         self.persist_directory = persist_directory
@@ -225,10 +233,14 @@ class ChromaDBVectorStore(VectorStoreBase):
             settings.persist_directory = persist_directory
             settings.is_persistent = True
 
-        self.client = chromadb.PersistentClient(path=persist_directory) if persist_directory else chromadb.Client()
+        self.client = (
+            chromadb.PersistentClient(path=persist_directory)
+            if persist_directory
+            else chromadb.Client()
+        )
         self.collection = self.client.get_or_create_collection(name=collection_name)
 
-    def add_documents(self, documents: List[VectorDocument]) -> List[str]:
+    def add_documents(self, documents: list[VectorDocument]) -> list[str]:
         """Add documents to ChromaDB collection."""
         if not documents:
             return []
@@ -256,27 +268,24 @@ class ChromaDBVectorStore(VectorStoreBase):
 
         if ids:
             self.collection.add(
-                ids=ids,
-                embeddings=embeddings,
-                metadatas=metadatas,
-                documents=documents_text
+                ids=ids, embeddings=embeddings, metadatas=metadatas, documents=documents_text
             )
             logger.info(f"Added {len(ids)} documents to ChromaDB")
 
         return ids
 
-    def search(self, query_embedding: List[float], top_k: int = 5) -> List[Tuple[str, float]]:
+    def search(self, query_embedding: list[float], top_k: int = 5) -> list[tuple[str, float]]:
         """Search ChromaDB collection."""
         try:
             results = self.collection.query(
-                query_embeddings=[query_embedding],
-                n_results=top_k,
-                include=["distances"]
+                query_embeddings=[query_embedding], n_results=top_k, include=["distances"]
             )
 
             search_results = []
-            if results['ids'] and results['distances']:
-                for doc_id, distance in zip(results['ids'][0], results['distances'][0]):
+            if results["ids"] and results["distances"]:
+                for doc_id, distance in zip(
+                    results["ids"][0], results["distances"][0], strict=True
+                ):
                     # Convert distance to similarity score (ChromaDB returns distances)
                     score = 1.0 / (1.0 + distance)  # Simple conversion
                     search_results.append((doc_id, score))
@@ -296,27 +305,29 @@ class ChromaDBVectorStore(VectorStoreBase):
             logger.error(f"Failed to delete document {doc_id}: {e}")
             return False
 
-    def get_document(self, doc_id: str) -> Optional[VectorDocument]:
+    def get_document(self, doc_id: str) -> VectorDocument | None:
         """Get document by ID from ChromaDB."""
         try:
-            result = self.collection.get(ids=[doc_id], include=["embeddings", "metadatas", "documents"])
-            if result['ids']:
+            result = self.collection.get(
+                ids=[doc_id], include=["embeddings", "metadatas", "documents"]
+            )
+            if result["ids"]:
                 return VectorDocument(
                     id=doc_id,
-                    content=result['documents'][0] if result['documents'] else "",
-                    metadata=result['metadatas'][0] if result['metadatas'] else {},
-                    embedding=result['embeddings'][0] if result['embeddings'] else None
+                    content=result["documents"][0] if result["documents"] else "",
+                    metadata=result["metadatas"][0] if result["metadatas"] else {},
+                    embedding=result["embeddings"][0] if result["embeddings"] else None,
                 )
         except Exception as e:
             logger.error(f"Failed to get document {doc_id}: {e}")
 
         return None
 
-    def list_documents(self, limit: int = 100) -> List[str]:
+    def list_documents(self, limit: int = 100) -> list[str]:
         """List document IDs in ChromaDB."""
         try:
             result = self.collection.get(limit=limit, include=[])
-            return result['ids']
+            return result["ids"]
         except Exception as e:
             logger.error(f"Failed to list documents: {e}")
             return []
@@ -334,6 +345,9 @@ class ChromaDBVectorStore(VectorStoreBase):
 class VectorStoreFactory:
     """Factory for creating vector stores with automatic fallback."""
 
+    FAISS_KWARGS = {"dimension", "index_file"}
+    CHROMADB_KWARGS = {"collection_name", "persist_directory"}
+
     @staticmethod
     def create_vector_store(store_type: str = "auto", **kwargs) -> VectorStoreBase:
         """
@@ -346,31 +360,47 @@ class VectorStoreFactory:
         Returns:
             Vector store instance
         """
-        if store_type == "faiss" or (store_type == "auto" and VectorStoreFactory._is_faiss_available()):
+        if store_type == "faiss" or (
+            store_type == "auto" and VectorStoreFactory._is_faiss_available()
+        ):
             try:
-                return FAISSVectorStore(**kwargs)
+                return FAISSVectorStore(
+                    **VectorStoreFactory._filter_kwargs(kwargs, VectorStoreFactory.FAISS_KWARGS)
+                )
             except VectorStoreError:
                 if store_type == "faiss":
                     raise
 
-        if store_type == "chromadb" or (store_type == "auto" and VectorStoreFactory._is_chromadb_available()):
+        if store_type == "chromadb" or (
+            store_type == "auto" and VectorStoreFactory._is_chromadb_available()
+        ):
             try:
-                return ChromaDBVectorStore(**kwargs)
+                return ChromaDBVectorStore(
+                    **VectorStoreFactory._filter_kwargs(kwargs, VectorStoreFactory.CHROMADB_KWARGS)
+                )
             except VectorStoreError:
                 if store_type == "chromadb":
                     raise
 
-        # Fallback to simple in-memory store (not implemented yet)
-        raise VectorStoreError("No vector store available. Install FAISS or ChromaDB.")
+        raise VectorStoreError(
+            "No vector store available. Install janusz[rag] with FAISS or ChromaDB."
+        )
+
+    @staticmethod
+    def _filter_kwargs(kwargs: dict[str, Any], allowed: set[str]) -> dict[str, Any]:
+        """Keep only kwargs supported by a vector store backend."""
+        return {key: value for key, value in kwargs.items() if key in allowed}
 
     @staticmethod
     def _is_faiss_available() -> bool:
         """Check if FAISS is available."""
         import importlib.util
+
         return importlib.util.find_spec("faiss") is not None
 
     @staticmethod
     def _is_chromadb_available() -> bool:
         """Check if ChromaDB is available."""
         import importlib.util
+
         return importlib.util.find_spec("chromadb") is not None

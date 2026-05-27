@@ -11,7 +11,7 @@ import json
 import logging
 import os
 import time
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
 import httpx
 
@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 class OpenRouterError(Exception):
     """Exception raised when OpenRouter API calls fail."""
+
     pass
 
 
@@ -36,7 +37,7 @@ class OpenRouterClient:
 
     BASE_URL = "https://openrouter.ai/api/v1"
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "anthropic/claude-3-haiku"):
+    def __init__(self, api_key: str | None = None, model: str = "anthropic/claude-3-haiku"):
         """
         Initialize OpenRouter client.
 
@@ -46,7 +47,9 @@ class OpenRouterClient:
         """
         self.api_key = api_key or os.getenv("JANUSZ_OPENROUTER_API_KEY")
         if not self.api_key:
-            raise ValueError("OpenRouter API key not provided. Set JANUSZ_OPENROUTER_API_KEY environment variable.")
+            raise ValueError(
+                "OpenRouter API key not provided. Set JANUSZ_OPENROUTER_API_KEY environment variable."
+            )
 
         self.model = model
         self.client = httpx.Client(
@@ -54,13 +57,13 @@ class OpenRouterClient:
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://github.com/your-username/janusz",  # Replace with actual repo
-                "X-Title": "Janusz AI Document Processor"
+                "HTTP-Referer": "https://github.com/Hipson47/Janusz",
+                "X-Title": "Janusz AI Document Processor",
             },
-            timeout=60.0
+            timeout=60.0,
         )
 
-    def chat_completion(self, messages: List[Dict[str, str]], **kwargs: Any) -> Dict[str, Any]:
+    def chat_completion(self, messages: list[dict[str, str]], **kwargs: Any) -> dict[str, Any]:
         """Make a chat completion request to OpenRouter."""
         data = {
             "model": kwargs.get("model", self.model),
@@ -72,14 +75,14 @@ class OpenRouterClient:
         try:
             response = self.client.post("/chat/completions", json=data)
             response.raise_for_status()
-            return cast(Dict[str, Any], response.json())
+            return cast(dict[str, Any], response.json())
         except httpx.HTTPError as e:
             logger.error(f"OpenRouter API error: {e}")
             raise OpenRouterError(f"API request failed: {e}") from e
 
     def __del__(self) -> None:
         """Clean up HTTP client."""
-        if hasattr(self, 'client'):
+        if hasattr(self, "client"):
             self.client.close()
 
 
@@ -94,10 +97,12 @@ class AIContentAnalyzer:
     - Insight generation
     """
 
-    def __init__(self,
-                 api_key: Optional[str] = None,
-                 model: str = "anthropic/claude-3-haiku",
-                 enable_cache: bool = True):
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str = "anthropic/claude-3-haiku",
+        enable_cache: bool = True,
+    ):
         """
         Initialize AI Content Analyzer.
 
@@ -108,7 +113,7 @@ class AIContentAnalyzer:
         """
         self.client = OpenRouterClient(api_key=api_key, model=model)
         self.enable_cache = enable_cache
-        self._response_cache: Optional[Dict[str, Any]] = {} if enable_cache else None
+        self._response_cache: dict[str, Any] | None = {} if enable_cache else None
         self.model_used = model
 
     def analyze_document(self, document: DocumentStructure) -> AIExtractionResult:
@@ -146,18 +151,17 @@ class AIContentAnalyzer:
                 summary=ai_summary,
                 quality_score=quality_score,
                 ai_model_used=self.model_used,
-                processing_time_seconds=processing_time
+                processing_time_seconds=processing_time,
             )
 
         except Exception as e:
             logger.error(f"AI analysis failed: {e}")
             # Return minimal result on failure
             return AIExtractionResult(
-                ai_model_used=self.model_used,
-                processing_time_seconds=time.time() - start_time
+                ai_model_used=self.model_used, processing_time_seconds=time.time() - start_time
             )
 
-    def _extract_insights(self, text: str, sections: List[Section]) -> List[AIInsight]:
+    def _extract_insights(self, text: str, sections: list[Section]) -> list[AIInsight]:
         """Extract AI insights from document content."""
         if len(text) < 100:
             return []
@@ -184,9 +188,9 @@ class AIContentAnalyzer:
         """
 
         try:
-            response = self.client.chat_completion([
-                {"role": "user", "content": prompt}
-            ], max_tokens=1500)
+            response = self.client.chat_completion(
+                [{"role": "user", "content": prompt}], max_tokens=1500
+            )
 
             content = response["choices"][0]["message"]["content"]
             parsed = json.loads(content)
@@ -202,7 +206,9 @@ class AIContentAnalyzer:
             logger.warning(f"Failed to extract AI insights: {e}")
             return []
 
-    def _extract_best_practices_ai(self, text: str, sections: List[Section]) -> List[ExtractionItem]:
+    def _extract_best_practices_ai(
+        self, text: str, sections: list[Section]
+    ) -> list[ExtractionItem]:
         """AI-powered extraction of best practices."""
         prompt = f"""
         Extract best practices and recommendations from this technical document.
@@ -224,9 +230,9 @@ class AIContentAnalyzer:
         """
 
         try:
-            response = self.client.chat_completion([
-                {"role": "user", "content": prompt}
-            ], max_tokens=1200)
+            response = self.client.chat_completion(
+                [{"role": "user", "content": prompt}], max_tokens=1200
+            )
 
             content = response["choices"][0]["message"]["content"]
             parsed = json.loads(content)
@@ -242,7 +248,7 @@ class AIContentAnalyzer:
             logger.warning(f"Failed to extract AI best practices: {e}")
             return []
 
-    def _extract_examples_ai(self, text: str, sections: List[Section]) -> List[ExtractionItem]:
+    def _extract_examples_ai(self, text: str, sections: list[Section]) -> list[ExtractionItem]:
         """AI-powered extraction of examples."""
         prompt = f"""
         Extract practical examples and code samples from this technical document.
@@ -264,9 +270,9 @@ class AIContentAnalyzer:
         """
 
         try:
-            response = self.client.chat_completion([
-                {"role": "user", "content": prompt}
-            ], max_tokens=1200)
+            response = self.client.chat_completion(
+                [{"role": "user", "content": prompt}], max_tokens=1200
+            )
 
             content = response["choices"][0]["message"]["content"]
             parsed = json.loads(content)
@@ -282,7 +288,7 @@ class AIContentAnalyzer:
             logger.warning(f"Failed to extract AI examples: {e}")
             return []
 
-    def _generate_summary(self, text: str) -> Optional[str]:
+    def _generate_summary(self, text: str) -> str | None:
         """Generate AI summary of the document."""
         if len(text) < 200:
             return None
@@ -298,9 +304,9 @@ class AIContentAnalyzer:
         """
 
         try:
-            response = self.client.chat_completion([
-                {"role": "user", "content": prompt}
-            ], max_tokens=300)
+            response = self.client.chat_completion(
+                [{"role": "user", "content": prompt}], max_tokens=300
+            )
 
             summary = response["choices"][0]["message"]["content"].strip()
             return summary if len(summary) > 20 else None
@@ -309,7 +315,7 @@ class AIContentAnalyzer:
             logger.warning(f"Failed to generate AI summary: {e}")
             return None
 
-    def _assess_quality(self, document: DocumentStructure, insights: List[AIInsight]) -> float:
+    def _assess_quality(self, document: DocumentStructure, insights: list[AIInsight]) -> float:
         """Assess overall quality score of the document."""
         # Simple heuristic-based scoring
         score = 0.5  # Base score
@@ -333,17 +339,15 @@ class AIContentAnalyzer:
             score -= 0.1
 
         # Factor in metadata completeness
-        metadata_complete = all([
-            document.metadata.title,
-            document.metadata.source,
-            document.metadata.source_type
-        ])
+        metadata_complete = all(
+            [document.metadata.title, document.metadata.source, document.metadata.source_type]
+        )
         if metadata_complete:
             score += 0.1
 
         return max(0.0, min(1.0, score))  # Clamp to 0-1 range
 
-    def get_available_models(self) -> List[str]:
+    def get_available_models(self) -> list[str]:
         """Get list of available models from OpenRouter."""
         try:
             response = self.client.client.get("/models")

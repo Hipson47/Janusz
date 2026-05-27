@@ -4,8 +4,9 @@
 import logging
 import re
 import unicodedata
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any
 
 from .json_packager import JSONPackageConverter, load_structured_package, write_json_package
 
@@ -23,7 +24,7 @@ class SkillPackageBuilder:
         self,
         source_path: str,
         output_dir: str = "skills",
-        skill_name: Optional[str] = None,
+        skill_name: str | None = None,
         overwrite: bool = False,
         use_ai: bool = False,
         ai_model: str = "anthropic/claude-3-haiku",
@@ -62,7 +63,7 @@ class SkillPackageBuilder:
         logger.info(f"Created skill package: {skill_dir}")
         return skill_dir
 
-    def _load_or_create_package(self) -> Dict[str, Any]:
+    def _load_or_create_package(self) -> dict[str, Any]:
         suffix = self.source_path.suffix.lower()
         if suffix in {".json", ".yaml", ".yml"}:
             return load_structured_package(self.source_path)
@@ -74,7 +75,7 @@ class SkillPackageBuilder:
         )
         return converter.to_package_data()
 
-    def _render_skill_md(self, slug: str, title: str, package_data: Dict[str, Any]) -> str:
+    def _render_skill_md(self, slug: str, title: str, package_data: dict[str, Any]) -> str:
         metadata = package_data.get("metadata", {})
         analysis = package_data.get("analysis", {}) or {}
         sections = package_data.get("content", {}).get("sections", []) or []
@@ -147,7 +148,7 @@ class SkillPackageBuilder:
 def create_skill_package(
     source_path: str,
     output_dir: str = "skills",
-    skill_name: Optional[str] = None,
+    skill_name: str | None = None,
     overwrite: bool = False,
     use_ai: bool = False,
     ai_model: str = "anthropic/claude-3-haiku",
@@ -170,10 +171,10 @@ def create_skill_packages_from_directory(
     overwrite: bool = False,
     use_ai: bool = False,
     ai_model: str = "anthropic/claude-3-haiku",
-) -> List[Path]:
+) -> list[Path]:
     """Create skill packages from supported files in a directory."""
     root = Path(directory)
-    created: List[Path] = []
+    created: list[Path] = []
 
     for path in sorted(iter_supported_skill_sources(root)):
         try:
@@ -208,12 +209,12 @@ def slugify(value: str) -> str:
     return re.sub(r"-{2,}", "-", slug)
 
 
-def item_texts(items: Any, limit: int) -> List[str]:
+def item_texts(items: Any, limit: int) -> list[str]:
     """Extract display text from Pydantic-dumped dicts or raw strings."""
     if not isinstance(items, list):
         return []
 
-    values: List[str] = []
+    values: list[str] = []
     for item in items:
         if isinstance(item, dict):
             text = item.get("text")
@@ -226,12 +227,12 @@ def item_texts(items: Any, limit: int) -> List[str]:
     return values
 
 
-def build_skill_triggers(title: str, keywords: List[str]) -> List[str]:
+def build_skill_triggers(title: str, keywords: list[str]) -> list[str]:
     """Build compact trigger phrases for generated skills."""
     triggers = [title, f"{title} knowledge", f"{title} guidance"]
     triggers.extend(keywords[:5])
 
-    unique: List[str] = []
+    unique: list[str] = []
     seen = set()
     for trigger in triggers:
         compact = clamp_text(str(trigger), 80)

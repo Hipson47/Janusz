@@ -13,7 +13,7 @@ import statistics
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from ..ai.ai_content_analyzer import AIContentAnalyzer
 from ..models import BenchmarkResult, TestResult
@@ -35,14 +35,14 @@ class PromptTester:
     def __init__(
         self,
         model: str = "anthropic/claude-3-haiku",
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         max_concurrent: int = 3,
     ):
         self.ai_analyzer = AIContentAnalyzer(model=model, api_key=api_key)
         self.max_concurrent = max_concurrent
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent)
 
-    def _chat_content(self, messages: List[Dict[str, str]], **kwargs: Any) -> str:
+    def _chat_content(self, messages: list[dict[str, str]], **kwargs: Any) -> str:
         """Run the synchronous AI client and return message content."""
         response = self.ai_analyzer.client.chat_completion(messages=messages, **kwargs)
         try:
@@ -51,8 +51,8 @@ class PromptTester:
             return str(response)
 
     async def test_prompt(
-        self, prompt: str, test_cases: List[Dict[str, str]], prompt_id: str = "test"
-    ) -> List[TestResult]:
+        self, prompt: str, test_cases: list[dict[str, str]], prompt_id: str = "test"
+    ) -> list[TestResult]:
         """
         Test a single prompt against multiple test cases.
 
@@ -71,7 +71,7 @@ class PromptTester:
         # Process test cases concurrently but limit concurrency
         semaphore = asyncio.Semaphore(self.max_concurrent)
 
-        async def test_single_case(case_idx: int, test_case: Dict[str, str]) -> TestResult:
+        async def test_single_case(case_idx: int, test_case: dict[str, str]) -> TestResult:
             async with semaphore:
                 return await self._execute_test_case(
                     prompt, test_case, f"{prompt_id}_case_{case_idx}"
@@ -85,10 +85,10 @@ class PromptTester:
 
     async def benchmark_prompts(
         self,
-        prompts: Dict[str, str],
-        test_dataset: List[Dict[str, str]],
+        prompts: dict[str, str],
+        test_dataset: list[dict[str, str]],
         model_name: str = "claude-3-haiku",
-    ) -> List[BenchmarkResult]:
+    ) -> list[BenchmarkResult]:
         """
         Benchmark multiple prompts against a test dataset.
 
@@ -139,10 +139,10 @@ class PromptTester:
 
     async def compare_prompts(
         self,
-        prompts: Dict[str, str],
-        test_dataset: List[Dict[str, str]],
-        baseline_prompt_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        prompts: dict[str, str],
+        test_dataset: list[dict[str, str]],
+        baseline_prompt_id: str | None = None,
+    ) -> dict[str, Any]:
         """
         Compare multiple prompts and provide detailed analysis.
 
@@ -193,7 +193,7 @@ class PromptTester:
         }
 
     async def _execute_test_case(
-        self, prompt: str, test_case: Dict[str, str], case_id: str
+        self, prompt: str, test_case: dict[str, str], case_id: str
     ) -> TestResult:
         """Execute a single test case."""
         start_time = time.time()
@@ -320,7 +320,7 @@ class PromptTester:
 
     def _calculate_detailed_metrics(
         self, response: str, expected: str, input_text: str
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Calculate detailed metrics for response analysis."""
         metrics = {}
 
@@ -353,7 +353,7 @@ class PromptTester:
         # Simple approximation: ~4 characters per token
         return len(text) // 4
 
-    def _calculate_metrics(self, scores: List[float]) -> Dict[str, float]:
+    def _calculate_metrics(self, scores: list[float]) -> dict[str, float]:
         """Calculate statistical metrics from a list of scores."""
         if not scores:
             return {}
@@ -369,8 +369,8 @@ class PromptTester:
         }
 
     def _calculate_confidence_interval(
-        self, scores: List[float], confidence: float = 0.95
-    ) -> Optional[Tuple[float, float]]:
+        self, scores: list[float], confidence: float = 0.95
+    ) -> tuple[float, float] | None:
         """Calculate confidence interval for scores."""
         if len(scores) < 2:
             return None
@@ -384,7 +384,7 @@ class PromptTester:
 
         return (mean - margin, mean + margin)
 
-    def _generate_comparison_summary(self, results: List[BenchmarkResult]) -> Dict[str, Any]:
+    def _generate_comparison_summary(self, results: list[BenchmarkResult]) -> dict[str, Any]:
         """Generate a summary of benchmark comparison."""
         if not results:
             return {}
@@ -403,7 +403,7 @@ class PromptTester:
             "total_token_usage": sum(r.total_token_usage for r in results),
         }
 
-    async def load_test_dataset(self, dataset_path: str) -> List[Dict[str, str]]:
+    async def load_test_dataset(self, dataset_path: str) -> list[dict[str, str]]:
         """Load test dataset from JSON file."""
         path = Path(dataset_path)
         if not path.exists():
@@ -414,7 +414,7 @@ class PromptTester:
 
         return data.get("test_cases", [])
 
-    def save_test_results(self, results: List[TestResult], output_path: str):
+    def save_test_results(self, results: list[TestResult], output_path: str):
         """Save test results to JSON file."""
         output_data = {
             "metadata": {
@@ -430,7 +430,7 @@ class PromptTester:
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)
 
-    def save_benchmark_results(self, results: List[BenchmarkResult], output_path: str):
+    def save_benchmark_results(self, results: list[BenchmarkResult], output_path: str):
         """Save benchmark results to JSON file."""
         output_data = {
             "metadata": {

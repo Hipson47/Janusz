@@ -15,6 +15,7 @@ sys.path.insert(0, str(src_dir))
 
 try:
     from janusz.gui.main_app import main
+
     main()
 except ImportError as e:
     print(f"❌ Error importing GUI: {e}")

@@ -3,8 +3,9 @@
 
 import json
 import shutil
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any
 
 from .orchestrator_tool import build_tool_manifest
 from .skill_packager import slugify
@@ -20,7 +21,7 @@ def package_plugin(
     output_dir: str,
     name: str,
     version: str = "0.1.0",
-    description: Optional[str] = None,
+    description: str | None = None,
     overwrite: bool = False,
     include_manifest: bool = True,
 ) -> Path:
@@ -62,7 +63,7 @@ def package_plugin(
             }
         )
 
-    manifest_files: List[str] = []
+    manifest_files: list[str] = []
     if include_manifest:
         manifest_path = manifest_root / "janusz_tool_manifest.json"
         manifest_path.write_text(
@@ -88,10 +89,10 @@ def package_plugin(
 def build_plugin_manifest(
     name: str,
     version: str,
-    description: Optional[str],
-    skills: Sequence[Dict[str, Any]],
+    description: str | None,
+    skills: Sequence[dict[str, Any]],
     manifest_files: Sequence[str],
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Build the plugin manifest stored in .codex-plugin/plugin.json."""
     slug = slugify(name)
     return {
