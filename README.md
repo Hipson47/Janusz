@@ -17,6 +17,7 @@ result into a reusable skill folder for an agent.
 - Produce structured YAML with metadata, sections, raw text, keywords, examples, and best practices.
 - Produce plain JSON packages with no external format CLI dependency.
 - Generate Codex-compatible skill packages with `SKILL.md` and `references/source.json`.
+- Experimentally generate AI-authored skill drafts that Janusz validates, renders, lints, and scores.
 - Lint and score skills for routing metadata, structure, secret leakage, and agent usability.
 - Ingest repositories into operations skills with architecture, commands, tests, deployment, and pitfalls.
 - Keep a lightweight Janusz memory catalog of useful skill packs and routing triggers.
@@ -70,6 +71,9 @@ janusz test document.json
 # Create a skill package
 janusz skill --file document.json --output-dir skills
 janusz skill --file document.md --output-dir skills --overwrite
+
+# Experimentally create an AI-drafted skill package
+janusz skill ai --file document.json --output-dir skills
 
 # Lint and score skill packages
 janusz skill lint skills/api-documentation
@@ -157,6 +161,10 @@ minimum quality score.
 - resources: Janusz memory, skill catalog, JSON packages
 - prompts: create skill, review skill, convert docs to agent skill
 
+MCP tool paths and resource listings are confined to the configured
+workspace root and hide sensitive files such as `.env`, `.aws`, `.ssh`, `.git`,
+token, credential, and private-key paths.
+
 `janusz package plugin` bundles selected skills into a plugin folder with
 `.codex-plugin/plugin.json`, copied skill directories, and an optional Janusz tool
 manifest.
@@ -175,11 +183,20 @@ Janusz 1.0.0 separates the hardened integration surface from incubating modules:
 | --- | --- |
 | Stable | Core CLI, document conversion, JSON packaging, skill packaging, skill lint/score, repository ingest, registry JSONL/SQLite, plugin packaging, memory, orchestrator manifest |
 | Beta | MCP stdio server with workspace sandboxing and safe path handling |
-| Experimental | AI analysis, schema generation, GUI, RAG, prompt tools, AI orchestration |
+| Experimental | AI skill generation, AI analysis, schema generation, GUI, RAG, prompt tools, AI orchestration |
 
 Experimental modules are import-safe and should fail with actionable messages
 when optional dependencies or provider configuration are missing. They are not
 part of the hardened 1.0 compatibility contract.
+
+`janusz schema generate-ai` is experimental. It requires
+`JANUSZ_OPENROUTER_API_KEY` and the AI extra, for example `janusz[ai]`, and unit
+tests use fake analyzers instead of network calls.
+
+`janusz skill ai` is experimental. The model returns only a strict JSON draft;
+Janusz validates that draft, rejects secret-like output, renders the final
+package deterministically, and runs the normal skill lint/score gates. See
+[docs/AI_SKILL_BUILDER.md](docs/AI_SKILL_BUILDER.md).
 
 The release gate is:
 
@@ -197,6 +214,7 @@ integration checklist.
 janusz convert      # document -> YAML
 janusz json         # document/YAML/JSON -> normalized JSON package
 janusz skill        # document/YAML/JSON -> Codex skill package
+janusz skill ai     # experimental AI draft -> validated Codex skill package
 janusz ingest       # repo -> repository operations skill
 janusz registry     # build/search local JSONL and SQLite skill registry
 janusz package      # bundle skills into plugin packages

@@ -155,8 +155,14 @@ wheel-smoke:
 	printf '# Smoke Document\n\nThis document verifies JSON and skill packaging.\n' > $$tmpdir/smoke.md; \
 	(cd $$tmpdir && /tmp/janusz-wheel-test/bin/janusz json --file smoke.md --output smoke.json >/dev/null); \
 	(cd $$tmpdir && /tmp/janusz-wheel-test/bin/janusz skill --file smoke.json --output-dir skills >/dev/null); \
+	(cd $$tmpdir && /tmp/janusz-wheel-test/bin/janusz tool manifest --output manifest.json >/dev/null); \
+	(cd $$tmpdir && /tmp/janusz-wheel-test/bin/janusz registry build --skills-dir skills --output registry.jsonl --no-sqlite >/dev/null); \
+	(cd $$tmpdir && /tmp/janusz-wheel-test/bin/janusz registry search smoke --registry registry.jsonl --json > search.json); \
 	test -f $$tmpdir/smoke.json; \
 	test -n "$$(find $$tmpdir/skills -name SKILL.md -print -quit)"; \
+	test -f $$tmpdir/manifest.json; \
+	test -s $$tmpdir/registry.jsonl; \
+	grep -q '"name": "smoke"' $$tmpdir/search.json; \
 	rm -rf $$tmpdir
 	@echo "Wheel smoke completed"
 

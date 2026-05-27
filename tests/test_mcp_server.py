@@ -162,6 +162,252 @@ def test_mcp_resource_reads_and_package_discovery(temp_dir):
     assert unknown["error"]["code"] == -32603
 
 
+def test_mcp_skills_resource_ignores_root_symlink_escape(temp_dir):
+    """Skill resources must not disclose skills from a symlinked external root."""
+    outside = temp_dir.parent / f"{temp_dir.name}-outside-skills"
+    outside_skill = outside / "external-secret-skill"
+    outside_skill.mkdir(parents=True)
+    (outside_skill / "SKILL.md").write_text(
+        "---\nname: external-secret-skill\n---\n# External\n",
+        encoding="utf-8",
+    )
+    skills_link = temp_dir / "skills"
+    try:
+        skills_link.symlink_to(outside, target_is_directory=True)
+    except OSError:
+        return
+
+    server = JanuszMCPServer(root=temp_dir, memory_path=temp_dir / "memory.json")
+    response = server.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "resources/read",
+            "params": {"uri": "janusz://skills"},
+        }
+    )
+
+    text = response["result"]["contents"][0]["text"]
+    assert json.loads(text)["skills"] == []
+    assert "external-secret-skill" not in text
+    assert str(outside) not in text
+
+
+def test_mcp_skills_resource_ignores_nested_symlink_escape(temp_dir):
+    """Nested skill symlink escapes should be ignored without leaking metadata."""
+    skills_dir = temp_dir / "skills"
+    safe_skill = skills_dir / "safe-helper"
+    safe_skill.mkdir(parents=True)
+    (safe_skill / "SKILL.md").write_text(
+        "---\nname: safe-helper\n---\n# Safe\n",
+        encoding="utf-8",
+    )
+
+    outside_skill = temp_dir.parent / f"{temp_dir.name}-outside-nested-skill"
+    outside_skill.mkdir()
+    (outside_skill / "SKILL.md").write_text(
+        "---\nname: outside-nested-skill\n---\n# Outside\n",
+        encoding="utf-8",
+    )
+    link = skills_dir / "linked-outside"
+    try:
+        link.symlink_to(outside_skill, target_is_directory=True)
+    except OSError:
+        return
+
+    server = JanuszMCPServer(root=temp_dir, memory_path=temp_dir / "memory.json")
+    response = server.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "resources/read",
+            "params": {"uri": "janusz://skills"},
+        }
+    )
+
+    text = response["result"]["contents"][0]["text"]
+    skills = json.loads(text)["skills"]
+    assert skills == [{"name": "safe-helper", "path": "skills/safe-helper"}]
+    assert "outside-nested-skill" not in text
+    assert "linked-outside" not in text
+    assert str(outside_skill) not in text
+
+
+def test_mcp_skills_resource_hides_sensitive_skill_paths(temp_dir):
+    """Skill resources should apply the shared sensitive path policy."""
+    safe_skill = temp_dir / "skills" / "safe-helper"
+    safe_skill.mkdir(parents=True)
+    (safe_skill / "SKILL.md").write_text(
+        "---\nname: safe-helper\n---\n# Safe\n",
+        encoding="utf-8",
+    )
+    sensitive_skill = temp_dir / "skills" / ".ssh" / "private-helper"
+    sensitive_skill.mkdir(parents=True)
+    (sensitive_skill / "SKILL.md").write_text(
+        "---\nname: private-helper\n---\n# Private\n",
+        encoding="utf-8",
+    )
+    token_skill = temp_dir / "skills" / "api-token-helper"
+    token_skill.mkdir()
+    (token_skill / "SKILL.md").write_text(
+        "---\nname: api-token-helper\n---\n# Token\n",
+        encoding="utf-8",
+    )
+
+    server = JanuszMCPServer(root=temp_dir, memory_path=temp_dir / "memory.json")
+    response = server.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "resources/read",
+            "params": {"uri": "janusz://skills"},
+        }
+    )
+
+    text = response["result"]["contents"][0]["text"]
+    assert json.loads(text)["skills"] == [{"name": "safe-helper", "path": "skills/safe-helper"}]
+    assert ".ssh" not in text
+    assert "private-helper" not in text
+    assert "api-token-helper" not in text
+    assert str(temp_dir) not in text
+
+
+def test_mcp_package_discovery_hides_sensitive_json_paths(temp_dir):
+    """Package resources must not disclose sensitive JSON files or paths."""
+    safe_package = temp_dir / "safe-package.json"
+    safe_package.write_text("{}", encoding="utf-8")
+
+    aws_credentials = temp_dir / ".aws" / "credentials.json"
+    aws_credentials.parent.mkdir()
+    aws_credentials.write_text('{"token": "secret"}', encoding="utf-8")
+    env_json = temp_dir / ".env.json"
+    env_json.write_text('{"secret": "value"}', encoding="utf-8")
+    ssh_key_json = temp_dir / ".ssh" / "id_rsa.json"
+    ssh_key_json.parent.mkdir()
+    ssh_key_json.write_text('{"private_key": "secret"}', encoding="utf-8")
+    token_json = temp_dir / "api-token.json"
+    token_json.write_text('{"token": "secret"}', encoding="utf-8")
+
+    server = JanuszMCPServer(root=temp_dir, memory_path=temp_dir / "memory.json")
+    response = server.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "resources/read",
+            "params": {"uri": "janusz://packages"},
+        }
+    )
+
+    text = response["result"]["contents"][0]["text"]
+    packages = json.loads(text)["packages"]
+    paths = {package["path"] for package in packages}
+
+    assert paths == {"safe-package.json"}
+    assert ".aws" not in text
+    assert ".env" not in text
+    assert ".ssh" not in text
+    assert "token" not in text
+    assert str(temp_dir) not in text
+
+
+def test_mcp_package_discovery_skips_symlink_escape(temp_dir):
+    """Package discovery should not report symlinks resolving outside the root."""
+    outside = temp_dir.parent / "outside-package.json"
+    outside.write_text("{}", encoding="utf-8")
+    link = temp_dir / "linked.json"
+    try:
+        link.symlink_to(outside)
+    except OSError:
+        return
+
+    safe_package = temp_dir / "safe-package.json"
+    safe_package.write_text("{}", encoding="utf-8")
+
+    packages = find_json_packages(temp_dir)
+
+    assert packages == [{"path": "safe-package.json", "name": "safe-package.json"}]
+
+
+def test_mcp_package_discovery_returns_sorted_relative_paths(temp_dir):
+    """Package discovery should be deterministic for orchestrator resource consumers."""
+    (temp_dir / "zeta.json").write_text("{}", encoding="utf-8")
+    nested = temp_dir / "nested"
+    nested.mkdir()
+    (nested / "beta.json").write_text("{}", encoding="utf-8")
+    (temp_dir / "alpha.json").write_text("{}", encoding="utf-8")
+
+    packages = find_json_packages(temp_dir)
+
+    assert [package["path"] for package in packages] == [
+        "alpha.json",
+        "nested/beta.json",
+        "zeta.json",
+    ]
+
+
+def test_mcp_package_discovery_honors_limits(temp_dir):
+    """Package discovery should enforce caller limits after deterministic sorting."""
+    for index in range(101):
+        (temp_dir / f"package-{index:03}.json").write_text("{}", encoding="utf-8")
+
+    assert find_json_packages(temp_dir, limit=0) == []
+    assert find_json_packages(temp_dir, limit=-1) == []
+    assert [package["path"] for package in find_json_packages(temp_dir, limit=1)] == [
+        "package-000.json"
+    ]
+    assert len(find_json_packages(temp_dir)) == 100
+
+
+def test_mcp_packages_resource_uses_bounded_default_limit(temp_dir):
+    """The packages resource should not emit unbounded package listings by default."""
+    for index in range(101):
+        (temp_dir / f"package-{index:03}.json").write_text("{}", encoding="utf-8")
+    server = JanuszMCPServer(root=temp_dir, memory_path=temp_dir / "memory.json")
+
+    response = server.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "resources/read",
+            "params": {"uri": "janusz://packages"},
+        }
+    )
+
+    packages = json.loads(response["result"]["contents"][0]["text"])["packages"]
+    assert len(packages) == 100
+    assert packages[-1]["path"] == "package-099.json"
+
+
+def test_mcp_package_discovery_skips_non_json_without_stopping(temp_dir):
+    """A non-JSON file should not prevent later JSON packages from being listed."""
+    (temp_dir / "00-readme.txt").write_text("not a package", encoding="utf-8")
+    (temp_dir / "01-package.json").write_text("{}", encoding="utf-8")
+
+    assert find_json_packages(temp_dir) == [{"path": "01-package.json", "name": "01-package.json"}]
+
+
+def test_mcp_package_discovery_prunes_ignored_safe_dirs(temp_dir):
+    """Ignored non-sensitive directories should be pruned before package discovery."""
+    ignored = temp_dir / ".venv"
+    ignored.mkdir()
+    (ignored / "hidden.json").write_text("{}", encoding="utf-8")
+    (temp_dir / "visible.json").write_text("{}", encoding="utf-8")
+
+    assert find_json_packages(temp_dir) == [{"path": "visible.json", "name": "visible.json"}]
+
+
+def test_mcp_package_discovery_ignores_dangling_json_symlink(temp_dir):
+    """Dangling symlinks should not break package resource generation."""
+    link = temp_dir / "dangling.json"
+    try:
+        link.symlink_to(temp_dir / "missing.json")
+    except OSError:
+        return
+    (temp_dir / "safe.json").write_text("{}", encoding="utf-8")
+
+    assert find_json_packages(temp_dir) == [{"path": "safe.json", "name": "safe.json"}]
+
+
 def test_mcp_rejects_path_traversal_without_leaking_root(temp_dir):
     """Tool calls should not access files outside the configured workspace."""
     outside = temp_dir.parent / "outside.json"

@@ -13,7 +13,7 @@ The supported runtime is Python 3.10 or newer.
 | --- | --- | --- |
 | Stable | `convert`, `json`, `skill`, `skill lint`, `skill score`, `ingest repo`, `registry`, `package plugin`, `memory`, `tool manifest` | Production 1.0 integration surface |
 | Beta | `mcp serve` | Workspace-sandboxed stdio MCP server; safe for local orchestrator integration after host-level review |
-| Experimental | `rag`, `gui`, `schema`, `prompt`, `orchestrate`, `ai` provider helpers | Import-safe incubating modules; not part of the 1.0 compatibility guarantee |
+| Experimental | `skill ai`, `rag`, `gui`, `schema`, `prompt`, `orchestrate`, `ai` provider helpers | Import-safe incubating modules; not part of the 1.0 compatibility guarantee |
 
 ## Integration Checklist
 
@@ -67,8 +67,20 @@ The MCP layer:
 - rejects path traversal, absolute paths outside the root, and symlink escapes;
 - denies sensitive paths such as `.env`, `.ssh`, `.git`, private keys, token files,
   and common cloud credential files;
+- applies the same sensitive-path policy to resource listings such as
+  `janusz://packages` and `janusz://skills`;
 - enforces a default 10 MiB input size limit;
 - returns sanitized user-facing errors that do not expose host-specific absolute paths.
+
+`janusz schema generate-ai` remains experimental. It is wired through a lazily
+constructed AI analyzer and fails with actionable configuration or optional
+dependency errors. Unit tests cover the command with a fake analyzer and do not
+call external AI services.
+
+`janusz skill ai` remains experimental. It asks an AI provider only for a strict
+JSON draft, validates that draft, rejects secret-like output, renders files with
+deterministic Janusz code, and runs the normal skill lint/score gates. Unit tests
+cover it with fake providers and do not call external AI services.
 
 ## Release Gate
 

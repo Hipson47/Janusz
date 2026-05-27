@@ -14,7 +14,6 @@ from .json_packager import inspect_json_package
 from .memory import DEFAULT_MEMORY_PATH, JanuszMemory
 from .orchestrator_tool import build_tool_manifest
 from .skill_packager import create_skill_package
-from .skill_registry import discover_skill_dirs
 
 MCP_PROTOCOL_VERSION = "2025-06-18"
 DEFAULT_MAX_FILE_BYTES = 10 * 1024 * 1024
@@ -42,10 +41,43 @@ SENSITIVE_FILE_NAMES = {
     "known_hosts",
 }
 SENSITIVE_SUFFIXES = (".key", ".pem", ".p12", ".pfx", ".crt", ".cer")
+SENSITIVE_NAME_MARKERS = ("credential", "secret", "token", "private_key", "private-key")
+DISCOVERY_IGNORED_PART_NAMES = {".venv", "__pycache__", "node_modules"}
 
 
 class PathSandboxError(ValueError):
     """Raised when an MCP path is outside the configured workspace or unsafe."""
+
+
+def reject_sensitive_workspace_path(root: Path, path: Path) -> None:
+    """Reject sensitive files and directories below a resolved workspace root."""
+    relative = path.relative_to(root)
+    lower_parts = tuple(part.lower() for part in relative.parts)
+    joined_parts = "/".join(lower_parts)
+    if any(part in SENSITIVE_PART_NAMES for part in lower_parts):
+        raise PathSandboxError("Sensitive paths are not available through MCP")
+    if any(part in joined_parts for part in SENSITIVE_PART_NAMES if "/" in part):
+        raise PathSandboxError("Sensitive paths are not available through MCP")
+
+    name = path.name.lower()
+    if (
+        name.startswith(".env")
+        or name in SENSITIVE_FILE_NAMES
+        or name.endswith(SENSITIVE_SUFFIXES)
+        or any(marker in name for marker in SENSITIVE_NAME_MARKERS)
+    ):
+        raise PathSandboxError("Sensitive files are not available through MCP")
+
+
+def is_safe_workspace_path(root: Path, path: Path) -> bool:
+    """Return whether a discovered path is contained in root and non-sensitive."""
+    try:
+        resolved = path.resolve(strict=False)
+        resolved.relative_to(root)
+        reject_sensitive_workspace_path(root, resolved)
+    except (OSError, ValueError, PathSandboxError):
+        return False
+    return True
 
 
 class JanuszMCPServer:
@@ -106,17 +138,7 @@ class JanuszMCPServer:
 
     def _reject_sensitive_path(self, path: Path) -> None:
         """Reject sensitive files and directories by default."""
-        relative = path.relative_to(self.root)
-        lower_parts = tuple(part.lower() for part in relative.parts)
-        joined_parts = "/".join(lower_parts)
-        if any(part in SENSITIVE_PART_NAMES for part in lower_parts):
-            raise PathSandboxError("Sensitive paths are not available through MCP")
-        if any(part in joined_parts for part in SENSITIVE_PART_NAMES if "/" in part):
-            raise PathSandboxError("Sensitive paths are not available through MCP")
-
-        name = path.name.lower()
-        if name in SENSITIVE_FILE_NAMES or name.endswith(SENSITIVE_SUFFIXES):
-            raise PathSandboxError("Sensitive files are not available through MCP")
+        reject_sensitive_workspace_path(self.root, path)
 
     def display_path(self, path: Path) -> str:
         """Return a workspace-relative path for user-facing output."""
@@ -362,12 +384,7 @@ class JanuszMCPServer:
         if uri == "janusz://memory":
             data = JanuszMemory(self.memory_path).export_tool_context()
         elif uri == "janusz://skills":
-            data = {
-                "skills": [
-                    {"name": path.name, "path": self.display_path(path.resolve())}
-                    for path in discover_skill_dirs([str(self.root / "skills")])
-                ]
-            }
+            data = {"skills": find_skill_catalog(self.root)}
         elif uri == "janusz://packages":
             data = {"packages": find_json_packages(self.root)}
         else:
@@ -442,13 +459,66 @@ def find_json_packages(root: Path, limit: int = 100) -> list[dict[str, str]]:
     """Find JSON files that look like knowledge packages."""
     root = root.resolve()
     packages: list[dict[str, str]] = []
-    for path in root.rglob("*.json"):
-        if any(part in {".git", ".venv", "__pycache__", "node_modules"} for part in path.parts):
+    if limit <= 0:
+        return packages
+
+    for current_dir, dirnames, filenames in os.walk(root, followlinks=False):
+        current_path = Path(current_dir)
+        dirnames[:] = [
+            dirname
+            for dirname in sorted(dirnames)
+            if dirname not in DISCOVERY_IGNORED_PART_NAMES
+            and is_safe_workspace_path(root, current_path / dirname)
+        ]
+
+        for filename in sorted(filenames):
+            if Path(filename).suffix.lower() != ".json":
+                continue
+            path = current_path / filename
+            resolved = path.resolve(strict=False)
+            if not resolved.is_file():
+                continue
+            if not is_safe_workspace_path(root, resolved):
+                continue
+            packages.append({"path": str(resolved.relative_to(root)), "name": resolved.name})
+
+    return sorted(packages, key=lambda package: package["path"])[:limit]
+
+
+def find_skill_catalog(root: Path, limit: int = 100) -> list[dict[str, str]]:
+    """Find workspace-local skill directories without disclosing unsafe paths."""
+    root = root.resolve()
+    skills_root = root / "skills"
+    skills: list[dict[str, str]] = []
+    if limit <= 0:
+        return skills
+    if not is_safe_workspace_path(root, skills_root):
+        return skills
+    if not skills_root.is_dir():
+        return skills
+
+    for current_dir, dirnames, filenames in os.walk(skills_root, followlinks=False):
+        current_path = Path(current_dir)
+        dirnames[:] = [
+            dirname
+            for dirname in sorted(dirnames)
+            if is_safe_workspace_path(root, current_path / dirname)
+            and not (current_path / dirname).is_symlink()
+        ]
+        if "SKILL.md" not in filenames:
             continue
-        packages.append({"path": str(path.resolve().relative_to(root)), "name": path.name})
-        if len(packages) >= limit:
-            break
-    return packages
+
+        resolved = current_path.resolve(strict=False)
+        skill_file = resolved / "SKILL.md"
+        if not is_safe_workspace_path(root, resolved):
+            continue
+        if not is_safe_workspace_path(root, skill_file):
+            continue
+        if not skill_file.is_file():
+            continue
+        skills.append({"name": resolved.name, "path": str(resolved.relative_to(root))})
+
+    return sorted(skills, key=lambda skill: skill["path"])[:limit]
 
 
 def require_arg(arguments: dict[str, Any], name: str) -> str:
