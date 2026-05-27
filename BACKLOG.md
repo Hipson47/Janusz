@@ -11,6 +11,9 @@
   added MCP package discovery tests and fixed a dangling JSON symlink listing
   edge case, but the global mutation score remains below the long-term 80%
   target.
+- Loop 5 added JSON packager helper tests and the targeted
+  `uv run mutmut run --max-children 4 'janusz.json_packager.*'` pass processed
+  229 JSON-packager mutants, killing 147 and leaving 82 survivors.
 - Affected files:
   - `tests/test_json_packager.py`
   - `tests/test_skill_packager.py`
@@ -37,6 +40,20 @@
 - Targeted MCP tests, coverage gate, mypy, Bandit, and `make check` passed.
 - Keep this item open and continue with high-value surviving mutants in
   `json_packager`, `skill_quality`, and remaining MCP edge cases.
+
+#### Latest Loop 5 Progress
+
+- Added JSON packager tests for deterministic writes, object-root validation,
+  case-insensitive structured loading, `validate_json_file`, default
+  `convert_directory()`, supported-file filtering, conversion counts, and
+  `inspect_json_package` summaries/errors.
+- `json_packager` line coverage increased to 92%, and total coverage increased
+  to 72.41%.
+- Targeted JSON packager mutation pass processed 229 mutants, killed 147, and
+  left 82 survivors.
+- Keep this item open and continue with high-value surviving mutants in
+  `skill_quality`, `skill_registry`, and the remaining non-equivalent
+  `json_packager` survivors.
 
 ### BL-P3-001: RAG Persistence Hardening Plan
 

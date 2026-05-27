@@ -51,20 +51,21 @@ beta as documented in `docs/PRODUCTION_READINESS.md`.
 | `uv run ruff format --check .` | Passed; 53 files already formatted. |
 | `uv run mypy src/janusz` | Passed; no issues in 32 source files. |
 | `uv run python -m compileall -q src scripts examples tests` | Passed. |
-| `uv run pytest tests -q` | Passed; 70 tests. |
-| `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70` | Passed; 71.65% total coverage. |
+| `uv run pytest tests -q` | Passed; 78 tests. |
+| `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70` | Passed; 72.41% total coverage across 78 tests. |
 | `uv run bandit -q -r src/janusz` | Passed. |
 | `uv run pip-audit` | Passed; no known vulnerabilities found, local `janusz` skipped because it is not on PyPI. |
 | `uv build` | Passed; built sdist and wheel. |
 | clean wheel smoke in `/tmp/janusz-wheel-test` | Passed; installed wheel, ran `janusz --help`, `janusz --version`, JSON conversion, skill packaging, tool manifest export, registry build, and registry search. |
 | `uv run pre-commit run --all-files` | Passed after hook alignment. |
 | `uv run mutmut run --max-children 4` | Completed; 3188 mutants processed, 1233 killed, 1708 survived, 247 no-tests. |
+| targeted JSON packager mutation run | Completed; 229 mutants processed, 147 killed, 82 survived. |
 | targeted MCP/schema P1 tests | Passed; 4 tests. |
 | `uv run pytest tests/test_mcp_server.py tests/test_cli_orchestrator_commands.py -q` | Passed; 25 tests. |
 | `uv run pytest tests/test_mcp_server.py -q` | Passed; 19 tests after MCP mutation coverage improvements. |
-| `make check` | Passed; lint, format, mypy, and 70-test developer gate completed. |
+| `make check` | Passed; lint, format, mypy, and 78-test developer gate completed. |
 | `make wheel-smoke` | Passed; clean wheel install, `janusz --version`, JSON conversion, skill packaging, manifest export, registry build, and registry search completed. |
-| `make release-check` | Passed; lock, lint, format, mypy, compile, coverage, Bandit, pip-audit, build, wheel smoke, and version check completed. |
+| latest `make release-check` | Passed after JSON packager mutation coverage improvements; lock, lint, format, mypy, compile, coverage, Bandit, pip-audit, build, wheel smoke, and version check completed. |
 
 ## Security Review
 
@@ -87,7 +88,8 @@ beta as documented in `docs/PRODUCTION_READINESS.md`.
 - Mutation testing is configured and executable, but the current mutation score
   is below the long-term 80% target. The latest full run killed 1233 of 2941
   tested mutants, with 1708 survivors and 247 no-tests. This should drive future
-  test-depth work.
+  test-depth work. A later targeted JSON packager run killed 147 of 229
+  JSON-packager mutants.
 - Optional AI/RAG/GUI/schema/prompt/orchestration modules are not part of the
   hardened 1.0 stable contract and should receive separate hardening before any
   future stability promotion.

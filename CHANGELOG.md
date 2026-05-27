@@ -17,6 +17,8 @@
   directories before traversal.
 - Strengthened MCP package discovery tests for limits, resource defaults,
   ignored directories, non-JSON files, and dangling JSON symlinks.
+- Expanded JSON packager tests for structured loading, deterministic writes,
+  directory conversion, validation helpers, and package inspection.
 - Fixed `janusz schema generate-ai` analyzer wiring and added offline tests for
   successful fake generation and missing provider configuration.
 - Expanded clean-wheel smoke coverage to exercise tool manifest export and

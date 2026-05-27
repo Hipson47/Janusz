@@ -42,19 +42,23 @@ Latest known results:
 - `uv run ruff format --check .`: passed
 - `uv run mypy src/janusz`: passed
 - `uv run python -m compileall -q src scripts examples tests`: passed
-- `uv run pytest tests -q`: passed, 70 tests
+- `uv run pytest tests -q`: passed, 78 tests
 - `uv run pytest tests/test_mcp_server.py -q`: passed, 19 tests
-- coverage gate: passed, 71.65%
+- latest coverage gate: passed, 78 tests, 72.41%
 - `uv run bandit -q -r src/janusz`: passed
 - `uv run pip-audit`: passed; local `janusz` skipped because it is not on PyPI
 - `uv build`: passed
 - `make wheel-smoke`: passed, including manifest export and registry build/search
 - `make check`: passed
-- latest `make check` after MCP mutation coverage improvements: passed, 70 tests
-- latest `make release-check` after MCP mutation coverage improvements: passed
+- latest `make check` after JSON packager mutation coverage improvements:
+  passed, 78 tests
+- latest `make release-check` after JSON packager mutation coverage
+  improvements: passed
 - `uv run pre-commit run --all-files`: passed
 - `uv run mutmut run --max-children 4`: completed, 3188 mutants processed,
   1233 killed, 1708 survived, 247 no-tests
+- targeted JSON packager mutation run: completed, 229 mutants processed, 147
+  killed, 82 survived
 
 ## Security status
 

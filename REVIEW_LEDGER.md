@@ -152,3 +152,45 @@
   - no unresolved P0/P1 findings;
   - matches were expected policy markers, tests, documented experimental RAG/GUI
     placeholders, or lazy optional imports.
+
+## Loop 5: JSON Packager Mutation Coverage
+
+- Date: 2026-05-27
+- Review findings:
+  - P2: mutation results showed weak direct tests around JSON packager helpers,
+    especially `validate_json_file`, `convert_directory`, and
+    `inspect_json_package`.
+- Commands run:
+  - `uv run pytest tests/test_json_packager.py -q`: passed, 12 tests.
+  - `uv run mutmut run --max-children 4 'janusz.json_packager.*'`: completed
+    targeted JSON packager mutation testing, 229 mutants processed, 147 killed,
+    82 survived.
+  - `uv run ruff check tests/test_json_packager.py`: passed.
+  - `uv run ruff format --check tests/test_json_packager.py`: passed.
+  - `uv run mypy src/janusz`: passed.
+  - `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70`:
+    passed, 78 tests, 72.41% coverage.
+  - `uv run pytest tests -q`: passed, 78 tests.
+  - `make check`: passed, 78 tests.
+  - `make release-check`: passed, including lock check, lint, format, mypy,
+    compileall, coverage, `pip-audit`, build, and expanded wheel smoke.
+  - `uv run pre-commit run --all-files`: passed.
+  - `git diff --check`: passed.
+- Results:
+  - JSON packager coverage increased to 92%.
+  - Public helper and directory conversion behavior now has direct tests.
+- Fixes applied:
+  - no runtime code change; test-only reliability improvement.
+- Remaining issues:
+  - P2 mutation score/test-depth debt remains open for `skill_quality`,
+    `skill_registry`, and remaining non-equivalent `json_packager` survivors.
+
+## Fresh Review After Loop 5
+
+- Date: 2026-05-27
+- Searches:
+  - changed files for hardcoded paths, placeholders, suppressions, skipped-test
+    markers, and secret-like strings.
+- Result:
+  - no unresolved P0/P1 findings;
+  - matches were existing review-ledger search descriptions only.

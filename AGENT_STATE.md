@@ -32,6 +32,17 @@ Experimental surface:
 
 ## Last completed loop
 
+Autonomous loop 5 completed on 2026-05-27:
+
+- continued `BL-P2-002` with JSON packager mutation/test-depth work;
+- added JSON packager tests for deterministic writes, object-root validation,
+  suffix dispatch, validation helpers, directory conversion, and inspection
+  summaries/errors;
+- ran targeted JSON packager mutation testing: 229 mutants processed, 147
+  killed, 82 survived;
+- verified targeted tests, coverage, mypy, `make check`, pre-commit, and diff
+  hygiene, fresh review search, plus the full `make release-check`.
+
 Autonomous loop 4 completed on 2026-05-27:
 
 - selected `BL-P2-002` as the next reliability task;
@@ -72,6 +83,22 @@ Current RC hardening loop completed on 2026-05-27:
 
 ## Commands last run
 
+- `uv run pytest tests/test_json_packager.py -q`: passed, 12 tests
+- `uv run mutmut run --max-children 4 'janusz.json_packager.*'`: completed
+  targeted JSON packager mutation testing, 229 mutants processed, 147 killed,
+  82 survived
+- `uv run ruff check tests/test_json_packager.py`: passed
+- `uv run ruff format --check tests/test_json_packager.py`: passed
+- `uv run mypy src/janusz`: passed
+- `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70`:
+  passed, 78 tests, 72.41% coverage
+- `uv run pytest tests -q`: passed, 78 tests
+- `make check`: passed, 78 tests
+- `make release-check`: passed after loop 5, including lock check, lint,
+  format, mypy, compileall, coverage, `pip-audit`, build, and expanded
+  `make wheel-smoke`
+- `uv run pre-commit run --all-files`: passed
+- `git diff --check`: passed
 - `uv run mutmut run --max-children 4`: completed, 3188 mutants processed,
   1233 killed, 1708 survived, 247 no-tests
 - targeted `mutmut` run for `find_json_packages`: killed several MCP discovery
@@ -88,15 +115,15 @@ Current RC hardening loop completed on 2026-05-27:
 - `uv run bandit -q -r src/janusz`: passed
 - `git diff --check`: passed
 - `make check`: passed, 70 tests
-- `make release-check`: passed after loop 4, including lock check, lint,
-  format, mypy, compileall, coverage, `pip-audit`, build, and expanded
+- loop 4 `make release-check`: passed, including lock check, lint, format,
+  mypy, compileall, coverage, `pip-audit`, build, and expanded
   `make wheel-smoke`
 - `uv lock --check`: passed
 - `uv sync --group dev --locked`: passed
 - `uv run ruff check .`: passed
 - `uv run ruff format --check .`: passed
 - `uv run python -m compileall -q src scripts examples tests`: passed
-- `uv run pytest tests -q`: passed, 70 tests
+- `uv run pytest tests -q`: passed, 78 tests
 - `uv run pip-audit`: passed; local `janusz` skipped because it is not on PyPI
 - `uv build`: passed
 - `make wheel-smoke`: passed, including manifest export and registry build/search
@@ -109,10 +136,9 @@ None.
 
 ## Next recommended task
 
-Pick `BL-P2-002`: raise mutation score for core modules by adding meaningful
-tests around high-value survivors. Start with `json_packager` and
-`skill_quality`, then return to remaining MCP survivors that represent
-non-equivalent behavior.
+Pick `BL-P2-002`: continue raising mutation score for core modules. Start with
+`skill_quality` or `skill_registry`, then return to remaining non-equivalent
+`json_packager` and MCP survivors.
 
 ## Assumptions
 
