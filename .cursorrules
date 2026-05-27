@@ -57,4 +57,3 @@
 - `baza wiedzy 28.11/`, `new/` - private knowledge, never reference
 - `.env*` files - secrets, never expose
 - `__pycache__/`, `.venv/` - generated files
-

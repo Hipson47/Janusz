@@ -213,4 +213,3 @@ prompts = [
 - **API endpoints**: REST API dla integracji zewnętrznych
 - **Cloud deployment**: Docker + Kubernetes
 - **Mobile app**: React Native lub Flutter
-

@@ -156,7 +156,7 @@ wheel-smoke:
 	(cd $$tmpdir && /tmp/janusz-wheel-test/bin/janusz json --file smoke.md --output smoke.json >/dev/null); \
 	(cd $$tmpdir && /tmp/janusz-wheel-test/bin/janusz skill --file smoke.json --output-dir skills >/dev/null); \
 	test -f $$tmpdir/smoke.json; \
-		test -n "$$(find $$tmpdir/skills -name SKILL.md -print -quit)"; \
+	test -n "$$(find $$tmpdir/skills -name SKILL.md -print -quit)"; \
 	rm -rf $$tmpdir
 	@echo "Wheel smoke completed"
 

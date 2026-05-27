@@ -23,13 +23,18 @@ orchestrator workflows.
   integration surface, and tests through `make check`.
 - Hardened release metadata, dependency locking, and low-risk security findings
   for a clean 1.0 build and audit.
+- Added the production release gate through `make release-check`, including
+  coverage, Bandit, `pip-audit`, package build, and clean wheel smoke testing.
 
 ## Verification
 
-- `uv run ruff check src/ tests/`
-- `uv run mypy src/janusz/`
-- `uv run pytest tests/ -q -s`
+- `uv sync --group dev --locked`
+- `uv run ruff check .`
+- `uv run ruff format --check .`
+- `uv run mypy src/janusz`
+- `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70`
 - `make check`
+- `make release-check`
 - `uv build`
 - `uv run bandit -q -r src/janusz`
 - `uv run pip-audit`

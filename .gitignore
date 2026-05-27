@@ -45,6 +45,8 @@ build/
 .coverage
 .pytest_cache/
 .tox/
+.mutmut-cache/
+mutants/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -59,7 +61,6 @@ build/
 # Project specific
 # Uncomment if you want to ignore generated files:
 # *.yaml
-# *.toon
 
 # But keep source files:
 !*.md

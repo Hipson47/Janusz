@@ -13,8 +13,6 @@ import os
 import time
 from typing import Any, cast
 
-import httpx
-
 from ..models import (
     AIExtractionResult,
     AIInsight,
@@ -29,7 +27,17 @@ logger = logging.getLogger(__name__)
 class OpenRouterError(Exception):
     """Exception raised when OpenRouter API calls fail."""
 
-    pass
+
+def load_httpx() -> Any:
+    """Load the optional HTTP client dependency only when AI features are used."""
+    try:
+        import httpx
+    except ImportError as exc:
+        raise RuntimeError(
+            "AI analysis requires the optional HTTP client dependency. "
+            "Install Janusz with the ai extra, for example: janusz[ai]."
+        ) from exc
+    return httpx
 
 
 class OpenRouterClient:
@@ -52,7 +60,8 @@ class OpenRouterClient:
             )
 
         self.model = model
-        self.client = httpx.Client(
+        self._httpx = load_httpx()
+        self.client = self._httpx.Client(
             base_url=self.BASE_URL,
             headers={
                 "Authorization": f"Bearer {self.api_key}",
@@ -76,7 +85,7 @@ class OpenRouterClient:
             response = self.client.post("/chat/completions", json=data)
             response.raise_for_status()
             return cast(dict[str, Any], response.json())
-        except httpx.HTTPError as e:
+        except self._httpx.HTTPError as e:
             logger.error(f"OpenRouter API error: {e}")
             raise OpenRouterError(f"API request failed: {e}") from e
 

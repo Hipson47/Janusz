@@ -36,26 +36,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "bandit>=1.9.2",
-    "build>=1.3.0",
-    "coverage[toml]>=7.0.0",
-    "httpx>=0.25.0",
-    "mutmut>=3.2.0",
-    "mypy>=1.0.0",
-    "pip>=26.1.1",
-    "pip-audit>=2.10.0",
-    "pre-commit>=4.0.0",
-    "pytest>=9.0.3",
-    "pytest-cov>=4.0.0",
-    "ruff>=0.14.0",
-    "filelock>=3.20.3",
-    "idna>=3.15",
-    "pygments>=2.20.0",
-    "requests>=2.33.0",
-    "urllib3>=2.7.0",
-    "virtualenv>=20.36.1",
-]
 ai = [
     "httpx>=0.25.0",
 ]
@@ -241,8 +221,15 @@ paths_to_mutate = [
     "src/janusz/memory.py",
     "src/janusz/mcp_server.py",
 ]
-tests_dir = ["tests"]
-runner = "python -m pytest tests/test_json_packager.py tests/test_skill_packager.py tests/test_skill_quality.py tests/test_skill_registry.py tests/test_memory.py tests/test_mcp_server.py"
+also_copy = ["src/janusz"]
+pytest_add_cli_args_test_selection = [
+    "tests/test_json_packager.py",
+    "tests/test_skill_packager.py",
+    "tests/test_skill_quality.py",
+    "tests/test_skill_registry.py",
+    "tests/test_memory.py",
+    "tests/test_mcp_server.py",
+]
 
 [dependency-groups]
 dev = [

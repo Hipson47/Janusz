@@ -98,7 +98,9 @@ that environment in GitHub repository settings.
 converter, JSON packaging, skill packaging, skill quality, registry, memory,
 plugin packaging, repository ingest, MCP, and orchestrator tool manifest.
 
-The target mutation score for a production release is 80% on those core modules.
-Mutation testing is slower than the normal PR gate, so it is a documented manual
-release hardening gate unless CI runtime budget allows it to run on scheduled or
+The long-term target mutation score is 80% on those core modules. The 1.0.0
+release candidate has an executable mutation-testing setup, but the current
+result is below that target and is tracked as non-blocking P2 test-depth debt.
+Mutation testing is slower than the normal PR gate, so it remains a documented
+manual hardening gate unless CI runtime budget allows it to run on scheduled or
 release-candidate workflows.

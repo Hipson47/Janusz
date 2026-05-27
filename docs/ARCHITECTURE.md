@@ -121,11 +121,13 @@ start with only core dependencies installed.
 
 ## Quality Gates
 
-- `uv run ruff check src/ tests/`
-- `uv run mypy src/janusz/`
-- `uv run pytest tests/ -q -s`
+- `uv sync --group dev --locked`
+- `uv run ruff check .`
+- `uv run ruff format --check .`
+- `uv run mypy src/janusz`
+- `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70`
 - `make check`
-- `uv build`
+- `make release-check`
 
 The 1.0 production type gate covers the core CLI, conversion, JSON packaging,
 skill packaging, quality scoring, repository ingest, registry, plugin packaging,
