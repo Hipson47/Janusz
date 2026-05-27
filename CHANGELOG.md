@@ -13,12 +13,17 @@
   errors.
 - Hardened MCP JSON package discovery so `janusz://packages` does not disclose
   sensitive JSON paths or symlink escapes outside the workspace root.
+- Hardened MCP skill catalog discovery so `janusz://skills` does not disclose
+  skill metadata from symlink escapes or sensitive skill paths.
 - Made MCP JSON package discovery deterministic and pruned ignored or sensitive
   directories before traversal.
 - Strengthened MCP package discovery tests for limits, resource defaults,
   ignored directories, non-JSON files, and dangling JSON symlinks.
 - Expanded JSON packager tests for structured loading, deterministic writes,
   directory conversion, validation helpers, and package inspection.
+- Added experimental `janusz skill ai`, which validates AI skill drafts, rejects
+  secret-like draft output, renders packages deterministically, and runs
+  lint/score gates.
 - Fixed `janusz schema generate-ai` analyzer wiring and added offline tests for
   successful fake generation and missing provider configuration.
 - Expanded clean-wheel smoke coverage to exercise tool manifest export and

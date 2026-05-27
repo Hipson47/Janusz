@@ -9,8 +9,8 @@ Janusz is ready as a 1.0.0 core release candidate for the stable CLI, JSON
 packaging, skill packaging, lint/score, repo ingest, registry, memory, plugin
 packaging, tool manifest, and sandboxed MCP integration surface.
 
-Optional AI/RAG/GUI/schema/prompt/orchestration modules remain experimental or
-beta as documented in `docs/PRODUCTION_READINESS.md`.
+Optional AI skill generation, AI/RAG/GUI/schema/prompt/orchestration modules
+remain experimental or beta as documented in `docs/PRODUCTION_READINESS.md`.
 
 ## Files Changed
 
@@ -31,9 +31,12 @@ beta as documented in `docs/PRODUCTION_READINESS.md`.
 - `src/janusz/cli.py`
 - `src/janusz/mcp_server.py`
 - `src/janusz/ai/ai_content_analyzer.py`
+- `src/janusz/ai/skill_generator.py`
+- `src/janusz/ai/skill_prompt.py`
 - `tests/test_cli_orchestrator_commands.py`
 - `tests/test_mcp_server.py`
 - `tests/test_ai_integration.py`
+- `tests/test_ai_skill_builder.py`
 - `uv.lock`
 - `docs/REVIEW_FIX_LEDGER.md`
 - `docs/REVIEW_FIX_PROGRESS.md`
@@ -48,11 +51,11 @@ beta as documented in `docs/PRODUCTION_READINESS.md`.
 | `uv lock --check` | Passed. |
 | `uv sync --group dev --locked` | Passed; resolved 202 packages and audited 80 packages. |
 | `uv run ruff check .` | Passed. |
-| `uv run ruff format --check .` | Passed; 53 files already formatted. |
-| `uv run mypy src/janusz` | Passed; no issues in 32 source files. |
+| `uv run ruff format --check .` | Passed; 56 files already formatted. |
+| `uv run mypy src/janusz` | Passed; no issues in 34 source files. |
 | `uv run python -m compileall -q src scripts examples tests` | Passed. |
-| `uv run pytest tests -q` | Passed; 78 tests. |
-| `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70` | Passed; 72.41% total coverage across 78 tests. |
+| `uv run pytest tests -q` | Passed; 89 tests. |
+| `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70` | Passed; 72.64% total coverage across 89 tests. |
 | `uv run bandit -q -r src/janusz` | Passed. |
 | `uv run pip-audit` | Passed; no known vulnerabilities found, local `janusz` skipped because it is not on PyPI. |
 | `uv build` | Passed; built sdist and wheel. |
@@ -62,10 +65,12 @@ beta as documented in `docs/PRODUCTION_READINESS.md`.
 | targeted JSON packager mutation run | Completed; 229 mutants processed, 147 killed, 82 survived. |
 | targeted MCP/schema P1 tests | Passed; 4 tests. |
 | `uv run pytest tests/test_mcp_server.py tests/test_cli_orchestrator_commands.py -q` | Passed; 25 tests. |
-| `uv run pytest tests/test_mcp_server.py -q` | Passed; 19 tests after MCP mutation coverage improvements. |
-| `make check` | Passed; lint, format, mypy, and 78-test developer gate completed. |
+| targeted MCP skills resource tests | First reproduced 2 failures, then passed after the fix. |
+| `uv run pytest tests/test_mcp_server.py -q` | Passed; 22 tests after MCP skills resource hardening. |
+| `uv run pytest tests/test_ai_skill_builder.py -q` | Passed; 8 tests. |
+| `make check` | Passed; lint, format, mypy, and 89-test developer gate completed. |
 | `make wheel-smoke` | Passed; clean wheel install, `janusz --version`, JSON conversion, skill packaging, manifest export, registry build, and registry search completed. |
-| latest `make release-check` | Passed after JSON packager mutation coverage improvements; lock, lint, format, mypy, compile, coverage, Bandit, pip-audit, build, wheel smoke, and version check completed. |
+| latest `make release-check` | Passed after MCP skills resource hardening and AI Skill Builder; lock, lint, format, mypy, compile, 89-test coverage gate, Bandit, pip-audit, build, wheel smoke, and version check completed. |
 
 ## Security Review
 
@@ -75,7 +80,12 @@ beta as documented in `docs/PRODUCTION_READINESS.md`.
   sensitive JSON files and symlink escapes.
 - MCP package resource discovery skips dangling JSON symlinks and other resolved
   paths that are not files.
+- MCP skill resource discovery uses no-follow traversal, filters symlink escapes
+  and sensitive skill paths, and returns workspace-relative catalog entries.
 - Optional AI client no longer imports `httpx` during core module import.
+- Experimental AI Skill Builder validates strict draft JSON, rejects secret-like
+  draft output, renders files with deterministic Janusz code, and runs existing
+  skill lint/score gates.
 - `schema generate-ai` lazily wires the AI analyzer and is covered by offline
   fake-analyzer and missing-configuration tests.
 - No hardcoded developer path remained in the fresh sweep.
@@ -93,6 +103,8 @@ beta as documented in `docs/PRODUCTION_READINESS.md`.
 - Optional AI/RAG/GUI/schema/prompt/orchestration modules are not part of the
   hardened 1.0 stable contract and should receive separate hardening before any
   future stability promotion.
+- `janusz skill ai` is experimental and should receive real-provider hardening
+  before any future stability promotion.
 
 ## Blocked Items
 

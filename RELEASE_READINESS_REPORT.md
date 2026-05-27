@@ -27,6 +27,7 @@ requires human approval.
 
 ## Experimental surface
 
+- AI skill generation
 - AI/schema generation
 - RAG
 - GUI
@@ -42,18 +43,22 @@ Latest known results:
 - `uv run ruff format --check .`: passed
 - `uv run mypy src/janusz`: passed
 - `uv run python -m compileall -q src scripts examples tests`: passed
-- `uv run pytest tests -q`: passed, 78 tests
-- `uv run pytest tests/test_mcp_server.py -q`: passed, 19 tests
-- latest coverage gate: passed, 78 tests, 72.41%
+- `uv run pytest tests -q`: passed, 89 tests
+- `uv run pytest tests/test_mcp_server.py -q`: passed, 22 tests
+- `uv run pytest tests/test_ai_skill_builder.py -q`: passed, 8 tests
+- latest coverage gate: passed, 89 tests, 72.64%
 - `uv run bandit -q -r src/janusz`: passed
 - `uv run pip-audit`: passed; local `janusz` skipped because it is not on PyPI
 - `uv build`: passed
 - `make wheel-smoke`: passed, including manifest export and registry build/search
-- `make check`: passed
+- `make check`: passed, 89 tests
 - latest `make check` after JSON packager mutation coverage improvements:
   passed, 78 tests
 - latest `make release-check` after JSON packager mutation coverage
   improvements: passed
+- latest `make release-check` after MCP skills hardening and AI Skill Builder:
+  passed, including lock check, lint, format, mypy, compileall, 89-test
+  coverage gate, Bandit, `pip-audit`, build, wheel smoke, and version check
 - `uv run pre-commit run --all-files`: passed
 - `uv run mutmut run --max-children 4`: completed, 3188 mutants processed,
   1233 killed, 1708 survived, 247 no-tests
@@ -66,6 +71,8 @@ MCP tool and resource paths are root-sandboxed. Sensitive directories and files
 are denied or hidden by default. JSON package resource discovery is deterministic
 and prunes ignored or sensitive directories before traversal. Package discovery
 also skips dangling JSON symlinks and other resolved paths that are not files.
+Skill resource discovery uses no-follow traversal, filters symlink escapes and
+sensitive skill paths, and returns only workspace-relative catalog entries.
 Latest security scans passed locally.
 
 ## Packaging status
@@ -79,6 +86,8 @@ package generation, tool manifest export, registry build, and registry search.
 - Mutation score is below the long-term 80% target; latest full run killed 1233
   of 2941 tested mutants, with 1708 survivors and 247 no-tests.
 - Optional AI/RAG/GUI/prompt/orchestration modules remain experimental.
+- `janusz skill ai` is experimental; it is offline-tested with fake providers,
+  but real provider behavior still requires credentials and separate hardening.
 - `pip-audit` cannot audit the local unpublished `janusz` package record because
   it is not available on PyPI.
 

@@ -38,7 +38,8 @@ denies common sensitive paths, enforces a default 10 MiB input size limit, and
 sanitizes user-facing errors to avoid leaking host-specific paths. Resource
 listings, including `janusz://packages`, use the same sensitive-path policy and
 must not reveal `.env`, `.aws`, `.ssh`, `.git`, token, credential, or private-key
-JSON paths.
+paths. The `janusz://skills` resource also hides skill directories that resolve
+outside the workspace root through symlinks.
 
 MCP hosts should still run Janusz with the narrowest useful workspace root and a
 least-privilege operating-system user.
@@ -51,3 +52,15 @@ advisory lookups do.
 
 If advisory data cannot be fetched locally, run the release workflow in CI before
 publishing any package.
+
+## AI Skill Builder
+
+`janusz skill ai` is experimental. Source documents are treated as untrusted data
+and wrapped explicitly in the provider prompt. The prompt instructs the model not
+to follow source-embedded instructions, not to reproduce secrets, and to output
+strict JSON only.
+
+The AI model never writes files directly. Janusz validates the returned draft,
+rejects secret-like output, renders the skill package deterministically, and runs
+the existing skill lint and score gates. Unit tests use fake providers and do not
+call external AI services.

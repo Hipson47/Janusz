@@ -73,3 +73,18 @@
   hidden.
 - Reversal plan: Add an explicit opt-in resource mode if a real use case needs
   non-regular package entries.
+
+## ADR-006: AI Skill Builder Produces Drafts Only
+
+- Decision: Keep AI skill generation experimental and require the model to
+  return only a strict structured draft.
+- Context: The stable Janusz skill pipeline is deterministic and should not be
+  replaced by provider-generated files.
+- Alternatives considered:
+  - Let the model write `SKILL.md` directly.
+  - Reuse `janusz skill --use-ai` and change its existing meaning.
+- Reason: A draft-only provider keeps file writes, validation, linting, and
+  scoring under Janusz control while preserving the deterministic CLI.
+- Risk: Users may expect `janusz skill ai` to be as stable as `janusz skill`.
+- Reversal plan: Promote the command only after provider behavior, retry policy,
+  and integration testing are hardened separately.

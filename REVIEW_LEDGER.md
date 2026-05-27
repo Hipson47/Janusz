@@ -194,3 +194,65 @@
 - Result:
   - no unresolved P0/P1 findings;
   - matches were existing review-ledger search descriptions only.
+
+## Loop 6: MCP Skills Resource Hardening and Experimental AI Skill Builder
+
+- Date: 2026-05-27
+- Review findings:
+  - P1: `janusz://skills` could disclose skill names from a root `skills`
+    symlink resolving outside the configured workspace.
+  - P1: `janusz://skills` did not apply the shared sensitive path policy and
+    could list skill directories below sensitive paths such as `.ssh` or names
+    containing `token`.
+  - P3: Janusz lacked an AI Skill Builder that kept model output constrained to
+    a structured draft and Janusz-owned deterministic rendering.
+- Commands run:
+  - `uv run pytest tests/test_mcp_server.py::test_mcp_skills_resource_ignores_root_symlink_escape tests/test_mcp_server.py::test_mcp_skills_resource_ignores_nested_symlink_escape tests/test_mcp_server.py::test_mcp_skills_resource_hides_sensitive_skill_paths -q`:
+    reproduced 2 failures before the MCP fix and passed after the fix.
+  - `uv run pytest tests/test_ai_skill_builder.py -q`: passed, 8 tests.
+  - `uv run pytest tests/test_mcp_server.py -q`: passed, 22 tests.
+  - `uv run pytest tests/test_ai_skill_builder.py tests/test_mcp_server.py -q`:
+    passed, 30 tests.
+  - `uv run ruff check` on changed Python files: passed.
+  - `uv run ruff format --check` on changed Python files: passed.
+  - `uv run mypy src/janusz`: passed after type cleanup, 34 source files.
+  - `uv sync --group dev --locked`: passed, resolved 202 packages and audited
+    80 packages.
+  - `make release-check`: passed; lock check, lint, format, mypy, compileall,
+    89 tests, 72.64% coverage, Bandit, `pip-audit`, package build, wheel smoke,
+    and version check all completed.
+  - `make check`: passed; lint, format, mypy, and 89 tests completed.
+  - `git diff --check`: passed.
+  - `uv run pre-commit run --all-files`: passed.
+- Results:
+  - MCP skill resources now return only workspace-relative safe skill paths.
+  - `janusz skill ai` exists as an experimental optional command.
+  - AI output is strict JSON/Pydantic validated, secret-checked, rendered by
+    Janusz deterministic code, and linted/scored before success.
+- Fixes applied:
+  - added `find_skill_catalog()` with no-follow workspace traversal, workspace
+    containment, and sensitive path policy for MCP skills resources;
+  - added `src/janusz/ai/skill_prompt.py` and
+    `src/janusz/ai/skill_generator.py`;
+  - wired `janusz skill ai` into the CLI;
+  - added offline AI Skill Builder tests and MCP skills resource security tests.
+- Remaining issues:
+  - AI Skill Builder remains experimental and needs separate real-provider
+    hardening before stability promotion.
+
+## Fresh Review After Loop 6
+
+- Date: 2026-05-27
+- Searches:
+  - hardcoded absolute paths and developer usernames;
+  - sensitive markers and placeholder values;
+  - broad suppressions and skipped-test markers;
+  - optional dependency import leaks from core paths;
+  - production, beta, and experimental documentation claims;
+  - AI prompt source-data boundaries;
+  - MCP resource listing and path discovery code.
+- Result:
+  - no unresolved P0/P1 findings;
+  - matches were expected test fixtures, security policy constants, documented
+    experimental-module limitations, `/tmp` wheel-smoke paths, or optional
+    module imports that remain lazy/isolated from the stable core CLI.

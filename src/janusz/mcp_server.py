@@ -14,7 +14,6 @@ from .json_packager import inspect_json_package
 from .memory import DEFAULT_MEMORY_PATH, JanuszMemory
 from .orchestrator_tool import build_tool_manifest
 from .skill_packager import create_skill_package
-from .skill_registry import discover_skill_dirs
 
 MCP_PROTOCOL_VERSION = "2025-06-18"
 DEFAULT_MAX_FILE_BYTES = 10 * 1024 * 1024
@@ -385,12 +384,7 @@ class JanuszMCPServer:
         if uri == "janusz://memory":
             data = JanuszMemory(self.memory_path).export_tool_context()
         elif uri == "janusz://skills":
-            data = {
-                "skills": [
-                    {"name": path.name, "path": self.display_path(path.resolve())}
-                    for path in discover_skill_dirs([str(self.root / "skills")])
-                ]
-            }
+            data = {"skills": find_skill_catalog(self.root)}
         elif uri == "janusz://packages":
             data = {"packages": find_json_packages(self.root)}
         else:
@@ -489,6 +483,42 @@ def find_json_packages(root: Path, limit: int = 100) -> list[dict[str, str]]:
             packages.append({"path": str(resolved.relative_to(root)), "name": resolved.name})
 
     return sorted(packages, key=lambda package: package["path"])[:limit]
+
+
+def find_skill_catalog(root: Path, limit: int = 100) -> list[dict[str, str]]:
+    """Find workspace-local skill directories without disclosing unsafe paths."""
+    root = root.resolve()
+    skills_root = root / "skills"
+    skills: list[dict[str, str]] = []
+    if limit <= 0:
+        return skills
+    if not is_safe_workspace_path(root, skills_root):
+        return skills
+    if not skills_root.is_dir():
+        return skills
+
+    for current_dir, dirnames, filenames in os.walk(skills_root, followlinks=False):
+        current_path = Path(current_dir)
+        dirnames[:] = [
+            dirname
+            for dirname in sorted(dirnames)
+            if is_safe_workspace_path(root, current_path / dirname)
+            and not (current_path / dirname).is_symlink()
+        ]
+        if "SKILL.md" not in filenames:
+            continue
+
+        resolved = current_path.resolve(strict=False)
+        skill_file = resolved / "SKILL.md"
+        if not is_safe_workspace_path(root, resolved):
+            continue
+        if not is_safe_workspace_path(root, skill_file):
+            continue
+        if not skill_file.is_file():
+            continue
+        skills.append({"name": resolved.name, "path": str(resolved.relative_to(root))})
+
+    return sorted(skills, key=lambda skill: skill["path"])[:limit]
 
 
 def require_arg(arguments: dict[str, Any], name: str) -> str:

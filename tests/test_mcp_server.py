@@ -162,6 +162,116 @@ def test_mcp_resource_reads_and_package_discovery(temp_dir):
     assert unknown["error"]["code"] == -32603
 
 
+def test_mcp_skills_resource_ignores_root_symlink_escape(temp_dir):
+    """Skill resources must not disclose skills from a symlinked external root."""
+    outside = temp_dir.parent / f"{temp_dir.name}-outside-skills"
+    outside_skill = outside / "external-secret-skill"
+    outside_skill.mkdir(parents=True)
+    (outside_skill / "SKILL.md").write_text(
+        "---\nname: external-secret-skill\n---\n# External\n",
+        encoding="utf-8",
+    )
+    skills_link = temp_dir / "skills"
+    try:
+        skills_link.symlink_to(outside, target_is_directory=True)
+    except OSError:
+        return
+
+    server = JanuszMCPServer(root=temp_dir, memory_path=temp_dir / "memory.json")
+    response = server.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "resources/read",
+            "params": {"uri": "janusz://skills"},
+        }
+    )
+
+    text = response["result"]["contents"][0]["text"]
+    assert json.loads(text)["skills"] == []
+    assert "external-secret-skill" not in text
+    assert str(outside) not in text
+
+
+def test_mcp_skills_resource_ignores_nested_symlink_escape(temp_dir):
+    """Nested skill symlink escapes should be ignored without leaking metadata."""
+    skills_dir = temp_dir / "skills"
+    safe_skill = skills_dir / "safe-helper"
+    safe_skill.mkdir(parents=True)
+    (safe_skill / "SKILL.md").write_text(
+        "---\nname: safe-helper\n---\n# Safe\n",
+        encoding="utf-8",
+    )
+
+    outside_skill = temp_dir.parent / f"{temp_dir.name}-outside-nested-skill"
+    outside_skill.mkdir()
+    (outside_skill / "SKILL.md").write_text(
+        "---\nname: outside-nested-skill\n---\n# Outside\n",
+        encoding="utf-8",
+    )
+    link = skills_dir / "linked-outside"
+    try:
+        link.symlink_to(outside_skill, target_is_directory=True)
+    except OSError:
+        return
+
+    server = JanuszMCPServer(root=temp_dir, memory_path=temp_dir / "memory.json")
+    response = server.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "resources/read",
+            "params": {"uri": "janusz://skills"},
+        }
+    )
+
+    text = response["result"]["contents"][0]["text"]
+    skills = json.loads(text)["skills"]
+    assert skills == [{"name": "safe-helper", "path": "skills/safe-helper"}]
+    assert "outside-nested-skill" not in text
+    assert "linked-outside" not in text
+    assert str(outside_skill) not in text
+
+
+def test_mcp_skills_resource_hides_sensitive_skill_paths(temp_dir):
+    """Skill resources should apply the shared sensitive path policy."""
+    safe_skill = temp_dir / "skills" / "safe-helper"
+    safe_skill.mkdir(parents=True)
+    (safe_skill / "SKILL.md").write_text(
+        "---\nname: safe-helper\n---\n# Safe\n",
+        encoding="utf-8",
+    )
+    sensitive_skill = temp_dir / "skills" / ".ssh" / "private-helper"
+    sensitive_skill.mkdir(parents=True)
+    (sensitive_skill / "SKILL.md").write_text(
+        "---\nname: private-helper\n---\n# Private\n",
+        encoding="utf-8",
+    )
+    token_skill = temp_dir / "skills" / "api-token-helper"
+    token_skill.mkdir()
+    (token_skill / "SKILL.md").write_text(
+        "---\nname: api-token-helper\n---\n# Token\n",
+        encoding="utf-8",
+    )
+
+    server = JanuszMCPServer(root=temp_dir, memory_path=temp_dir / "memory.json")
+    response = server.handle(
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "resources/read",
+            "params": {"uri": "janusz://skills"},
+        }
+    )
+
+    text = response["result"]["contents"][0]["text"]
+    assert json.loads(text)["skills"] == [{"name": "safe-helper", "path": "skills/safe-helper"}]
+    assert ".ssh" not in text
+    assert "private-helper" not in text
+    assert "api-token-helper" not in text
+    assert str(temp_dir) not in text
+
+
 def test_mcp_package_discovery_hides_sensitive_json_paths(temp_dir):
     """Package resources must not disclose sensitive JSON files or paths."""
     safe_package = temp_dir / "safe-package.json"

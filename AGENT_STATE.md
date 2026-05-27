@@ -32,6 +32,20 @@ Experimental surface:
 
 ## Last completed loop
 
+Autonomous loop 6 completed on 2026-05-27:
+
+- fixed P1 `janusz://skills` resource sandboxing so skill listings cannot
+  disclose root symlink escapes, nested symlink escapes, or sensitive skill
+  paths, and so MCP skill catalog discovery does not follow directory symlinks;
+- added experimental `janusz skill ai` as a draft-only AI Skill Builder;
+- added strict `AISkillDraft` validation, injection-resistant prompt assembly,
+  lazy OpenRouter provider wiring, secret-like draft rejection, deterministic
+  rendering, and skill lint/score gates;
+- added offline tests for MCP skill resource security and AI Skill Builder
+  success/failure paths;
+- ran the full release gate, developer gate, pre-commit hooks, diff hygiene, and
+  fresh repository searches with no unresolved P0/P1 findings.
+
 Autonomous loop 5 completed on 2026-05-27:
 
 - continued `BL-P2-002` with JSON packager mutation/test-depth work;
@@ -83,6 +97,29 @@ Current RC hardening loop completed on 2026-05-27:
 
 ## Commands last run
 
+- `uv run pytest tests/test_mcp_server.py::test_mcp_skills_resource_ignores_root_symlink_escape tests/test_mcp_server.py::test_mcp_skills_resource_ignores_nested_symlink_escape tests/test_mcp_server.py::test_mcp_skills_resource_hides_sensitive_skill_paths -q`:
+  first reproduced 2 failures, then passed after the fix
+- `uv run pytest tests/test_ai_skill_builder.py -q`: passed, 8 tests
+- `uv run pytest tests/test_mcp_server.py -q`: passed, 22 tests
+- `uv run pytest tests/test_ai_skill_builder.py tests/test_mcp_server.py -q`:
+  passed, 30 tests
+- `uv run ruff check src/janusz/ai/skill_generator.py src/janusz/ai/skill_prompt.py src/janusz/cli.py src/janusz/mcp_server.py tests/test_ai_skill_builder.py tests/test_mcp_server.py`:
+  passed
+- `uv run ruff format --check src/janusz/ai/skill_generator.py src/janusz/ai/skill_prompt.py src/janusz/cli.py src/janusz/mcp_server.py tests/test_ai_skill_builder.py tests/test_mcp_server.py`:
+  passed
+- `uv run mypy src/janusz`: passed after type cleanup, 34 source files
+- `uv sync --group dev --locked`: passed, resolved 202 packages and audited 80
+  packages
+- `make release-check`: passed, including lock check, lint, format, mypy,
+  compileall, 89 tests with 72.64% coverage, Bandit, `pip-audit`, build,
+  wheel smoke, and version check
+- `make check`: passed, lint, format, mypy, and 89 tests
+- `git diff --check`: passed
+- `uv run pre-commit run --all-files`: passed
+- fresh repository searches for hardcoded paths, sensitive markers,
+  placeholders, suppressions, optional dependency leaks, documentation
+  overclaims, AI prompt boundaries, and MCP raw path discovery: no unresolved
+  P0/P1 findings
 - `uv run pytest tests/test_json_packager.py -q`: passed, 12 tests
 - `uv run mutmut run --max-children 4 'janusz.json_packager.*'`: completed
   targeted JSON packager mutation testing, 229 mutants processed, 147 killed,
@@ -136,9 +173,9 @@ None.
 
 ## Next recommended task
 
-Pick `BL-P2-002`: continue raising mutation score for core modules. Start with
-`skill_quality` or `skill_registry`, then return to remaining non-equivalent
-`json_packager` and MCP survivors.
+Commit loop 6 if the working tree still contains the verified diff, then
+continue `BL-P2-002` with `skill_quality` or `skill_registry`, then return to
+remaining non-equivalent `json_packager` and MCP survivors.
 
 ## Assumptions
 

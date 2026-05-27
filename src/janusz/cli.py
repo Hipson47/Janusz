@@ -198,6 +198,23 @@ Supported input formats for json: PDF, MD, TXT, DOCX, HTML, YAML, JSON
         dest="skill_command", help="Skill quality operations"
     )
 
+    skill_ai_parser = skill_subparsers.add_parser(
+        "ai", help="Experimentally generate a skill package from an AI-authored draft"
+    )
+    skill_ai_parser.add_argument("--file", "-f", required=True, help="Source file or JSON package")
+    skill_ai_parser.add_argument(
+        "--output-dir", "-o", default="skills", help="Directory for skill packages"
+    )
+    skill_ai_parser.add_argument("--name", help="Override generated skill name")
+    skill_ai_parser.add_argument(
+        "--overwrite", action="store_true", help="Overwrite existing skill package"
+    )
+    skill_ai_parser.add_argument(
+        "--ai-model",
+        default="anthropic/claude-3-haiku",
+        help="AI model to use for draft generation (default: anthropic/claude-3-haiku)",
+    )
+
     skill_lint_parser = skill_subparsers.add_parser("lint", help="Lint a Codex skill package")
     skill_lint_parser.add_argument("path", help="Skill directory or SKILL.md path")
     skill_lint_parser.add_argument("--json", action="store_true", help="Print JSON result")
@@ -544,6 +561,33 @@ Supported input formats for json: PDF, MD, TXT, DOCX, HTML, YAML, JSON
             )
 
     elif args.command == "skill":
+        if getattr(args, "skill_command", None) == "ai":
+            try:
+                from .ai.skill_generator import create_ai_skill_package
+
+                ai_result = create_ai_skill_package(
+                    args.file,
+                    output_dir=args.output_dir,
+                    skill_name=getattr(args, "name", None),
+                    overwrite=getattr(args, "overwrite", False),
+                    model=getattr(args, "ai_model", "anthropic/claude-3-haiku"),
+                )
+                print(f"Created experimental AI skill package: {ai_result.skill_path}")
+                print(f"Lint score: {ai_result.score_result['score']}/100")
+            except (ImportError, RuntimeError, ValueError) as e:
+                logger.error(f"AI skill generation unavailable: {e}")
+                print(f"AI skill generation unavailable: {e}", file=sys.stderr)
+                print(
+                    "Configure JANUSZ_OPENROUTER_API_KEY and install Janusz with the "
+                    "AI extra, for example: janusz[ai].",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+            except Exception as e:
+                logger.error(f"AI skill generation failed: {e}")
+                print(f"AI skill generation failed: {e}", file=sys.stderr)
+                sys.exit(1)
+
         if getattr(args, "skill_command", None) == "lint":
             result = lint_skill(args.path)
             print(dumps_result(result) if args.json else format_lint_result(result))

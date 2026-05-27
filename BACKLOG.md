@@ -73,6 +73,26 @@
   - targeted tests if implementation begins
 - Status: open
 
+### BL-P3-002: AI Skill Builder Provider Hardening
+
+- Severity: P3
+- Area: AI skill generation
+- Evidence: `janusz skill ai` is implemented as experimental with offline fake
+  provider tests, but real provider behavior still depends on credentials,
+  network reliability, and external model quality.
+- Affected files:
+  - `src/janusz/ai/skill_generator.py`
+  - `src/janusz/ai/skill_prompt.py`
+  - `docs/AI_SKILL_BUILDER.md`
+- Acceptance criteria:
+  - define provider retry/backoff and structured error taxonomy;
+  - add opt-in integration tests that never run in normal unit tests;
+  - keep generated skills experimental until provider behavior is hardened.
+- Validation commands:
+  - offline unit tests
+  - optional manually approved provider integration test
+- Status: open
+
 ## Completed Items
 
 ### BL-P2-001: Deterministic MCP Package Discovery and Traversal Pruning
@@ -108,3 +128,26 @@
 - Status: completed
 - Resolution: Lazily wired `AIContentAnalyzer` into `SchemaManager` for
   `schema generate-ai` and added offline fake-analyzer and missing-key tests.
+
+### BL-P1-003: MCP Skills Resource Symlink and Sensitive Path Disclosure
+
+- Severity: P1
+- Area: MCP security
+- Status: completed
+- Resolution: `janusz://skills` now filters discovered skill directories through
+  workspace containment and sensitive-path policy before returning relative
+  resource output. Tests cover normal workspace skills, root symlink escapes,
+  nested symlink escapes, sensitive skill paths, and absence of leaked outside
+  metadata.
+
+### BL-P3-003: Experimental AI Skill Builder
+
+- Severity: P3
+- Area: AI skill generation
+- Status: completed
+- Resolution: Added `janusz skill ai` with strict `AISkillDraft` validation,
+  injection-resistant prompt construction, lazy OpenRouter provider wiring,
+  secret-like draft rejection, deterministic rendering, and skill lint/score
+  gates. Offline tests cover success, missing config, missing optional
+  dependency, malformed provider output, secret-like output, and prompt
+  injection source text.
