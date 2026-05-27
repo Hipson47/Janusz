@@ -465,16 +465,28 @@ def find_json_packages(root: Path, limit: int = 100) -> list[dict[str, str]]:
     """Find JSON files that look like knowledge packages."""
     root = root.resolve()
     packages: list[dict[str, str]] = []
-    for path in root.rglob("*.json"):
-        if any(part in DISCOVERY_IGNORED_PART_NAMES for part in path.parts):
-            continue
-        resolved = path.resolve(strict=False)
-        if not is_safe_workspace_path(root, resolved):
-            continue
-        packages.append({"path": str(resolved.relative_to(root)), "name": resolved.name})
-        if len(packages) >= limit:
-            break
-    return packages
+    if limit <= 0:
+        return packages
+
+    for current_dir, dirnames, filenames in os.walk(root, followlinks=False):
+        current_path = Path(current_dir)
+        dirnames[:] = [
+            dirname
+            for dirname in sorted(dirnames)
+            if dirname not in DISCOVERY_IGNORED_PART_NAMES
+            and is_safe_workspace_path(root, current_path / dirname)
+        ]
+
+        for filename in sorted(filenames):
+            if Path(filename).suffix.lower() != ".json":
+                continue
+            path = current_path / filename
+            resolved = path.resolve(strict=False)
+            if not is_safe_workspace_path(root, resolved):
+                continue
+            packages.append({"path": str(resolved.relative_to(root)), "name": resolved.name})
+
+    return sorted(packages, key=lambda package: package["path"])[:limit]
 
 
 def require_arg(arguments: dict[str, Any], name: str) -> str:

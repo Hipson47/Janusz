@@ -13,6 +13,8 @@
   errors.
 - Hardened MCP JSON package discovery so `janusz://packages` does not disclose
   sensitive JSON paths or symlink escapes outside the workspace root.
+- Made MCP JSON package discovery deterministic and pruned ignored or sensitive
+  directories before traversal.
 - Fixed `janusz schema generate-ai` analyzer wiring and added offline tests for
   successful fake generation and missing provider configuration.
 - Removed hardcoded local developer paths from the orchestrator manifest and

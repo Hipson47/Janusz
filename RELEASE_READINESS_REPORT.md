@@ -43,19 +43,23 @@ Latest known results:
 - `uv run mypy src/janusz`: passed
 - `uv run python -m compileall -q src scripts examples tests`: passed
 - `uv run pytest tests -q`: passed, 64 tests
+- `uv run pytest tests/test_mcp_server.py -q`: passed, 14 tests
 - coverage gate: passed, 71.49%
 - `uv run bandit -q -r src/janusz`: passed
 - `uv run pip-audit`: passed; local `janusz` skipped because it is not on PyPI
 - `uv build`: passed
 - `make wheel-smoke`: passed
 - `make check`: passed
+- latest `make check` after deterministic MCP discovery: passed, 65 tests
 - `make release-check`: passed
 - `uv run pre-commit run --all-files`: passed
 
 ## Security status
 
 MCP tool and resource paths are root-sandboxed. Sensitive directories and files
-are denied or hidden by default. Latest security scans passed locally.
+are denied or hidden by default. JSON package resource discovery is deterministic
+and prunes ignored or sensitive directories before traversal. Latest security
+scans passed locally.
 
 ## Packaging status
 
@@ -66,6 +70,7 @@ generation.
 ## Known limitations
 
 - Mutation score is below the long-term 80% target.
+- Clean-wheel smoke does not yet exercise tool manifest and registry flows.
 - Optional AI/RAG/GUI/prompt/orchestration modules remain experimental.
 - `pip-audit` cannot audit the local unpublished `janusz` package record because
   it is not available on PyPI.

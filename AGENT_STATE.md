@@ -32,6 +32,16 @@ Experimental surface:
 
 ## Last completed loop
 
+Autonomous loop 2 completed on 2026-05-27:
+
+- selected `BL-P2-001` as the highest-value safe task after P0/P1 were clean;
+- added a test proving package discovery output must be deterministic;
+- changed MCP JSON package discovery to use sorted `os.walk` traversal with
+  pruning for ignored and sensitive directories before descent;
+- verified `tests/test_mcp_server.py`, `mypy`, and `make check`.
+
+Autonomous loop 1 completed on 2026-05-27:
+
 Current RC hardening loop completed on 2026-05-27:
 
 - fixed MCP `janusz://packages` sensitive JSON path disclosure;
@@ -50,6 +60,8 @@ Current RC hardening loop completed on 2026-05-27:
 - `uv run mypy src/janusz`: passed
 - `uv run python -m compileall -q src scripts examples tests`: passed
 - `uv run pytest tests -q`: passed, 64 tests
+- `uv run pytest tests/test_mcp_server.py -q`: passed, 14 tests
+- `make check`: passed, 65 tests after deterministic MCP discovery test
 - `uv run pytest tests --cov=janusz --cov-report=term-missing --cov-fail-under=70`: passed, 71.49%
 - `uv run bandit -q -r src/janusz`: passed
 - `uv run pip-audit`: passed; local `janusz` skipped because it is not on PyPI
@@ -66,10 +78,9 @@ None.
 
 ## Next recommended task
 
-Pick `BL-P2-001`: make MCP package/resource discovery deterministic and prune
-sensitive or generated directories before traversal. This reduces resource
-listing risk and improves predictable orchestrator behavior without changing the
-public API.
+Pick `BL-P2-003`: expand clean-wheel smoke coverage to exercise
+`janusz tool manifest` and a registry build/search flow from the installed
+artifact. This raises packaging confidence without changing public APIs.
 
 ## Assumptions
 

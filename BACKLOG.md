@@ -2,29 +2,6 @@
 
 ## Open Items
 
-### BL-P2-001: Deterministic MCP Package Discovery and Traversal Pruning
-
-- Severity: P2
-- Area: MCP maturity / security hardening
-- Evidence: `find_json_packages()` filters sensitive paths after `Path.rglob`
-  discovers files. It now hides sensitive results, but traversal order is
-  filesystem-dependent and the walker still enters directories that are known to
-  be ignored.
-- Affected files:
-  - `src/janusz/mcp_server.py`
-  - `tests/test_mcp_server.py`
-- Acceptance criteria:
-  - package discovery returns deterministic sorted results;
-  - discovery prunes ignored/sensitive directories before descending;
-  - safe packages are still returned with workspace-relative paths;
-  - sensitive directories remain absent from resource output.
-- Validation commands:
-  - `uv run pytest tests/test_mcp_server.py -q`
-  - `uv run ruff check .`
-  - `uv run ruff format --check .`
-  - `uv run mypy src/janusz`
-- Status: open
-
 ### BL-P2-002: Raise Mutation Score for Core Modules
 
 - Severity: P2
@@ -87,6 +64,15 @@
 - Status: open
 
 ## Completed Items
+
+### BL-P2-001: Deterministic MCP Package Discovery and Traversal Pruning
+
+- Severity: P2
+- Area: MCP maturity / security hardening
+- Status: completed
+- Resolution: Replaced recursive glob package discovery with deterministic
+  `os.walk` traversal, sorted resource output, and directory pruning for ignored
+  or sensitive paths before descent.
 
 ### BL-P1-001: MCP Packages Sensitive Path Disclosure
 

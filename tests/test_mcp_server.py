@@ -218,6 +218,23 @@ def test_mcp_package_discovery_skips_symlink_escape(temp_dir):
     assert packages == [{"path": "safe-package.json", "name": "safe-package.json"}]
 
 
+def test_mcp_package_discovery_returns_sorted_relative_paths(temp_dir):
+    """Package discovery should be deterministic for orchestrator resource consumers."""
+    (temp_dir / "zeta.json").write_text("{}", encoding="utf-8")
+    nested = temp_dir / "nested"
+    nested.mkdir()
+    (nested / "beta.json").write_text("{}", encoding="utf-8")
+    (temp_dir / "alpha.json").write_text("{}", encoding="utf-8")
+
+    packages = find_json_packages(temp_dir)
+
+    assert [package["path"] for package in packages] == [
+        "alpha.json",
+        "nested/beta.json",
+        "zeta.json",
+    ]
+
+
 def test_mcp_rejects_path_traversal_without_leaking_root(temp_dir):
     """Tool calls should not access files outside the configured workspace."""
     outside = temp_dir.parent / "outside.json"

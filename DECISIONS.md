@@ -42,3 +42,18 @@
 - Reason: Local commits are reversible checkpoints and do not publish anything.
 - Risk: Commits may need later squash/rewording before merging.
 - Reversal plan: Maintainers can amend, squash, or cherry-pick local commits.
+
+## ADR-004: Keep MCP Resource Listings Deterministic
+
+- Decision: MCP resource discovery should return globally sorted,
+  workspace-relative paths.
+- Context: Orchestrators may cache or diff MCP resource output, and filesystem
+  traversal order is not a stable API.
+- Alternatives considered:
+  - Preserve filesystem order.
+  - Sort only filenames per directory.
+- Reason: Global sorting gives predictable output and makes resource consumers
+  easier to test.
+- Risk: Collecting before limiting can be slower in huge workspaces.
+- Reversal plan: Replace with a bounded heap or paginated resource API if large
+  workspace performance becomes a problem.

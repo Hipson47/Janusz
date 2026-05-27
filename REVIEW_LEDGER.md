@@ -55,3 +55,28 @@
   - Makefile/CI/release command drift.
 - Result:
   - no unresolved P0/P1 findings.
+
+## Loop 2: Deterministic MCP Package Discovery
+
+- Date: 2026-05-27
+- Review findings:
+  - P2: MCP package discovery hid sensitive paths but returned filesystem-order
+    results and did not prune ignored/sensitive directories before descent.
+- Commands run:
+  - `uv run pytest tests/test_mcp_server.py::test_mcp_package_discovery_returns_sorted_relative_paths -q`: failed before fix as expected;
+  - `uv run pytest tests/test_mcp_server.py::test_mcp_package_discovery_returns_sorted_relative_paths tests/test_mcp_server.py::test_mcp_package_discovery_hides_sensitive_json_paths tests/test_mcp_server.py::test_mcp_package_discovery_skips_symlink_escape -q`: passed after fix;
+  - `uv run pytest tests/test_mcp_server.py -q`: passed, 14 tests;
+  - `uv run ruff check src/janusz/mcp_server.py tests/test_mcp_server.py`: passed;
+  - `uv run ruff format --check src/janusz/mcp_server.py tests/test_mcp_server.py`: passed;
+  - `uv run mypy src/janusz`: passed;
+  - `make check`: passed, 65 tests.
+- Results:
+  - deterministic package path ordering is covered;
+  - sensitive and symlink escape package discovery tests remain green.
+- Fixes applied:
+  - `find_json_packages()` now uses sorted `os.walk` traversal;
+  - ignored and sensitive directories are pruned before descent;
+  - returned package list is globally sorted before limit application.
+- Remaining issues:
+  - P2 mutation score/test-depth debt;
+  - P2 expanded clean-wheel smoke coverage.
